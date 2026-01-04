@@ -1,0 +1,140 @@
+{
+  "scenarioPlan": {
+    "machineCount": 5,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "scanner-workstation",
+        "type": "attacker",
+        "role": "Primary scanning workstation with nmap and network reconnaissance tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "nmap",
+          "wireshark",
+          "tcpdump",
+          "masscan",
+          "hping3",
+          "netcat",
+          "network analysis tools"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "legacy-unix-server",
+        "type": "victim",
+        "role": "Legacy Unix system running multiple network services",
+        "services": [
+          "ssh",
+          "ftp",
+          "telnet",
+          "smtp",
+          "pop3",
+          "finger",
+          "rsh",
+          "rlogin"
+        ],
+        "contains": [
+          "Multiple open ports",
+          "Legacy service banners",
+          "Unix OS fingerprinting targets"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "windows-domain-controller",
+        "type": "victim",
+        "role": "Windows Server acting as domain controller with SMB and RPC services",
+        "services": [
+          "smb",
+          "rpc",
+          "ldap",
+          "kerberos",
+          "dns",
+          "netbios",
+          "rdp"
+        ],
+        "contains": [
+          "Windows OS detection signatures",
+          "SMB shares",
+          "Active Directory services",
+          "RPC endpoints"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "embedded-iot-gateway",
+        "type": "victim",
+        "role": "IoT gateway device with custom embedded services and unusual ports",
+        "services": [
+          "http",
+          "https",
+          "snmp",
+          "tftp",
+          "custom-9999",
+          "custom-8765",
+          "upnp"
+        ],
+        "contains": [
+          "Embedded Linux signatures",
+          "Custom service banners",
+          "SNMP community strings",
+          "UPnP services"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "stealth-honeypot",
+        "type": "victim",
+        "role": "Stealth system designed to test advanced nmap evasion and timing techniques",
+        "services": [
+          "ssh",
+          "http",
+          "mysql",
+          "postgresql",
+          "mongodb"
+        ],
+        "contains": [
+          "Rate limiting",
+          "IDS detection simulation",
+          "Firewall rules",
+          "Port knocking sequences"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "All victim machines must be accessible from scanner workstation",
+      "Different OS signatures provide comprehensive fingerprinting practice",
+      "Honeypot machine requires advanced scanning techniques to fully enumerate"
+    ],
+    "categories": [
+      "network"
+    ],
+    "scenario": {
+      "title": "Multi-OS Network Discovery Lab",
+      "description": "A comprehensive network reconnaissance environment featuring diverse operating systems and services. Practice nmap's full capabilities including OS detection, service enumeration, timing attacks, and evasion techniques across legacy Unix, Windows domain infrastructure, embedded IoT devices, and stealth honeypot systems.",
+      "stages": [
+        "Initial network discovery and host enumeration using ping sweeps and ARP scans",
+        "Port scanning with different techniques (-sS, -sT, -sU, -sA) across all target systems",
+        "Operating system fingerprinting and service version detection on diverse platforms",
+        "Advanced timing and evasion techniques against the stealth honeypot system",
+        "Comprehensive service enumeration including SMB shares, SNMP communities, and custom protocols"
+      ]
+    }
+  },
+  "challengeName": "multi-os-network-discovery-lab",
+  "timestamp": 1767270279805
+}

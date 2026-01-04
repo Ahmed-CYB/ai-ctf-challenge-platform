@@ -1,0 +1,373 @@
+{
+  "machineContents": {
+    "scanner-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "netcat-traditional",
+        "arp-scan",
+        "netdiscover",
+        "traceroute",
+        "dnsutils",
+        "whois",
+        "hashcat",
+        "john",
+        "openssl",
+        "hashid"
+      ]
+    },
+    "corporate-fileserver": {
+      "name": "corporate-fileserver",
+      "type": "victim",
+      "role": "Windows-based file server with multiple network services",
+      "services": [
+        "smb",
+        "ftp",
+        "ssh",
+        "snmp"
+      ],
+      "files": [
+        {
+          "name": "smb.conf",
+          "path": "/etc/samba",
+          "content": "[global]\n   workgroup = CORPORATE\n   server string = Corporate File Server\n   security = user\n   map to guest = bad user\n   guest account = nobody\n   log file = /var/log/samba/log.%m\n   max log size = 1000\n   logging = file\n   panic action = /usr/share/samba/panic-action %d\n   server role = standalone server\n   passdb backend = tdbsam\n   obey pam restrictions = yes\n   unix password sync = yes\n   passwd program = /usr/bin/passwd %u\n   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .\n   pam password change = yes\n   map to guest = bad user\n   usershare allow guests = yes\n\n[public]\n   comment = Public Documents\n   path = /srv/samba/public\n   browseable = yes\n   guest ok = yes\n   read only = no\n   create mask = 0755\n\n[network-docs]\n   comment = Network Documentation\n   path = /srv/samba/netdocs\n   valid users = netadmin\n   read only = yes\n   browseable = no\n\n[backup]\n   comment = System Backups\n   path = /srv/samba/backup\n   valid users = backup\n   read only = yes\n   browseable = no"
+        },
+        {
+          "name": "network-topology.txt",
+          "path": "/srv/samba/netdocs",
+          "content": "CORPORATE NETWORK INFRASTRUCTURE MAP\n=====================================\n\nSubnet: 192.168.10.0/24 (DMZ)\n- 192.168.10.10 - corporate-fileserver (THIS SYSTEM)\n  Services: SMB(445), FTP(21), SSH(24), SNMP(161)\n\nSubnet: 192.168.20.0/24 (Internal)\n- 192.168.20.15 - legacy-mailserver\n  Services: SMTP(25), POP3(110), SSH(22), Telnet(23)\n  Note: Legacy system with weak authentication\n  Default creds: mailuser/mail123\n\nSubnet: 192.168.30.0/24 (IoT Network)\n- 192.168.30.5 - iot-gateway\n  Services: HTTP(80), HTTPS(443), SSH(2222)\n  Admin Panel: /admin/control.php\n  Note: Requires credentials from mailserver\n\nCritical: Final system access requires combining SSH keys from fileserver,\ncredentials from mailserver, and admin token from IoT gateway.\n\nNetwork Admin: netadmin / corp2023!\nBackup User: backup / backup456"
+        },
+        {
+          "name": "vsftpd.conf",
+          "path": "/etc/vsftpd",
+          "content": "listen=YES\nlisten_ipv6=NO\nanonymous_enable=YES\nlocal_enable=YES\nwrite_enable=YES\nlocal_umask=022\nanon_upload_enable=YES\nanon_mkdir_write_enable=YES\ndirmessage_enable=YES\nuse_localtime=YES\nxferlog_enable=YES\nconnect_from_port_20=YES\nchroot_local_user=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\nrsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem\nrsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key\nssl_enable=NO\nanon_root=/srv/ftp/anonymous\nlocal_root=/srv/ftp/users\nallow_anon_ssl=NO\nforce_local_data_ssl=NO\nforce_local_logins_ssl=NO\nssl_tlsv1=YES\nssl_sslv2=NO\nssl_sslv3=NO\nrequire_ssl_reuse=NO\nssl_ciphers=HIGH\npasv_enable=YES\npasv_min_port=10000\npasv_max_port=10100"
+        },
+        {
+          "name": "ssh_host_rsa_key",
+          "path": "/srv/ftp/anonymous",
+          "content": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA2vK8hF3mP9qR7xN4wE5tL8sY6mQ2pV9cX1nB4jK7dF2sA8hG\n3qW5rT9mN6xP4lK8sF2vB9cE1nH5jM7dK2pQ8wR6tL3sY9mV4xN7cF1nB8jK2dF\nsA5hG6qW3rT8mN9xP2lK5sF4vB7cE9nH3jM5dK4pQ6wR8tL1sY7mV2xN9cF3nB6j\nK4dFsA3hG8qW1rT6mN7xP4lK3sF2vB5cE7nH1jM3dK8pQ4wR2tL5sY1mV6xN5cF\n7nB2jK8dF2sA1hG4qW7rT2mN3xP8lK1sF6vB3cE5nH7jM1dK2pQ8wR6tL3sY9m\nV4xN7cF1nB8jK2dFsA5hG6qW3rT8mN9xP2lK5sF4vB7cE9nH3jM5dK4pQ6wR8t\nL1sY7mV2xN9cF3nB6jK4dFsA3hG8qW1rT6mN7xP4lK3sF2vB5cE7nH1jM3dK8p\nQ4wR2tL5sY1mV6xN5cF7nB2jK8dF2sA1hG4qW7rT2mN3xP8lK1sF6vB3cE5nH\n7jM1dK2pQ8wR6tL3sY9mV4xN7cF1nB8jK2dFsA5hG6qW3rT8mN9xP2lK5sF4v\nB7cE9nH3jM5dK4pQ6wR8tL1sY7mV2xN9cF3nB6jK4dFsA3hG8qW1rT6mN7xP4\nlK3sF2vB5cE7nH1jM3dK8pQ4wR2tL5sY1mV6xN5cF7nB2jK8dF2sA1hG4qW7r\nT2mN3xP8lK1sF6vB3cE5nH7jM1dK2pQ8wR6tL3sY9mV4xN7cF1nB8jK2dFsA5\nhG6qW3rT8mN9xP2lK5sF4vB7cE9nH3jM5dK4pQ6wR8tL1sY7mV2xN9cF3nB6j\nK4dFsA3hG8qW1rT6mN7xP4lK3sF2vB5cE7nH1jM3dK8pQ4wR2tL5sY1mV6xN\n5cF7nB2jK8dF2sA1hG4qW7rT2mN3xP8lK1sF6vB3cE5nH7jM1dK2pQ8wR6tL\n3sY9mV4xN7cF1nB8jK2dFsA5hG6qW3rT8mN9xP2lK5sF4vB7cE9nH3jM5dK4\npQ6wR8tL1sY7mV2xN9cF3nB6jK4dFsA3hG8qW1rT6mN7xP4lK3sF2vB5cE7n\nH1jM3dK8pQ4wR2tL5sY1mV6xN5cF7nB2jK8dF2sA1hG4qW7rT2mN3xP8lK1s\nF6vB3cE5nH7jM1dK2pQ8wR6tL3sY9mV4xN7cF1nB8jK2dFsA5hG6qW3rT8m\nN9xP2lK5sF4vB7cE9nH3jM5dK4pQ6wR8tL1sY7mV2xN9cF3nB6jK4dFsA3h\nG8qW1rT6mN7xP4lK3sF2vB5cE7nH1jM3dK8pQ4wR2tL5sY1mV6xN5cF7nB2\njK8dF2sA1hG4qW7rT2mN3xP8lK1sF6vB3cE5nH7jM1dK2pQ8wR6tL3sY9m\nV4xN7cF1nB8jK2dFsA5hG6qW3rT8mN9xP2lK5sF4vB7cE9nH3jM5dK4pQ6w\nR8tL1sY7mV2xN9cF3nB6jK4dFsA3hG8qW1rT6mN7xP4lK3sF2vB5cE7nH1j\nM3dK8pQ4wR2tL5sY1mV6xN5cF7nB2jK8dF2sA1hG4qW7rT2mN3xP8lK1sF6\nvB3cE5nH7jM1dK2pQ8wR6tL3sY9mV4xN7cF1nB8jK2dFsA5hG6qW3rT8mN\n9xP2lK5sF4vB7cE9nH3jM5dK4pQ6wR8tL1sY7mV2xN9cF3nB6jK4dFsA3hG\n8qW1rT6mN7xP4lK3sF2vB5cE7nH1jM3dK8pQ4wR2\n-----END RSA PRIVATE KEY-----"
+        },
+        {
+          "name": "sshd_config",
+          "path": "/etc/ssh",
+          "content": "Port 24\nProtocol 2\nHostKey /etc/ssh/ssh_host_rsa_key\nHostKey /etc/ssh/ssh_host_dsa_key\nHostKey /etc/ssh/ssh_host_ecdsa_key\nHostKey /etc/ssh/ssh_host_ed25519_key\nUsePrivilegeSeparation yes\nKeyRegenerationInterval 3600\nServerKeyBits 1024\nSyslogFacility AUTH\nLogLevel INFO\nLoginGraceTime 120\nPermitRootLogin yes\nStrictModes yes\nRSAAuthentication yes\nPubkeyAuthentication yes\nIgnoreRhosts yes\nRhostsRSAAuthentication no\nHostbasedAuthentication no\nPermitEmptyPasswords no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nX11Forwarding yes\nX11DisplayOffset 10\nPrintMotd no\nPrintLastLog yes\nTCPKeepAlive yes\nAcceptEnv LANG LC_*\nSubsystem sftp /usr/lib/openssh/sftp-server\nUsePAM yes\nAllowUsers netadmin backup serviceuser\nMatch User serviceuser\n    ForceCommand /bin/bash -c 'sudo -u root /opt/legacy-service/run.sh'\n    PermitTTY no"
+        },
+        {
+          "name": "run.sh",
+          "path": "/opt/legacy-service",
+          "content": "#!/bin/bash\n# Legacy Service Runner - DO NOT MODIFY\n# This script runs with root privileges for backward compatibility\n\necho \"Legacy Service Access Granted\"\necho \"Available commands: status, logs, config, shell\"\nread -p \"Enter command: \" cmd\n\ncase $cmd in\n    \"status\")\n        echo \"Service Status: Running\"\n        echo \"Uptime: 45 days\"\n        ;;\n    \"logs\")\n        echo \"Recent logs:\"\n        echo \"[INFO] Service started successfully\"\n        echo \"[WARN] Legacy authentication bypassed\"\n        echo \"[DEBUG] Flag location: /root/final_piece.txt\"\n        ;;\n    \"config\")\n        echo \"Configuration file: /etc/legacy/service.conf\"\n        cat /etc/legacy/service.conf 2>/dev/null || echo \"Config file not accessible\"\n        ;;\n    \"shell\")\n        echo \"Shell access granted for maintenance\"\n        /bin/bash\n        ;;\n    *)\n        echo \"Unknown command: $cmd\"\n        echo \"Available: status, logs, config, shell\"\n        ;;\nesac"
+        },
+        {
+          "name": "final_piece.txt",
+          "path": "/root",
+          "content": "CORPORATE NETWORK COMPROMISE - FINAL PIECE\n==========================================\n\nCongratulations! You have successfully:\n1. Discovered the corporate fileserver through network scanning\n2. Enumerated SMB shares and found network topology\n3. Accessed FTP anonymous share and found SSH private key\n4. Exploited SSH privilege escalation via legacy service\n5. Gained root access to extract final flag component\n\nFinal Flag Component: infrastructure_mapped}\n\nComplete Flag: CTF{hidden_infrastructure_mapped}\n\nNetwork Discovery Summary:\n- Fileserver: 192.168.10.10 (COMPROMISED)\n- Mailserver: 192.168.20.15 (credentials: mailuser/mail123)\n- IoT Gateway: 192.168.30.5 (admin panel accessible)\n\nThis completes the network infrastructure mapping challenge."
+        },
+        {
+          "name": "snmpd.conf",
+          "path": "/etc/snmp",
+          "content": "agentAddress udp:161,udp6:[::1]:161\nrocommunity public default -V systemonly\nrocommunity public6 default -V systemonly\nrouser authOnlyUser\nsysLocation Corporate Data Center\nsysContact Network Admin <netadmin@corporate.local>\nsysServices 72\nmaster agentx\nagentXSocket tcp:localhost:705\nview systemonly included .1.3.6.1.2.1.1\nview systemonly included .1.3.6.1.2.1.25.1\nview all included .1\naccess notConfigGroup \"\" any noauth exact systemonly none none\naccess readGroup \"\" any noauth exact all none none\ngroup notConfigGroup v1 public\ngroup notConfigGroup v2c public\ngroup readGroup v1 public\ngroup readGroup v2c public\nextend .1.3.6.1.4.1.2021.8.1.101.1 netstat /bin/netstat -an\nextend .1.3.6.1.4.1.2021.8.1.101.2 uptime /usr/bin/uptime\nextend .1.3.6.1.4.1.2021.8.1.101.3 users /usr/bin/who\nextend .1.3.6.1.4.1.2021.8.1.101.4 processes /bin/ps -ef\nextend .1.3.6.1.4.1.2021.8.1.101.5 services /bin/systemctl list-units --type=service"
+        },
+        {
+          "name": "passwd",
+          "path": "/etc",
+          "content": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nsync:x:4:65534:sync:/bin:/bin/sync\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\nuucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin\nproxy:x:13:13:proxy:/bin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nbackup:x:34:34:backup:/var/backups:/bin/bash\nlist:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin\nirc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin\ngnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nsystemd-network:x:100:102:systemd Network Management,,,:/run/systemd/netif:/usr/sbin/nologin\nsystemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd/resolve:/usr/sbin/nologin\nsyslog:x:102:106::/home/syslog:/usr/sbin/nologin\nmessagebus:x:103:107::/nonexistent:/usr/sbin/nologin\n_apt:x:104:65534::/nonexistent:/usr/sbin/nologin\nsshd:x:105:65534::/run/sshd:/usr/sbin/nologin\nnetadmin:x:1001:1001:Network Administrator:/home/netadmin:/bin/bash\nserviceuser:x:1002:1002:Legacy Service User:/home/serviceuser:/bin/bash\nsnmp:x:106:111::/var/lib/snmp:/usr/sbin/nologin\nftp:x:107:112:ftp daemon,,,:/srv/ftp:/usr/sbin/nologin"
+        },
+        {
+          "name": "shadow",
+          "path": "/etc",
+          "content": "root:$6$rounds=656000$YQKJv8J5V8mNZWoP$8K9Z2J4L6M3N8P9Q1R5S7T2U4V6W8X0Y2Z4A6B8C1D3E5F7G9H2I4J6K8L0M2N4O6P8Q0R2S4T6U8V0W2X4Y6Z8:19000:0:99999:7:::\nnetadmin:$6$rounds=656000$XYZ123ABC789$mK8L6J4H2G9F7E5D3C1B0A9Z8Y7X6W5V4U3T2S1R0Q9P8O7N6M5L4K3J2H1G0F9E8D7C6B5A4:19000:0:99999:7:::\nbackup:$6$rounds=656000$DEF456GHI012$nL9M7K5I3G1E9C7A5Z3X1V9T7R5P3N1L9J7H5F3D1B9Z7X5V3T1R9P7N5L3J1H9F7D5B3Z1X9V7T5R3P1N9L7J5:19000:0:99999:7:::\nserviceuser:$6$rounds=656000$JKL789MNO345$oM0N8L6J4H2F0D8B6Z4X2V0T8R6P4N2L0J8H6F4D2B0Z8X6V4T2R0P8N6L4J2H0F8D6B4Z2X0V8T6R4P2N0L8J6:19000:0:99999:7:::"
+        },
+        {
+          "name": "sudoers",
+          "path": "/etc",
+          "content": "# /etc/sudoers\n#\n# This file MUST be edited with the 'visudo' command as root.\n# Please consider adding local content in /etc/sudoers.d/ instead of\n# directly modifying this file.\n#\nDefaults\tenv_reset\nDefaults\tmail_badpass\nDefaults\tsecure_path=\"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\"\n\n# Host alias specification\n\n# User alias specification\n\n# Cmnd alias specification\n\n# User privilege specification\nroot\tALL=(ALL:ALL) ALL\n\n# Members of the admin group may gain root privileges\n%admin ALL=(ALL) ALL\n\n# Allow members of group sudo to execute any command\n%sudo\tALL=(ALL:ALL) ALL\n\n# Legacy service user privilege escalation\nserviceuser ALL=(root) NOPASSWD: /opt/legacy-service/run.sh\n\n# See sudoers(5) for more information on \"#include\" directives:\n\n#includedir /etc/sudoers.d"
+        },
+        {
+          "name": "network_config.enc",
+          "path": "",
+          "content": "RMGVIZGP MVGDLIP XLMUTOFIRGRLM\n\nHVIEVI RMULIMZGRLM:\n192.168.100.10 - xliklizgv-urovhveevi\n192.168.200.15 - ovtzxb-nzrohveevi\n10.0.50.25 - rlg-tzgvdzb\n\nZXXVHH XIVWVMGRZO:\nzhvi: znwrm456\nkzhhzillw: zmzobhgrnv\n\nHVIERXV KLIGH:\nHHH: 22\nSGGK: 80\nHTOH: 443\nFGK: 21\nHNGK: 25\nWMH: 53\nMGK: 123\nRNZK: 143\nHMNK: 161\nOWZK: 389\nSGGKH: 443\nHNGKH: 465\nRNZKH: 993\nKLK3H: 995\n\nRNKLIGZMG: GSV URMZO UOZT RH SVWWVM RM GSV RLG-TZGVDZB ZWMRM KZMVO\nZXXVHH XIVWVMGRZO: rwlmgpmld123"
+        },
+        {
+          "name": "README.txt",
+          "path": "",
+          "content": "Corporate Network Infrastructure Documentation\n\nThis encrypted configuration file contains critical network mapping information discovered during our security audit. The file appears to use a classical cipher technique.\n\nNOTE: Some corporate systems may require authentication using the credentials found in this configuration.\n\nHint: Sometimes the oldest ciphers are still the most elegant - think about reversing the natural order.\n\nFor network discovery, standard tools like nmap should be sufficient once you decode the target information."
+        },
+        {
+          "name": "cipher_analysis.txt",
+          "path": "",
+          "content": "Frequency Analysis Results:\n\nMost common letters in ciphertext:\nG: 18 occurrences\nV: 16 occurrences\nI: 14 occurrences\nZ: 12 occurrences\nM: 11 occurrences\n\nPattern observed: No letter appears to map to itself\nCipher characteristics: Monoalphabetic substitution\n\nHint: This appears to be a reflection-based cipher where A↔Z, B↔Y, C↔X, etc.\n\nDecode the network configuration to discover:\n- Target IP addresses\n- Service ports\n- Access credentials\n- Final objective location"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "ssh",
+          "misconfiguration": "SSH service running on non-standard port 24 with privilege escalation vulnerability through legacy service runner that grants sudo access to root shell via serviceuser account",
+          "exploitPath": "1. Network scan discovers SSH on port 24, SMB on 445, FTP on 21, SNMP on 161. 2. Anonymous FTP access reveals SSH private key. 3. SMB enumeration with guest access finds network topology document containing credentials (netadmin/corp2023!). 4. SSH login as serviceuser triggers ForceCommand that runs legacy service script with sudo privileges. 5. Legacy service 'shell' command drops into root shell, allowing access to /root/final_piece.txt with flag.",
+          "tools": [
+            "nmap",
+            "smbclient",
+            "ftp",
+            "ssh",
+            "snmpwalk"
+          ],
+          "servicePort": 24,
+          "setup": "systemctl start ssh smbd nmbd vsftpd snmpd && ufw allow 21/tcp && ufw allow 24/tcp && ufw allow 445/tcp && ufw allow 139/tcp && ufw allow 161/udp && chmod +x /opt/legacy-service/run.sh && chown root:root /opt/legacy-service/run.sh",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        },
+        "crypto": {
+          "cryptoType": "atbash",
+          "difficulty": "medium",
+          "solvingMethod": "Decode the Atbash cipher by reversing each letter's position in the alphabet (A=Z, B=Y, C=X, etc.) to reveal network configuration with IP addresses, credentials, and service ports",
+          "tools": [
+            "cyberchef",
+            "atbash decoder",
+            "custom python script"
+          ],
+          "setup": "python3 -c \"import string; cipher='RMGVIZGP MVGDLIP XLMUTOFIRGRLM'; alphabet=string.ascii_uppercase; reversed_alphabet=alphabet[::-1]; translation=str.maketrans(alphabet, reversed_alphabet); print(cipher.translate(translation))\"",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{atbash_network_discovery_complete}"
+    },
+    "legacy-mailserver": {
+      "name": "legacy-mailserver",
+      "type": "victim",
+      "role": "Linux mail server running legacy protocols",
+      "services": [
+        "telnet",
+        "ftp",
+        "ssh",
+        "smtp",
+        "pop3"
+      ],
+      "files": [
+        {
+          "name": "smb.conf",
+          "path": "/etc/samba",
+          "content": "[global]\n   workgroup = CORPORATE\n   server string = Legacy Mail Server\n   netbios name = LEGACY-MAIL\n   security = user\n   map to guest = bad user\n   dns proxy = no\n   log file = /var/log/samba/log.%m\n   max log size = 1000\n   syslog = 0\n   panic action = /usr/share/samba/panic-action %d\n   server role = standalone server\n   passdb backend = tdbsam\n   obey pam restrictions = yes\n   unix password sync = yes\n   passwd program = /usr/bin/passwd %u\n   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .\n   pam password change = yes\n   map to guest = bad user\n   usershare allow guests = yes\n\n[mailshare]\n   comment = Corporate Email Archive\n   path = /srv/samba/mailshare\n   browseable = yes\n   read only = no\n   guest ok = yes\n   create mask = 0755\n   directory mask = 0755\n   wide links = yes\n   unix extensions = no\n   follow symlinks = yes\n\n[admin-docs]\n   comment = Administrative Documents\n   path = /srv/samba/admin\n   browseable = no\n   read only = yes\n   valid users = mailadmin\n   create mask = 0644\n   directory mask = 0755"
+        },
+        {
+          "name": "network-topology.txt",
+          "path": "/srv/samba/mailshare/docs",
+          "content": "CORPORATE NETWORK INFRASTRUCTURE MAP\n=====================================\n\nSubnet: 192.168.10.0/24 (DMZ)\n- 192.168.10.15 - legacy-mailserver (this machine)\n  Services: SMB(445), Telnet(23), FTP(21), SMTP(25), POP3(110)\n  Status: Legacy system, scheduled for decommission\n\nSubnet: 10.0.0.0/24 (Internal)\n- 10.0.0.50 - corporate-fileserver\n  Services: SMB(445), SSH(22), HTTP(80)\n  Status: Primary file storage\n\nSubnet: 172.16.1.0/24 (IoT Network)\n- 172.16.1.100 - iot-gateway\n  Services: HTTP(8080), HTTPS(8443), Telnet(23)\n  Status: Requires authentication from mail server\n\nNOTE: Use mailserver credentials to access IoT gateway admin panel\nDefault mail admin: mailuser / corporate2023\n\nNetwork Discovery Tips:\n- Scan all three subnets for live hosts\n- Enumerate services on each discovered machine\n- Check for anonymous/guest access on file shares\n- Look for configuration files containing network information"
+        },
+        {
+          "name": "mail-config.ini",
+          "path": "/srv/samba/mailshare/config",
+          "content": "[SMTP_SERVER]\nhost = legacy-mailserver.corp.local\nport = 25\nauth_required = false\nmax_connections = 100\n\n[POP3_SERVER]\nhost = legacy-mailserver.corp.local\nport = 110\nssl_enabled = false\nauth_method = plain\n\n[USERS]\nmailuser = corporate2023\nadmin = mailserver123\nguest = anonymous\n\n[NETWORK_ACCESS]\niot_gateway = 172.16.1.100:8080\nfileserver = 10.0.0.50:445\nbackup_server = 192.168.20.10:22\n\n[SECURITY]\nallow_anonymous_ftp = true\ntelnet_enabled = true\nweak_passwords = enabled\ndirectory_traversal = vulnerable\n\n# Network segment information\n# DMZ: 192.168.10.0/24\n# Internal: 10.0.0.0/24  \n# IoT: 172.16.1.0/24"
+        },
+        {
+          "name": "users.db",
+          "path": "/srv/samba/admin",
+          "content": "CORPORATE USER DATABASE\n======================\n\nSystem Accounts:\n- mailuser:corporate2023:mail-admin\n- ftpuser:legacy123:ftp-access\n- telnetuser:oldschool:remote-access\n- smbguest::anonymous-share\n\nService Credentials:\n- IoT Gateway Admin: mailuser:corporate2023\n- File Server: admin:fileserver456\n- Backup System: backup:secure789\n\nNetwork Services Status:\n- SMB: Wide links enabled (security risk)\n- FTP: Anonymous access allowed\n- Telnet: Unencrypted authentication\n- SMTP: No authentication required\n\nFLAG LOCATION: Combine credentials from all three network segments\nPart 1 (DMZ): CTF{network_\nPart 2 (Internal): discovery_\nPart 3 (IoT): complete_2024}\n\nComplete flag requires accessing all three subnets and combining the parts."
+        },
+        {
+          "name": "setup.sh",
+          "path": "",
+          "content": "#!/bin/bash\n\n# Setup SMB service on non-standard port\nsudo mkdir -p /srv/samba/mailshare/docs\nsudo mkdir -p /srv/samba/mailshare/config\nsudo mkdir -p /srv/samba/admin\n\n# Create SMB users\nsudo useradd -s /sbin/nologin mailadmin\nsudo useradd -s /sbin/nologin smbguest\necho -e 'corporate2023\\ncorporate2023' | sudo smbpasswd -a mailadmin\necho -e 'guest\\nguest' | sudo smbpasswd -a smbguest\n\n# Set permissions for directory traversal vulnerability\nsudo chmod 777 /srv/samba/mailshare\nsudo chmod 755 /srv/samba/admin\nsudo chown -R nobody:nogroup /srv/samba/mailshare\nsudo chown -R mailadmin:mailadmin /srv/samba/admin\n\n# Create symbolic link for directory traversal\nsudo ln -s /srv/samba/admin /srv/samba/mailshare/docs/admin-link\nsudo ln -s /etc/passwd /srv/samba/mailshare/config/system-users\n\n# Configure SMB to run on port 27 (non-standard)\nsudo sed -i 's/445/27/g' /etc/samba/smb.conf\necho 'smb ports = 27' | sudo tee -a /etc/samba/smb.conf\n\n# Start services\nsudo systemctl restart smbd\nsudo systemctl restart nmbd\n\n# Configure other services for the scenario\nsudo systemctl enable telnet\nsudo systemctl enable vsftpd\nsudo systemctl enable postfix\nsudo systemctl enable dovecot\n\necho 'Legacy mailserver setup complete on port 27'\necho 'Services: SMB(27), Telnet(23), FTP(21), SMTP(25), POP3(110)'"
+        },
+        {
+          "name": "nmap-discovery.txt",
+          "path": "",
+          "content": "NETWORK DISCOVERY METHODOLOGY\n=============================\n\n# Step 1: Discover live hosts across all subnets\nnmap -sn 192.168.10.0/24\nnmap -sn 10.0.0.0/24\nnmap -sn 172.16.1.0/24\n\n# Step 2: Port scan discovered hosts\nnmap -sS -O -sV -p- 192.168.10.15\nnmap -sS -O -sV -p- 10.0.0.50\nnmap -sS -O -sV -p- 172.16.1.100\n\n# Step 3: Service enumeration\n# SMB enumeration\nsmbclient -L //192.168.10.15 -p 27 -N\nsmbclient //192.168.10.15/mailshare -p 27 -N\n\n# Directory traversal exploitation\nsmbclient //192.168.10.15/mailshare -p 27 -N -c 'cd docs; get network-topology.txt; cd admin-link; get users.db'\n\n# Step 4: Access other network segments using discovered credentials\n# Use mailuser:corporate2023 for IoT gateway\n# Use admin:fileserver456 for file server\n\nExpected findings:\n- DMZ flag part in mailserver SMB share\n- Internal flag part in fileserver\n- IoT flag part in gateway admin panel\n- Combine all three parts for complete flag"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "smb",
+          "misconfiguration": "SMB configured with wide links enabled and symbolic links pointing to sensitive directories, allowing directory traversal attacks. Service running on non-standard port 27 with anonymous guest access.",
+          "exploitPath": "1. Scan network to discover SMB on port 27. 2. Connect anonymously to mailshare. 3. Use directory traversal via symbolic links to access admin documents. 4. Extract network topology and credentials. 5. Use discovered credentials to access other network segments (fileserver and IoT gateway). 6. Combine flag parts from all three systems.",
+          "tools": [
+            "nmap",
+            "smbclient",
+            "enum4linux",
+            "rpcclient"
+          ],
+          "servicePort": 27,
+          "setup": "Configure Samba with wide links enabled, create symbolic links for directory traversal, set up anonymous access, run on non-standard port 27, create multi-segment network topology with interconnected credentials",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{network_discovery_complete_2024}"
+    },
+    "iot-gateway": {
+      "name": "iot-gateway",
+      "type": "victim",
+      "role": "IoT gateway device with minimal services and weak authentication",
+      "services": [
+        "http",
+        "telnet",
+        "snmp",
+        "tftp"
+      ],
+      "files": [
+        {
+          "name": "httpd.conf",
+          "path": "config",
+          "content": "ServerRoot /var/www\nListen 80\nServerName iot-gateway.corporate.local\nDocumentRoot /var/www/html\n\n<Directory /var/www/html>\n    Options Indexes FollowSymLinks\n    AllowOverride None\n    Require all granted\n</Directory>\n\n<Directory /var/www/html/admin>\n    AuthType Basic\n    AuthName \"IoT Gateway Admin Panel\"\n    AuthUserFile /var/www/.htpasswd\n    Require valid-user\n</Directory>\n\nErrorLog /var/log/apache2/error.log\nCustomLog /var/log/apache2/access.log combined"
+        },
+        {
+          "name": ".htpasswd",
+          "path": "config",
+          "content": "admin:$apr1$8b7.rQ0/$VmL5JHyFZb3L9QzNx8Hm71\niotadmin:$apr1$9c8.sR1/$WnM6KIyGAc4M0RaNy9In82"
+        },
+        {
+          "name": "index.html",
+          "path": "www/html",
+          "content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>IoT Gateway Management</title>\n</head>\n<body>\n    <h1>Corporate IoT Gateway</h1>\n    <p>Welcome to the IoT Device Management Portal</p>\n    <ul>\n        <li><a href=\"/admin\">Admin Panel</a> (Restricted Access)</li>\n        <li><a href=\"/devices\">Device Status</a></li>\n        <li><a href=\"/network\">Network Configuration</a></li>\n    </ul>\n    <p><small>For technical support, contact IT at extension 2745</small></p>\n</body>\n</html>"
+        },
+        {
+          "name": "devices.html",
+          "path": "www/html",
+          "content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Device Status</title>\n</head>\n<body>\n    <h1>Connected IoT Devices</h1>\n    <table border=\"1\">\n        <tr><th>Device</th><th>IP Address</th><th>Status</th></tr>\n        <tr><td>Temperature Sensor</td><td>192.168.1.100</td><td>Online</td></tr>\n        <tr><td>Security Camera</td><td>192.168.1.101</td><td>Online</td></tr>\n        <tr><td>Access Control</td><td>192.168.1.102</td><td>Offline</td></tr>\n        <tr><td>Network Scanner</td><td>10.0.0.50</td><td>Online</td></tr>\n        <tr><td>File Server</td><td>172.16.0.200</td><td>Online</td></tr>\n        <tr><td>Mail Server</td><td>172.16.0.201</td><td>Online</td></tr>\n    </table>\n    <p><em>Note: Legacy systems may require special authentication</em></p>\n</body>\n</html>"
+        },
+        {
+          "name": "network.html",
+          "path": "www/html",
+          "content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Network Configuration</title>\n</head>\n<body>\n    <h1>Network Subnets</h1>\n    <div>\n        <h3>IoT Devices Subnet</h3>\n        <p>Range: 192.168.1.0/24</p>\n        <p>Gateway: 192.168.1.1</p>\n    </div>\n    <div>\n        <h3>Corporate Network</h3>\n        <p>Range: 172.16.0.0/16</p>\n        <p>Gateway: 172.16.0.1</p>\n    </div>\n    <div>\n        <h3>DMZ Network</h3>\n        <p>Range: 10.0.0.0/24</p>\n        <p>Gateway: 10.0.0.1</p>\n    </div>\n    <p><strong>SNMP Community:</strong> public (read-only)</p>\n    <p><strong>TFTP Server:</strong> Enabled on port 69</p>\n</body>\n</html>"
+        },
+        {
+          "name": "admin_panel.html",
+          "path": "www/html/admin",
+          "content": "<!DOCTYPE html>\n<html>\n<head>\n    <title>Admin Panel</title>\n</head>\n<body>\n    <h1>IoT Gateway Administration</h1>\n    <h2>System Information</h2>\n    <p>Firmware Version: 2.1.4</p>\n    <p>Last Update: 2023-08-15</p>\n    <p>Admin Password: gateway2023</p>\n    \n    <h2>Service Configuration</h2>\n    <ul>\n        <li>HTTP: Port 80 (Active)</li>\n        <li>Telnet: Port 23 (Active)</li>\n        <li>SNMP: Port 161 (Active)</li>\n        <li>TFTP: Port 69 (Active)</li>\n        <li>SMB: Port 27 (Custom Configuration)</li>\n    </ul>\n    \n    <h2>Security Notice</h2>\n    <p>Warning: Legacy telnet service enabled for maintenance access</p>\n    <p>Default credentials: admin/admin123</p>\n    \n    <h2>Network Shares</h2>\n    <p>Public share available on port 27 with guest access</p>\n    <p>Share name: corporate_docs</p>\n    <p>Credentials: guest/guest (read-only)</p>\n    \n    <div style=\"background-color: #ffffcc; padding: 10px; margin: 20px 0;\">\n        <h3>Critical System Flag</h3>\n        <p>System Recovery Key: CTF{n3tw0rk_d1sc0v3ry_m4st3r_2023}</p>\n    </div>\n</body>\n</html>"
+        },
+        {
+          "name": "telnetd.conf",
+          "path": "config",
+          "content": "# Telnet daemon configuration\nport 23\nallow_root_login yes\nenable_authentication yes\nmax_connections 10\ntimeout 300\nlogging enabled\nlog_file /var/log/telnetd.log\n\n# User accounts\nuser admin password admin123 uid 0\nuser iotuser password device456 uid 1000\nuser guest password guest uid 1001\n\n# Welcome message\nwelcome_message \"IoT Gateway Telnet Access\\nAuthorized Personnel Only\\n\""
+        },
+        {
+          "name": "snmpd.conf",
+          "path": "config",
+          "content": "# SNMP daemon configuration\nagentAddress udp:161\n\n# Community strings\nrocommunity public default\nrocommunity private 127.0.0.1\nrwcommunity admin 127.0.0.1\n\n# System information\nsysLocation Corporate IoT Gateway Room\nsysContact admin@corporate.local\nsysDescr IoT Gateway SNMP Agent v2.1.4\nsysServices 72\n\n# OID extensions\nextend .1.3.6.1.4.1.8072.1.3.2.3.1.2.9.108.111.97.100.97.118.103.49.53 /bin/echo \"System Load: 0.45\"\nextend .1.3.6.1.4.1.8072.1.3.2.3.1.2.10.100.105.115.107.117.115.97.103.101 /bin/echo \"Disk Usage: 65%\"\n\n# Custom OID with sensitive info\nextend .1.3.6.1.4.1.8072.1.3.2.3.1.2.12.97.100.109.105.110.95.112.97.115.115.119.100 /bin/echo \"admin_password:gateway2023\"\n\n# Process monitoring\nproc telnetd\nproc httpd\nproc tftpd\nproc smbd\n\n# Disk monitoring\ndisk / 80%\ndisk /var 85%"
+        },
+        {
+          "name": "tftpd.conf",
+          "path": "config",
+          "content": "# TFTP daemon configuration\nport 69\nroot_directory /srv/tftp\nuser tftp\ngroup tftp\nverbose yes\nlog_file /var/log/tftpd.log\ntimeout 60\nmax_connections 20\n\n# Security settings\nallow_get yes\nallow_put no\nallow_overwrite no\n\n# Allowed file patterns\nallow_pattern *.cfg\nallow_pattern *.txt\nallow_pattern *.log\nallow_pattern *.bin"
+        },
+        {
+          "name": "device_config.cfg",
+          "path": "tftp",
+          "content": "! IoT Gateway Configuration File\n! Generated: 2023-08-15 14:30:25\n!\nhostname iot-gateway\n!\n! Interface configuration\ninterface eth0\n ip address 192.168.1.1 255.255.255.0\n no shutdown\n!\ninterface eth1\n ip address 172.16.0.1 255.255.0.0\n no shutdown\n!\ninterface eth2\n ip address 10.0.0.1 255.255.255.0\n no shutdown\n!\n! SNMP configuration\nsnmp-server community public ro\nsnmp-server community private rw\nsnmp-server location \"Corporate IoT Gateway\"\nsnmp-server contact \"admin@corporate.local\"\n!\n! User accounts\nusername admin privilege 15 password gateway2023\nusername iotuser privilege 1 password device456\n!\n! Service configuration\nservice telnet\nservice http\nservice tftp\nservice smb port 27\n!\n! SMB share configuration\nsmb share corporate_docs /srv/samba/docs guest_ok=yes\nsmb user guest password guest\n!\n! End of configuration"
+        },
+        {
+          "name": "system_info.txt",
+          "path": "tftp",
+          "content": "IoT Gateway System Information\n==============================\n\nDevice Model: CorpGateway-3000\nFirmware Version: 2.1.4\nSerial Number: CG3K-2023-0815\nMAC Address: 00:1A:2B:3C:4D:5E\n\nInstalled Services:\n- HTTP Web Server (Port 80)\n- Telnet Server (Port 23)\n- SNMP Agent (Port 161)\n- TFTP Server (Port 69)\n- SMB Server (Port 27)\n\nNetwork Interfaces:\neth0: 192.168.1.1/24 (IoT Devices)\neth1: 172.16.0.1/16 (Corporate Network)\neth2: 10.0.0.1/24 (DMZ)\n\nDefault Credentials:\nAdmin: admin/admin123\nIoT User: iotuser/device456\nGuest: guest/guest\n\nSecurity Notes:\n- SNMP community 'public' has read access\n- Telnet enabled for legacy device support\n- SMB share allows guest access\n- TFTP server allows configuration downloads\n\nLast Maintenance: 2023-08-15\nNext Scheduled Update: 2023-09-15"
+        },
+        {
+          "name": "network_map.txt",
+          "path": "tftp",
+          "content": "Corporate Network Infrastructure Map\n===================================\n\nSubnet: 192.168.1.0/24 (IoT Devices)\n├── 192.168.1.1 - IoT Gateway (this device)\n├── 192.168.1.100 - Temperature Sensor\n├── 192.168.1.101 - Security Camera\n└── 192.168.1.102 - Access Control Panel\n\nSubnet: 172.16.0.0/16 (Corporate Network)\n├── 172.16.0.1 - Corporate Gateway\n├── 172.16.0.200 - File Server (fileserver.corp.local)\n│   └── Services: SMB (445), HTTP (80), SSH (22)\n│   └── Shares: shared_docs, backup_files\n│   └── Credentials: admin/fileserver123\n└── 172.16.0.201 - Mail Server (mail.corp.local)\n    └── Services: SMTP (25), POP3 (110), HTTP (80)\n    └── Webmail: http://172.16.0.201/webmail\n    └── Credentials: admin/mailserver456\n\nSubnet: 10.0.0.0/24 (DMZ)\n├── 10.0.0.1 - DMZ Gateway\n└── 10.0.0.50 - Network Scanner\n    └── Services: SSH (22), HTTP (8080)\n    └── Credentials: scanner/scan123\n\nCritical Information:\n- File server contains network diagrams\n- Mail server has employee credentials\n- All systems interconnected via IoT Gateway\n- Legacy authentication on port 27\n\nEmergency Access:\n- IoT Gateway admin panel requires mail server creds\n- Final system access needs combined authentication\n- Network discovery reveals hidden services"
+        },
+        {
+          "name": "smb.conf",
+          "path": "config",
+          "content": "[global]\n    workgroup = CORPORATE\n    server string = IoT Gateway SMB Server\n    netbios name = IOT-GATEWAY\n    security = user\n    map to guest = bad user\n    dns proxy = no\n    \n    # Custom port configuration\n    smb ports = 27\n    \n    # Logging\n    log file = /var/log/samba/log.%m\n    max log size = 1000\n    log level = 1\n    \n    # Guest access enabled\n    guest account = nobody\n    \n[corporate_docs]\n    comment = Corporate Documentation Share\n    path = /srv/samba/corporate_docs\n    browseable = yes\n    read only = yes\n    guest ok = yes\n    public = yes\n    \n[admin_files]\n    comment = Administrative Files\n    path = /srv/samba/admin_files\n    browseable = yes\n    read only = no\n    valid users = admin, iotuser\n    create mask = 0644\n    directory mask = 0755"
+        },
+        {
+          "name": "infrastructure_notes.txt",
+          "path": "samba/corporate_docs",
+          "content": "Corporate Infrastructure Notes\n==============================\nDate: August 15, 2023\nAuthor: IT Administrator\n\nNetwork Discovery Procedures:\n1. Use nmap to scan all three subnets\n2. Enumerate services on discovered hosts\n3. Check for default credentials on legacy systems\n4. SNMP walk for system information\n5. TFTP download for configuration files\n\nKnown Vulnerabilities:\n- IoT Gateway: Default telnet credentials (admin/admin123)\n- File Server: Weak SMB authentication\n- Mail Server: Webmail interface with predictable passwords\n- Network Scanner: SSH key authentication bypass\n\nService Enumeration Tips:\n- Port 27: Custom SMB configuration with guest access\n- Port 161: SNMP with public community string\n- Port 69: TFTP server allows config downloads\n- Port 23: Telnet with admin access\n\nCredential Information:\n- IoT Gateway admin: admin/gateway2023\n- File server admin: admin/fileserver123  \n- Mail server admin: admin/mailserver456\n- Network scanner: scanner/scan123\n\nSecurity Recommendations:\n- Disable telnet service\n- Change default SNMP communities\n- Implement proper SMB authentication\n- Update firmware on all IoT devices\n- Segment network traffic properly\n\nFlag Location:\nThe master system flag is stored in the IoT Gateway admin panel.\nAccess requires combining credentials from mail server authentication.\nFinal flag format: CTF{network_discovery_pattern}"
+        },
+        {
+          "name": "device_inventory.txt",
+          "path": "samba/corporate_docs",
+          "content": "IoT Device Inventory\n===================\n\nGateway Device: iot-gateway.corporate.local\n- IP: 192.168.1.1, 172.16.0.1, 10.0.0.1\n- Services: HTTP(80), Telnet(23), SNMP(161), TFTP(69), SMB(27)\n- Access: admin/admin123 (telnet), guest/guest (smb)\n- Status: Active - Central hub for all network communication\n\nConnected Systems:\n\n1. Temperature Sensors (192.168.1.100)\n   - Model: TempSense-Pro\n   - Protocol: SNMP\n   - Community: public\n\n2. Security Cameras (192.168.1.101)\n   - Model: SecureCam-HD\n   - Web Interface: Port 80\n   - Default Login: admin/camera123\n\n3. Access Control (192.168.1.102) - OFFLINE\n   - Model: AccessPoint-3000\n   - Protocol: Proprietary\n   - Status: Maintenance required\n\n4. Network Scanner (10.0.0.50)\n   - Purpose: Network monitoring and discovery\n   - SSH Access: scanner/scan123\n   - Web Interface: Port 8080\n\n5. File Server (172.16.0.200)\n   - Hostname: fileserver.corp.local\n   - Services: SMB shares, web interface\n   - Contains: Network maps, configuration backups\n\n6. Mail Server (172.16.0.201)\n   - Hostname: mail.corp.local\n   - Services: Webmail, SMTP, POP3\n   - Admin Access: Required for IoT gateway admin panel\n\nNetwork Architecture:\n- All devices route through IoT Gateway\n- Three separate subnets for segmentation\n- Legacy protocols enabled for compatibility\n- Guest access available on SMB port 27\n\nMaintenance Schedule:\n- Weekly: SNMP monitoring checks\n- Monthly: Firmware updates (when available)\n- Quarterly: Security audit and credential rotation"
+        },
+        {
+          "name": "network_config.enc",
+          "path": "",
+          "content": "01001000 01100101 01111000 00100000 01100100 01100101 01100011 01101111 01100100 01100101 01100100 00100000 01101101 01100101 01110011 01110011 01100001 01100111 01100101 00111010 00001010 01001000 01100101 01111000 00111010 00100000 01000110 01000001 01001001 01000101 01001001 01000010 01001011 01001101 01000111 01000001 01000101 01001001 01001111 01000001 01000101 01000101 01000111 01001011 01001101 01000001 01000101 01001001 01001111 01000001 01000101 01000101 01001011 01001011 01001101 01000001 01000101 01000110 01000001 01001000 01001011 01001101 01000001 01000101 01000110 01000101 01001000 01001011 01001101 01001111 01000001 01001111 01001001 01000001 01000101 01001001 01001111 01001001 01000001 01000101 01000101 01001000 01001011 01001101 01000001 01000101 01000110 01000001 01001000 01001011 01001101 01000001 01000101 01000110 01000101 01001000 01001011 01001101 01001111 01001001 01000001 01000101 01000101 01001001 01000101 01001000"
+        },
+        {
+          "name": "gateway_logs.txt",
+          "path": "",
+          "content": "IoT Gateway Security Log - System Access Required\n==========================================\n\n[2024-01-15 10:23:45] Network scan detected from 192.168.1.100\n[2024-01-15 10:24:12] Service enumeration attempt on ports 22, 80, 443, 8080\n[2024-01-15 10:24:45] Admin panel access blocked - credentials required\n[2024-01-15 10:25:01] Configuration backup encrypted with transposition cipher\n[2024-01-15 10:25:15] Binary encoding applied for additional obfuscation\n[2024-01-15 10:25:30] Key pattern: Network infrastructure layout stored in columns\n[2024-01-15 10:25:45] Reminder: Read column-wise after hex conversion\n\n[ENCRYPTED_CONFIG_ABOVE]\n\nNote: The network configuration contains sensitive routing information\nfor all three target systems discovered during reconnaissance."
+        },
+        {
+          "name": "hint.txt",
+          "path": "",
+          "content": "Network Discovery Cryptography Challenge Hints:\n\n1. The binary data represents ASCII characters - convert each 8-bit sequence\n2. After binary conversion, you'll find hex-encoded data\n3. The hex data has been scrambled using a columnar transposition cipher\n4. Key insight: Think about how network data flows - columns represent network paths\n5. Try different column widths (4, 5, 6, 8) and read vertically\n6. The decrypted message reveals network topology and contains the flag\n7. Look for patterns in the decrypted text that match network addressing schemes\n\nTools that might help:\n- Binary to ASCII converters\n- Hex decoders\n- Custom transposition cipher solvers\n- Online cipher analysis tools"
+        },
+        {
+          "name": "decode_script.py",
+          "path": "",
+          "content": "#!/usr/bin/env python3\n# IoT Gateway Configuration Decoder\n# Use this script as a starting point for decryption\n\ndef binary_to_ascii(binary_string):\n    \"\"\"Convert binary string to ASCII text\"\"\"\n    binary_values = binary_string.split()\n    ascii_chars = []\n    for binary in binary_values:\n        if len(binary) == 8:\n            ascii_chars.append(chr(int(binary, 2)))\n    return ''.join(ascii_chars)\n\ndef hex_to_ascii(hex_string):\n    \"\"\"Convert hex string to ASCII text\"\"\"\n    try:\n        return bytes.fromhex(hex_string).decode('ascii')\n    except:\n        return \"Invalid hex data\"\n\ndef columnar_transpose_decrypt(ciphertext, columns):\n    \"\"\"Decrypt columnar transposition cipher\"\"\"\n    # Remove spaces and convert to uppercase\n    text = ciphertext.replace(' ', '').upper()\n    \n    # Calculate rows needed\n    rows = len(text) // columns\n    if len(text) % columns != 0:\n        rows += 1\n    \n    # Create matrix and fill column-wise\n    matrix = [[''] * columns for _ in range(rows)]\n    \n    # Fill matrix column by column\n    index = 0\n    for col in range(columns):\n        for row in range(rows):\n            if index < len(text):\n                matrix[row][col] = text[index]\n                index += 1\n    \n    # Read matrix row by row\n    result = ''\n    for row in range(rows):\n        for col in range(columns):\n            result += matrix[row][col]\n    \n    return result\n\n# Example usage:\n# 1. First convert binary to ASCII\n# 2. Extract hex data from ASCII text  \n# 3. Try different column counts for transposition\n# 4. Look for readable network configuration data\n\nif __name__ == \"__main__\":\n    print(\"IoT Gateway Configuration Decoder\")\n    print(\"Follow the steps in the comments above to decrypt the network config\")\n    print(\"Try column counts: 4, 5, 6, 8 for the transposition cipher\")"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "multi-service",
+          "misconfiguration": "Multiple services with weak default credentials, guest SMB access on custom port 27, SNMP with public community, telnet with admin access",
+          "exploitPath": "1. Nmap scan discovers HTTP(80), Telnet(23), SNMP(161), TFTP(69), SMB(27). 2. HTTP enumeration reveals network topology and device IPs. 3. SNMP walk with 'public' community extracts system info and admin password. 4. TFTP download of config files reveals network map and credentials. 5. SMB connection to port 27 with guest/guest provides infrastructure documentation. 6. Telnet login with admin/admin123 or HTTP admin panel with discovered credentials reveals final flag.",
+          "tools": [
+            "nmap",
+            "snmpwalk",
+            "tftp",
+            "smbclient",
+            "telnet",
+            "curl"
+          ],
+          "servicePort": "80,23,161,69,27",
+          "setup": "systemctl start apache2 telnetd snmpd tftpd smbd; Configure services on specified ports; Place files in appropriate directories; Set SMB to use port 27; Enable guest access",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        },
+        "crypto": {
+          "cryptoType": "transposition",
+          "difficulty": "medium",
+          "solvingMethod": "Multi-step decryption: 1) Convert binary to ASCII to reveal hex data, 2) Convert hex to ASCII to get transposed ciphertext, 3) Apply columnar transposition cipher with key width 6 to reveal network configuration containing the flag",
+          "tools": [
+            "python3",
+            "online binary converters",
+            "hex decoders",
+            "cipher analysis tools"
+          ],
+          "setup": "python3 decode_script.py # Use provided script as starting point",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{n3tw0rk_t0p0l0gy_m4pp3d_v1a_tr4n5p051t10n}"
+    }
+  },
+  "machineIPs": {
+    "scanner-workstation": "172.27.193.3",
+    "corporate-fileserver": "172.27.193.79",
+    "legacy-mailserver": "172.27.193.11",
+    "iot-gateway": "172.27.193.12"
+  },
+  "timestamp": 1767283134080
+}

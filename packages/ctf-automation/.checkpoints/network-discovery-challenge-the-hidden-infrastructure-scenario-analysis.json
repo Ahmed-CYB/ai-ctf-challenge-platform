@@ -1,0 +1,128 @@
+{
+  "scenarioPlan": {
+    "machineCount": 4,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "scanner-workstation",
+        "type": "attacker",
+        "role": "Network reconnaissance workstation with nmap and scanning tools",
+        "services": [
+          "nmap",
+          "wireshark",
+          "tcpdump",
+          "netcat",
+          "hping3",
+          "masscan",
+          "ssh-client",
+          "smbclient",
+          "nfs-common",
+          "snmp",
+          "tftp",
+          "python3",
+          "curl",
+          "wget",
+          "git",
+          "vim",
+          "nano",
+          "bash"
+        ],
+        "contains": [
+          "Network scanning tools",
+          "Documentation files",
+          "Scan result templates"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "corporate-fileserver",
+        "type": "victim",
+        "role": "Windows-based file server with multiple network services",
+        "services": [
+          "smb",
+          "ftp",
+          "ssh",
+          "snmp"
+        ],
+        "contains": [
+          "Corporate documents",
+          "Employee database",
+          "Network configuration files",
+          "Encrypted flag file"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "legacy-mailserver",
+        "type": "victim",
+        "role": "Linux mail server running legacy protocols",
+        "services": [
+          "telnet",
+          "ftp",
+          "ssh",
+          "smtp",
+          "pop3"
+        ],
+        "contains": [
+          "Email archives",
+          "User credentials",
+          "System logs",
+          "Hidden flag in mail spool"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "iot-gateway",
+        "type": "victim",
+        "role": "IoT gateway device with minimal services and weak authentication",
+        "services": [
+          "http",
+          "telnet",
+          "snmp",
+          "tftp"
+        ],
+        "contains": [
+          "Device configuration",
+          "Network topology map",
+          "Base64 encoded credentials",
+          "Final challenge flag"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Scanner workstation must discover all target machines through port scanning",
+      "Corporate fileserver contains network map showing other internal systems",
+      "Legacy mailserver credentials needed to access protected IoT gateway admin panel",
+      "Final flag requires combining information from all three victim machines"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Network Discovery Challenge: The Hidden Infrastructure",
+      "description": "A corporate network has been compromised and you need to map the entire infrastructure using nmap and other network tools. Three systems are running on different subnets with various services and security levels. Your goal is to discover all machines, enumerate their services, and extract sensitive information from each system.",
+      "stages": [
+        "Use nmap to discover live hosts and open ports across the network range",
+        "Enumerate services on the corporate fileserver and extract network documentation",
+        "Access the legacy mailserver using discovered credentials and find hidden user data",
+        "Leverage gathered intelligence to compromise the IoT gateway and retrieve the final flag",
+        "Combine decoded information from all systems to complete the challenge"
+      ]
+    }
+  },
+  "challengeName": "network-discovery-challenge-the-hidden-infrastructure",
+  "timestamp": 1767282822672
+}

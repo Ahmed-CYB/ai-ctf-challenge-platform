@@ -1,0 +1,63 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "ftp-server",
+        "type": "victim",
+        "role": "Corporate file server running vulnerable FTP service with hidden directories",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "employee documents",
+          "backup files",
+          "configuration files",
+          "flag in hidden directory"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "attacker-box",
+        "type": "attacker",
+        "role": "Penetration testing workstation with network analysis tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "penetration testing tools",
+          "network scanners",
+          "FTP clients"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through port scanning",
+      "Anonymous FTP access leads to discovering hidden directories",
+      "Flag retrieval requires navigating FTP directory structure"
+    ],
+    "categories": [
+      "network"
+    ],
+    "scenario": {
+      "title": "Data Exfiltration Investigation",
+      "description": "A corporate whistleblower has leaked sensitive documents through an FTP server. Intelligence suggests the leak contains proof of corporate misconduct, but the evidence is hidden in the server's directory structure. Your mission is to infiltrate the FTP server and locate the classified documents.",
+      "stages": [
+        "Reconnaissance: Discover the FTP service through network scanning",
+        "Access: Exploit anonymous FTP login or weak credentials",
+        "Exploration: Navigate hidden directories and unusual file structures",
+        "Extraction: Locate and retrieve the flag containing evidence"
+      ]
+    }
+  },
+  "challengeName": "data-exfiltration-investigation",
+  "timestamp": 1767243755120
+}

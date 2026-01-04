@@ -1,0 +1,105 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp"
+      ]
+    },
+    "corporate-fileserver": {
+      "name": "corporate-fileserver",
+      "type": "victim",
+      "role": "Corporate Samba file server with misconfigured shares and weak authentication",
+      "services": [
+        "samba",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "smb.conf",
+          "path": "/etc/samba",
+          "content": "[global]\n   workgroup = CORPNET\n   server string = Corporate File Server v2.1\n   netbios name = FILESERVER01\n   security = user\n   map to guest = bad user\n   guest account = nobody\n   log file = /var/log/samba/log.%m\n   max log size = 1000\n   logging = file\n   panic action = /usr/share/samba/panic-action %d\n   server role = standalone server\n   obey pam restrictions = yes\n   unix password sync = yes\n   passwd program = /usr/bin/passwd %u\n   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .\n   pam password change = yes\n   map to guest = bad user\n   usershare allow guests = yes\n\n[public]\n   comment = Public Files - Guest Access\n   path = /srv/samba/public\n   browseable = yes\n   read only = yes\n   guest ok = yes\n   public = yes\n\n[temp]\n   comment = Temporary Storage\n   path = /srv/samba/temp\n   browseable = yes\n   read only = no\n   guest ok = yes\n   create mask = 0755\n   directory mask = 0755\n\n[finance]\n   comment = Finance Department Files\n   path = /srv/samba/finance\n   browseable = no\n   read only = yes\n   valid users = jsmith, mwilson\n   admin users = jsmith\n\n[hr-confidential]\n   comment = Human Resources Confidential\n   path = /srv/samba/hr\n   browseable = no\n   read only = yes\n   valid users = @hr-group\n   admin users = hradmin\n\n[backup]\n   comment = System Backups\n   path = /srv/samba/backup\n   browseable = yes\n   read only = yes\n   guest ok = no\n   valid users = backup, jsmith\n\n[old-projects]\n   comment = Archived Project Files\n   path = /srv/samba/archives\n   browseable = yes\n   read only = yes\n   guest ok = yes\n   hide dot files = no"
+        },
+        {
+          "name": "network_credentials.txt",
+          "path": "/srv/samba/temp",
+          "content": "CORPORATE NETWORK ACCESS LOG\n=============================\nDate: 2024-01-15\nSystem: FILESERVER01\n\nRecent Authentication Attempts:\n- User: jsmith / Password: Finance2024!\n- User: mwilson / Password: temp123\n- User: hradmin / Password: HRsecure99\n- User: backup / Password: BackupSvc2024\n\nNOTE: Temporary credentials for new employees\nRemember to change default passwords after first login\n\nFor system access issues, contact IT Support\nExtension: 4455"
+        },
+        {
+          "name": "system_info.txt",
+          "path": "/srv/samba/public",
+          "content": "CORPORATE FILE SERVER INFORMATION\n==================================\n\nServer: FILESERVER01\nOS: Ubuntu Server 20.04 LTS\nSamba Version: 4.13.17\nLast Updated: 2024-01-10\n\nAvailable Shares:\n- public: General company information\n- temp: Temporary file storage (cleanup weekly)\n- finance: Financial documents (restricted)\n- hr-confidential: HR documents (restricted)\n- backup: System backups (admin only)\n- old-projects: Archived projects\n\nSecurity Notice:\nAll file access is logged and monitored.\nUnauthorized access will be reported to security.\n\nFor technical support: it-support@corporate.local"
+        },
+        {
+          "name": "project_notes.txt",
+          "path": "/srv/samba/archives",
+          "content": "PROJECT MERCURY - ARCHIVED\n===========================\nStatus: Completed (2023-12-15)\nTeam Lead: J. Smith\nBudget: $2.4M\n\nProject Summary:\nSuccessful implementation of new customer database system.\nAll deliverables completed on time and under budget.\n\nKey Personnel:\n- John Smith (jsmith) - Project Manager\n- Maria Wilson (mwilson) - Database Administrator\n- HR Admin (hradmin) - Resource Coordinator\n\nImportant: All project credentials stored in finance share\nAccess required for final audit documentation.\n\nArchive Date: 2024-01-01\nNext Review: 2025-01-01"
+        },
+        {
+          "name": "quarterly_report.pdf.txt",
+          "path": "/srv/samba/finance",
+          "content": "QUARTERLY FINANCIAL REPORT - Q4 2023\n=====================================\nCORPORATE FINANCIAL SERVICES\nCONFIDENTIAL - AUTHORIZED PERSONNEL ONLY\n\nRevenue Summary:\nQ4 2023: $12.7M (+8.3% YoY)\nTotal 2023: $48.2M (+12.1% YoY)\n\nMajor Contracts:\n- TechCorp Solutions: $3.2M\n- DataSys Inc: $2.8M\n- CloudFirst Ltd: $1.9M\n\nCost Analysis:\nPersonnel: 62%\nInfrastructure: 18%\nOperations: 15%\nOther: 5%\n\nSensitive Information:\nCorporate access codes for secure systems:\nDatabase: CTF{SMB_NULL_SESSION_FINANCE_BREACH_2024}\nVPN Gateway: CORP-VPN-2024-SECURE\nBackup System: BKP-SYS-AUTH-2024\n\nThis document contains confidential financial information.\nUnauthorized access or distribution is strictly prohibited.\n\nPrepared by: Finance Department\nApproved by: J. Smith, Finance Director\nDate: 2024-01-15"
+        },
+        {
+          "name": "setup.sh",
+          "path": "",
+          "content": "#!/bin/bash\n# SMB Challenge Setup Script\n\n# Create directory structure\nsudo mkdir -p /srv/samba/{public,temp,finance,hr,backup,archives}\n\n# Set permissions\nsudo chmod 755 /srv/samba/public\nsudo chmod 777 /srv/samba/temp\nsudo chmod 750 /srv/samba/finance\nsudo chmod 700 /srv/samba/hr\nsudo chmod 750 /srv/samba/backup\nsudo chmod 755 /srv/samba/archives\n\n# Create users and groups\nsudo useradd -M -s /usr/sbin/nologin jsmith\nsudo useradd -M -s /usr/sbin/nologin mwilson\nsudo useradd -M -s /usr/sbin/nologin hradmin\nsudo useradd -M -s /usr/sbin/nologin backup\nsudo groupadd hr-group\nsudo usermod -a -G hr-group hradmin\n\n# Set SMB passwords\necho -e 'Finance2024!\\nFinance2024!' | sudo smbpasswd -a jsmith\necho -e 'temp123\\ntemp123' | sudo smbpasswd -a mwilson\necho -e 'HRsecure99\\nHRsecure99' | sudo smbpasswd -a hradmin\necho -e 'BackupSvc2024\\nBackupSvc2024' | sudo smbpasswd -a backup\n\n# Copy configuration\nsudo cp smb.conf /etc/samba/smb.conf\n\n# Restart services\nsudo systemctl restart smbd\nsudo systemctl restart nmbd\n\n# Enable services\nsudo systemctl enable smbd\nsudo systemctl enable nmbd\n\necho \"SMB challenge setup complete!\"\necho \"Target IP: $(hostname -I | awk '{print $1}')\"\necho \"Available on port 445 (SMB) and custom port 20\""
+        },
+        {
+          "name": "port_redirect.sh",
+          "path": "",
+          "content": "#!/bin/bash\n# Redirect SMB traffic to port 20 for challenge variation\n\n# Install iptables if not present\nsudo apt-get update && sudo apt-get install -y iptables-persistent\n\n# Redirect port 20 to SMB port 445\nsudo iptables -t nat -A PREROUTING -p tcp --dport 20 -j REDIRECT --to-port 445\nsudo iptables -t nat -A OUTPUT -p tcp --dport 20 -j REDIRECT --to-port 445\n\n# Save iptables rules\nsudo netfilter-persistent save\n\necho \"Port redirection configured: 20 -> 445\"\necho \"SMB service now accessible on port 20\""
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "smb",
+          "misconfiguration": "SMB shares allow null session enumeration with guest access to temp directory containing credential information, leading to unauthorized access to finance share",
+          "exploitPath": "1. Scan port 20 to discover SMB service 2. Use smbclient or enum4linux to enumerate shares with null session 3. Access guest-readable shares (public, temp, old-projects) 4. Find credentials in temp/network_credentials.txt 5. Use discovered credentials (jsmith:Finance2024!) to access finance share 6. Retrieve flag from quarterly_report.pdf.txt",
+          "tools": [
+            "nmap",
+            "smbclient",
+            "enum4linux",
+            "smbmap",
+            "rpcclient"
+          ],
+          "servicePort": 20,
+          "setup": "bash setup.sh && bash port_redirect.sh",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{SMB_NULL_SESSION_FINANCE_BREACH_2024}"
+    }
+  },
+  "machineIPs": {
+    "corporate-fileserver": "172.23.193.156",
+    "attacker-workstation": "172.23.193.3"
+  },
+  "timestamp": 1767248350387
+}

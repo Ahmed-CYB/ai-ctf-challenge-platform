@@ -1,0 +1,65 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "corporate-fileserver",
+        "type": "victim",
+        "role": "Corporate Samba file server with misconfigured shares and weak authentication",
+        "services": [
+          "samba",
+          "ssh"
+        ],
+        "contains": [
+          "company financial reports",
+          "employee database",
+          "encrypted flag file",
+          "backup scripts",
+          "configuration files"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration testing machine with network scanning and SMB exploitation tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "SMB enumeration scripts",
+          "password wordlists",
+          "exploitation frameworks"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must enumerate SMB shares to discover accessible directories",
+      "Flag is stored in a password-protected share requiring credential discovery",
+      "Some shares contain hints pointing to other accessible resources"
+    ],
+    "categories": [
+      "network"
+    ],
+    "scenario": {
+      "title": "Corporate Data Breach - SMB Infiltration",
+      "description": "A corporate file server running Samba has been reported for suspicious activity. As a security consultant, you must investigate potential vulnerabilities in their file sharing infrastructure and recover sensitive data that may have been compromised.",
+      "stages": [
+        "Network reconnaissance to discover SMB services and available shares",
+        "SMB enumeration to identify accessible shares and their permissions",
+        "Credential discovery through share analysis and weak authentication exploitation",
+        "Data extraction and flag recovery from protected corporate resources"
+      ]
+    }
+  },
+  "challengeName": "corporate-data-breach-smb-infiltration-v20iuw",
+  "timestamp": 1767248309624
+}

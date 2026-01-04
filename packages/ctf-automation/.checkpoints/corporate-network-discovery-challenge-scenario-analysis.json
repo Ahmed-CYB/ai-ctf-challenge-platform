@@ -1,0 +1,101 @@
+{
+  "scenarioPlan": {
+    "machineCount": 4,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Network reconnaissance workstation with scanning tools",
+        "services": [],
+        "contains": [
+          "nmap scanning tools",
+          "network analysis utilities",
+          "documentation files"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "corporate-fileserver",
+        "type": "victim",
+        "role": "Corporate file server with multiple network services",
+        "services": [
+          "ftp",
+          "ssh",
+          "smb"
+        ],
+        "contains": [
+          "employee database files",
+          "encrypted flag fragment",
+          "network configuration files"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "legacy-telnet-host",
+        "type": "victim",
+        "role": "Legacy system running outdated protocols",
+        "services": [
+          "telnet",
+          "snmp"
+        ],
+        "contains": [
+          "system logs",
+          "encrypted flag fragment",
+          "network topology information"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "web-management-portal",
+        "type": "victim",
+        "role": "Network management web interface",
+        "services": [
+          "http",
+          "ssh"
+        ],
+        "contains": [
+          "network device configurations",
+          "final flag piece",
+          "administrative credentials"
+        ],
+        "categories": [
+          "network",
+          "web"
+        ]
+      }
+    ],
+    "dependencies": [
+      "All three victim machines must be scanned to discover open services",
+      "Flag fragments from corporate-fileserver and legacy-telnet-host must be combined",
+      "Final flag assembly requires accessing web-management-portal with discovered credentials"
+    ],
+    "categories": [
+      "network",
+      "crypto",
+      "web"
+    ],
+    "scenario": {
+      "title": "Corporate Network Discovery Challenge",
+      "description": "A security assessment of a corporate network infrastructure where participants must use network scanning techniques to discover services, gather intelligence, and piece together encrypted flag components from multiple systems.",
+      "stages": [
+        "Use nmap to perform comprehensive network discovery and port scanning on all target machines",
+        "Enumerate services and gather information from FTP, SSH, SMB, Telnet, and SNMP services",
+        "Extract and decrypt flag fragments from the corporate file server and legacy system",
+        "Access the web management portal using discovered credentials to retrieve the final flag piece",
+        "Combine all flag components to solve the complete challenge"
+      ]
+    }
+  },
+  "challengeName": "corporate-network-discovery-challenge",
+  "timestamp": 1767363934966
+}

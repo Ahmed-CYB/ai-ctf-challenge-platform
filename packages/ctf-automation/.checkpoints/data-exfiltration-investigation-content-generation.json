@@ -1,0 +1,115 @@
+{
+  "machineContents": {
+    "attacker-box": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp"
+      ]
+    },
+    "ftp-server": {
+      "name": "ftp-server",
+      "type": "victim",
+      "role": "Corporate file server running vulnerable FTP service with hidden directories",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "vsftpd.conf",
+          "path": "/etc/vsftpd",
+          "content": "listen=YES\nlocal_enable=YES\nwrite_enable=YES\nanonymous_enable=YES\nanon_upload_enable=NO\nanon_mkdir_write_enable=NO\ndirmessage_enable=YES\nuse_localtime=YES\nxferlog_enable=YES\nconnect_from_port_20=YES\nchroot_local_user=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\nrsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem\nrsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key\nssl_enable=NO\nanon_root=/srv/ftp\nlocal_root=/srv/ftp\nhide_ids=YES\nls_recurse_enable=YES"
+        },
+        {
+          "name": "sshd_config",
+          "path": "/etc/ssh",
+          "content": "Include /etc/ssh/sshd_config.d/*.conf\nPort 22\nAddressFamily any\nListenAddress 0.0.0.0\nHostKey /etc/ssh/ssh_host_rsa_key\nHostKey /etc/ssh/ssh_host_ecdsa_key\nHostKey /etc/ssh/ssh_host_ed25519_key\nRekeyLimit default none\nSyslogFacility AUTH\nLogLevel INFO\nLoginGraceTime 2m\nPermitRootLogin yes\nStrictModes yes\nMaxAuthTries 6\nMaxSessions 10\nPubkeyAuthentication yes\nAuthorizedKeysFile .ssh/authorized_keys\nPasswordAuthentication yes\nPermitEmptyPasswords no\nChallengeResponseAuthentication no\nKerberosAuthentication no\nGSSAPIAuthentication no\nUsePAM yes\nX11Forwarding yes\nX11DisplayOffset 10\nPrintMotd no\nPrintLastLog yes\nTCPKeepAlive yes\nPermitUserEnvironment no\nCompression delayed\nClientAliveInterval 0\nClientAliveCountMax 3\nUseDNS no\nPidFile /var/run/sshd.pid\nMaxStartups 10:30:100\nPermitTunnel no\nChrootDirectory none\nVersionAddendum none\nBanner none\nAcceptEnv LANG LC_*\nSubsystem sftp /usr/lib/openssh/sftp-server"
+        },
+        {
+          "name": "README.txt",
+          "path": "/srv/ftp",
+          "content": "Corporate Public File Server\n=============================\n\nThis server contains publicly accessible corporate documents.\nAll files are available for download by authorized personnel.\n\nFor technical support, contact IT at support@megacorp.local\n\nNote: Sensitive documents are stored in restricted areas.\nAccess requires proper authorization levels."
+        },
+        {
+          "name": "quarterly_reports.txt",
+          "path": "/srv/ftp/public",
+          "content": "Q1 2024 Financial Summary\n=========================\n\nRevenue: $2.4M (+12% YoY)\nExpenses: $1.8M\nNet Income: $600K\n\nKey Performance Indicators:\n- Customer Satisfaction: 87%\n- Employee Retention: 94%\n- Market Share: 23%\n\nNote: Detailed breakdowns available in finance department archives.\nFor compliance reports, see internal documentation system."
+        },
+        {
+          "name": "employee_handbook.pdf",
+          "path": "/srv/ftp/public",
+          "content": "MEGACORP EMPLOYEE HANDBOOK\n==========================\n\nTable of Contents:\n1. Welcome Message\n2. Company Policies\n3. Code of Conduct\n4. Benefits Overview\n5. IT Security Guidelines\n\nSection 5.3: Network Access\n---------------------------\nEmployees must use strong passwords for all systems.\nDefault credentials should be changed immediately upon account creation.\nRemote access requires VPN connection through corporate gateway.\n\nFor system administration access, contact IT with proper justification.\nTemporary accounts may be created for contractors and visitors."
+        },
+        {
+          "name": "system_maintenance.log",
+          "path": "/srv/ftp/.hidden_logs",
+          "content": "2024-03-15 09:30:22 - FTP service restarted\n2024-03-15 09:31:45 - Anonymous access enabled for public directory\n2024-03-15 10:15:33 - SSH service configured with default settings\n2024-03-15 10:16:12 - Test account created: username=testuser, password=Welcome123\n2024-03-15 10:45:18 - Backup user account activated: username=backup, password=backup2024\n2024-03-15 11:20:44 - Confidential documents moved to secure location\n2024-03-15 11:21:15 - Access permissions updated for sensitive areas\n2024-03-15 14:30:00 - System maintenance completed\n2024-03-15 14:30:15 - NOTE: Remember to disable test accounts after security audit\n2024-03-15 15:45:22 - Whistleblower protection protocols activated\n2024-03-15 15:45:55 - Evidence preservation system enabled"
+        },
+        {
+          "name": "corporate_secrets.txt",
+          "path": "/home/backup/.confidential",
+          "content": "MEGACORP CONFIDENTIAL DOCUMENTS\n===============================\n\nProject Blackwater - Internal Memo\nDate: March 10, 2024\nClassification: CONFIDENTIAL\n\nSubject: Environmental Impact Cover-up\n\nTo: Executive Committee\nFrom: Environmental Compliance Officer\n\nOur recent environmental impact assessment for the Riverside facility\nhas revealed significant contamination levels exceeding EPA limits.\n\nRecommendations:\n1. Immediate cleanup required - Estimated cost: $2.8M\n2. Regulatory reporting mandatory within 30 days\n3. Public disclosure may be necessary\n\nHowever, legal department suggests delaying disclosure until after\nQ2 earnings report to minimize stock price impact.\n\nAttached documents contain detailed contamination reports and\ncover-up strategy recommendations.\n\nCTF{corporate_whistleblower_evidence_secured}\n\n--- END CONFIDENTIAL DOCUMENT ---\n\nThis evidence proves corporate environmental violations and\ndeliberate attempts to conceal public health risks."
+        },
+        {
+          "name": "passwd",
+          "path": "/etc",
+          "content": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nsync:x:4:65534:sync:/bin:/bin/sync\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\nuucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin\nproxy:x:13:13:proxy:/bin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nbackup:x:34:34:backup:/home/backup:/bin/bash\nlist:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin\nirc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin\ngnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nsystemd-network:x:100:102:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin\nsystemd-resolve:x:101:103:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin\nsystemd-timesync:x:102:104:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin\nmessagebus:x:103:106::/nonexistent:/usr/sbin/nologin\nsyslog:x:104:110::/home/syslog:/usr/sbin/nologin\n_apt:x:105:65534::/nonexistent:/usr/sbin/nologin\nssh:x:106:65534::/run/sshd:/usr/sbin/nologin\ntestuser:x:1001:1001:Test User,,,:/home/testuser:/bin/bash\nbackup:x:1002:1002:Backup User,,,:/home/backup:/bin/bash\nftp:x:107:115:ftp daemon,,,:/srv/ftp:/usr/sbin/nologin"
+        },
+        {
+          "name": "shadow",
+          "path": "/etc",
+          "content": "root:$6$randomsalt$hashedpassword:19000:0:99999:7:::\ndaemon:*:19000:0:99999:7:::\nbin:*:19000:0:99999:7:::\nsys:*:19000:0:99999:7:::\nsync:*:19000:0:99999:7:::\ngames:*:19000:0:99999:7:::\nman:*:19000:0:99999:7:::\nlp:*:19000:0:99999:7:::\nmail:*:19000:0:99999:7:::\nnews:*:19000:0:99999:7:::\nuucp:*:19000:0:99999:7:::\nproxy:*:19000:0:99999:7:::\nwww-data:*:19000:0:99999:7:::\nbackup:$6$salt123$5FW8yZzXqZkQqZQqZQ:19000:0:99999:7:::\nlist:*:19000:0:99999:7:::\nirc:*:19000:0:99999:7:::\ngnats:*:19000:0:99999:7:::\nnobody:*:19000:0:99999:7:::\nsystemd-network:*:19000:0:99999:7:::\nsystemd-resolve:*:19000:0:99999:7:::\nsystemd-timesync:*:19000:0:99999:7:::\nmessagebus:*:19000:0:99999:7:::\nsyslog:*:19000:0:99999:7:::\n_apt:*:19000:0:99999:7:::\nssh:*:19000:0:99999:7:::\ntestuser:$6$test123$Welcome123hashed:19000:0:99999:7:::\nbackup:$6$backup2024$backup2024hashed:19000:0:99999:7:::\nftp:*:19000:0:99999:7:::"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "ftp",
+          "misconfiguration": "Anonymous FTP access enabled with hidden directories containing system logs that reveal SSH credentials for backup user account",
+          "exploitPath": "1. Port scan discovers FTP (21) and SSH (22) services 2. Anonymous FTP login reveals public documents and hidden .hidden_logs directory 3. System maintenance log contains SSH credentials (backup:backup2024) 4. SSH login as backup user provides access to confidential documents containing the flag",
+          "tools": [
+            "nmap",
+            "ftp",
+            "ssh",
+            "ls",
+            "cat"
+          ],
+          "servicePort": 21,
+          "setup": "systemctl start vsftpd && systemctl start ssh && useradd -m -s /bin/bash backup && echo 'backup:backup2024' | chpasswd && useradd -m -s /bin/bash testuser && echo 'testuser:Welcome123' | chpasswd && mkdir -p /srv/ftp/public /srv/ftp/.hidden_logs /home/backup/.confidential && chmod 755 /srv/ftp/.hidden_logs && chmod 700 /home/backup/.confidential && chown backup:backup /home/backup/.confidential",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{corporate_whistleblower_evidence_secured}"
+    }
+  },
+  "machineIPs": {
+    "ftp-server": "172.23.193.28",
+    "attacker-box": "172.23.193.3"
+  },
+  "timestamp": 1767243807462
+}

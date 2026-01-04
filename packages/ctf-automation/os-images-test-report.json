@@ -1,0 +1,398 @@
+{
+  "timestamp": "2026-01-01T13:00:06.817Z",
+  "totalTested": 12,
+  "summary": {
+    "excellent": 0,
+    "good": 11,
+    "failed": 1
+  },
+  "results": [
+    {
+      "name": "Ubuntu 22.04",
+      "image": "ubuntu:22.04",
+      "packageManager": "apt",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 29546206,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-10-13T17:23:20.919500115Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "4966d2f8991ab4fe92ce6cbd945e2d76ace83be6fefa160a21d1443f563e8c7b"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-ubuntu-22-04 -p 8080:80 ubuntu:22.04 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-ubuntu-22-04 (742a51956afa31d6c148ad7e0c4adccabdd55b5ac21ef90406533f9fbdb163ab): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apt",
+          "testPackage": "curl",
+          "installOutput": "Get:1 http://archive.ubuntu.com/ubuntu jammy InRelease [270 kB]\nGet:2 http://security.ubuntu.com/ubuntu jammy-security InRelease [129 kB]\nGet:3 http://archive.ubuntu.com/ubuntu jammy-updates InRelease"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh-server"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Ubuntu 20.04",
+      "image": "ubuntu:20.04",
+      "packageManager": "apt",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 27519803,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-04-08T10:42:48.947155373Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "302a5cfed1397239e17bc6ac85427b9864a621ca3d627bbdf5e27930cf4d4f6e"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-ubuntu-20-04 -p 8080:80 ubuntu:20.04 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-ubuntu-20-04 (deb4ca0148c0c070488ffa0d142132b86879df56d916f6a6bf09842404c2a6cd): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apt",
+          "testPackage": "curl",
+          "installOutput": "Get:1 http://archive.ubuntu.com/ubuntu focal InRelease [265 kB]\nGet:2 http://security.ubuntu.com/ubuntu focal-security InRelease [128 kB]\nGet:3 http://archive.ubuntu.com/ubuntu focal-updates InRelease"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh-server"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Debian 12",
+      "image": "debian:12",
+      "packageManager": "apt",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 48490790,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-12-29T00:00:00Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "70ddafba2225f678517f4ccdc6a212e180008993dcf5392217282c691bc3067f"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-debian-12 -p 8080:80 debian:12 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-debian-12 (28fce9dc4432d446f98781988df8eab4ce5598ce102683ecdc2bb640e8d34c07): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apt",
+          "testPackage": "curl",
+          "installOutput": "Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]\nGet:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]\nGet:3 http://deb.debian.org/debian-security bookworm-security InR"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh-server"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Debian 11",
+      "image": "debian:11",
+      "packageManager": "apt",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 53762434,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-12-29T00:00:00Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "f243129427c0ca68a5ee191095f37cbddeff09c5e8a5621aa5b3eda079e20f3e"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-debian-11 -p 8080:80 debian:11 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-debian-11 (bb97a6383658a4376ecc7a441284093dfd1bc00e5d71e7def52fd9866d1cdee9): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apt",
+          "testPackage": "curl",
+          "installOutput": "Get:1 http://deb.debian.org/debian bullseye InRelease [75.1 kB]\nGet:2 http://deb.debian.org/debian-security bullseye-security InRelease [27.2 kB]\nGet:3 http://deb.debian.org/debian bullseye-updates In"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh-server"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Alpine 3.19",
+      "image": "alpine:3.19",
+      "packageManager": "apk",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 3429495,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-10-08T11:10:40Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "d3f30a145bf53ab92b4e8ee6ba4b59716de0db40c8c52523c6bebfa1a417e9e9"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-alpine-3-19 -p 8080:80 alpine:3.19 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-alpine-3-19 (0ea45839e12033f71c96aa405b6ca3185e813a1d3a26ac47f191c2f7a9c4f33e): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apk",
+          "testPackage": "curl",
+          "installOutput": "fetch https://dl-cdn.alpinelinux.org/alpine/v3.19/main/x86_64/APKINDEX.tar.gz\nfetch https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/APKINDEX.tar.gz\nv3.19.9-81-g0da74f5eaef [https://dl-cdn"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Alpine 3.18",
+      "image": "alpine:3.18",
+      "packageManager": "apk",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 3428098,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-02-14T03:03:06Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "c6bec5c164129383fba9add2837c7dc8f66aa132338ee0e91b05b97a058ec87c"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-alpine-3-18 -p 8080:80 alpine:3.18 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-alpine-3-18 (d6d2860b8cf40269fb55b9aae325fb25acc39e496616b75d45daa46bcce276d0): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apk",
+          "testPackage": "curl",
+          "installOutput": "fetch https://dl-cdn.alpinelinux.org/alpine/v3.18/main/x86_64/APKINDEX.tar.gz\nfetch https://dl-cdn.alpinelinux.org/alpine/v3.18/community/x86_64/APKINDEX.tar.gz\nv3.18.12-143-gef09cc17ad9 [https://dl-c"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "CentOS 7",
+      "image": "centos:7",
+      "packageManager": "yum",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 76101639,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2021-09-15T18:20:23.99863383Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "5071147e2e36fb2b2739d614b7e6ee702b7e3a70ec6685fc8fc45e8f5e4138f5"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-centos-7 -p 8080:80 centos:7 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-centos-7 (403f30bdf5a72a5098d91bcbd0a93bb0a40c03f33ca2e1af9e85030f42d89bfb): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-centos-7 bash -c \"yum install -y curl\"\nCould not retrieve mirrorlist http://mirrorlist.centos.org/?release=7&arch=x86_64&repo=os&infra=container error was\n14: curl#6 - \"Could not resolve host: mirrorlist.centos.org; Unknown error\"\n\n\n One of the configured repositories failed (Unknown),\n and yum doesn't have enough cached data to continue. At this point the only\n safe thing yum can do is fail. There are a few ways to work \"fix\" this:\n\n     1. Contact the upstream for the repository and get them to fix the problem.\n\n     2. Reconfigure the baseurl/etc. for the repository, to point to a working\n        upstream. This is most often useful if you are using a newer\n        distribution release than is supported by the repository (and the\n        packages for the previous distribution release still work).\n\n     3. Run the command with the repository temporarily disabled\n            yum --disablerepo=<repoid> ...\n\n     4. Disable the repository permanently, so yum won't use it by default. Yum\n        will then just ignore the repository until you permanently enable it\n        again or use --enablerepo for temporary usage:\n\n            yum-config-manager --disable <repoid>\n        or\n            subscription-manager repos --disable=<repoid>\n\n     5. Configure the failing repository to be skipped, if it is unavailable.\n        Note that yum will try to contact the repo. when it runs most commands,\n        so will have to try and fail each time (and thus. yum will be be much\n        slower). If it is a very temporary problem though, this is often a nice\n        compromise:\n\n            yum-config-manager --save --setopt=<repoid>.skip_if_unavailable=true\n\nCannot find a valid baseurl for repo: base/7/x86_64\n"
+        },
+        "sshInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-centos-7 bash -c \"yum install -y openssh-server\"\nCould not retrieve mirrorlist http://mirrorlist.centos.org/?release=7&arch=x86_64&repo=os&infra=container error was\n14: curl#6 - \"Could not resolve host: mirrorlist.centos.org; Unknown error\"\n\n\n One of the configured repositories failed (Unknown),\n and yum doesn't have enough cached data to continue. At this point the only\n safe thing yum can do is fail. There are a few ways to work \"fix\" this:\n\n     1. Contact the upstream for the repository and get them to fix the problem.\n\n     2. Reconfigure the baseurl/etc. for the repository, to point to a working\n        upstream. This is most often useful if you are using a newer\n        distribution release than is supported by the repository (and the\n        packages for the previous distribution release still work).\n\n     3. Run the command with the repository temporarily disabled\n            yum --disablerepo=<repoid> ...\n\n     4. Disable the repository permanently, so yum won't use it by default. Yum\n        will then just ignore the repository until you permanently enable it\n        again or use --enablerepo for temporary usage:\n\n            yum-config-manager --disable <repoid>\n        or\n            subscription-manager repos --disable=<repoid>\n\n     5. Configure the failing repository to be skipped, if it is unavailable.\n        Note that yum will try to contact the repo. when it runs most commands,\n        so will have to try and fail each time (and thus. yum will be be much\n        slower). If it is a very temporary problem though, this is often a nice\n        compromise:\n\n            yum-config-manager --save --setopt=<repoid>.skip_if_unavailable=true\n\nCannot find a valid baseurl for repo: base/7/x86_64\n"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Fedora 39",
+      "image": "fedora:39",
+      "packageManager": "dnf",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 64957114,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2024-10-31T11:45:47Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "1649ec327b4234c027f81fcc2efbc3951f3706ed1975b996061861b38bce43fa"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-fedora-39 -p 8080:80 fedora:39 sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-fedora-39 (ed0a2ab6985f8485bdaf22e7be48b8fb676e33341b8884fd068bfa03775e428c): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-fedora-39 which curl\n"
+        },
+        "sshInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-fedora-39 which sshd || docker exec test-fedora-39 which ssh\n"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Rocky Linux 9",
+      "image": "rockylinux:9",
+      "packageManager": "dnf",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 64317141,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2023-11-28T20:08:58Z"
+        },
+        "containerStart": {
+          "success": false,
+          "error": "Command failed: docker ps --filter name=test-rockylinux-9 --format \"{{.Status}}\"\n"
+        }
+      },
+      "overall": "FAILED",
+      "reason": "Container start failed"
+    },
+    {
+      "name": "Arch Linux",
+      "image": "archlinux:latest",
+      "packageManager": "pacman",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 174707092,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-12-28T06:06:07.335249897Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "589279c9f2d354a953fbda37aeedcf61480e762eb1be6c6a58a9034e943e3d8a"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-archlinux-latest -p 8080:80 archlinux:latest sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-archlinux-latest (0c9f0366246c68867c42496228cfbd3c79033f25cde8c9cedab477d0696eb90d): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-archlinux-latest which curl\n"
+        },
+        "sshInstall": {
+          "success": false,
+          "error": "Command failed: docker exec test-archlinux-latest bash -c \"pacman -Sy --noconfirm openssh-server\"\nerror: target not found: openssh-server\n"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "Kali Linux",
+      "image": "kalilinux/kali-rolling",
+      "packageManager": "apt",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 53203153,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2025-12-28T04:05:43.559021017Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "581c11e5411cc7973c386c19eb4aa93cdc292821f14662fba89e90aa2d7437e7"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-kalilinux-kali-rolling -p 8080:80 kalilinux/kali-rolling sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-kalilinux-kali-rolling (e0f69a9fc57caae277021329d8f548d2cedf41951685339c5f30cf6ebb7b4578): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": true,
+          "packageManager": "apt",
+          "testPackage": "curl",
+          "installOutput": "Get:1 http://mirror.freedif.org/kali kali-rolling InRelease [34.0 kB]\nGet:2 http://mirror.freedif.org/kali kali-rolling/main amd64 Packages [20.9 MB]\nGet:3 http://mirror.freedif.org/kali kali-rolling/"
+        },
+        "sshInstall": {
+          "success": true,
+          "sshPackage": "openssh-server"
+        }
+      },
+      "overall": "GOOD"
+    },
+    {
+      "name": "BusyBox",
+      "image": "busybox:latest",
+      "packageManager": "none",
+      "osType": "linux",
+      "tests": {
+        "pull": {
+          "success": true,
+          "size": 2224358,
+          "architecture": "amd64",
+          "os": "linux",
+          "created": "2024-09-26T21:31:42Z"
+        },
+        "containerStart": {
+          "success": true,
+          "containerId": "c20f6310edebe6b178dad54d53d74ea14f4aa8bc72396cc708ee62e52c72b242"
+        },
+        "portConfig": {
+          "success": false,
+          "error": "Command failed: docker run -d --name test-busybox-latest -p 8080:80 busybox:latest sleep 300\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint test-busybox-latest (e9c654980860de2e3442d447de199aa8ea0c0517e4d926bb1ffe1e9e59935c51): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+        },
+        "serviceInstall": {
+          "success": false,
+          "error": "No package manager available"
+        },
+        "sshInstall": {
+          "success": false,
+          "error": "No package manager available"
+        }
+      },
+      "overall": "GOOD"
+    }
+  ]
+}

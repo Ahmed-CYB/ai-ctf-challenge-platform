@@ -1,0 +1,341 @@
+@custom-variant dark (&:is(.dark *));
+
+/* Cybersecurity Dark Theme - Inspired by TryHackMe, HackTheBox, INE */
+:root {
+  --font-size: 16px;
+  
+  /* Core Dark Background - Deep space black with blue tint */
+  --background: #0a0e27;
+  --foreground: #e4e4f0;
+  
+  /* Cards - Slightly lighter dark with subtle border glow */
+  --card: #0f1729;
+  --card-foreground: #e4e4f0;
+  
+  /* Popover */
+  --popover: #0f1729;
+  --popover-foreground: #e4e4f0;
+  
+  /* Primary - Neon Green (Classic hacker terminal color) */
+  --primary: #00ff88;
+  --primary-foreground: #0a0e27;
+  
+  /* Secondary - Electric Cyan */
+  --secondary: #1a2332;
+  --secondary-foreground: #00d9ff;
+  
+  /* Muted - Darker shades for backgrounds */
+  --muted: #151b2e;
+  --muted-foreground: #8b92b0;
+  
+  /* Accent - Purple/Magenta for highlights */
+  --accent: #1e2942;
+  --accent-foreground: #b794f6;
+  
+  /* Destructive - Bright danger red */
+  --destructive: #ff3864;
+  --destructive-foreground: #ffffff;
+  
+  /* Borders - Subtle with slight glow effect */
+  --border: rgba(0, 255, 136, 0.15);
+  --input: rgba(0, 255, 136, 0.1);
+  --input-background: #151b2e;
+  --switch-background: #2a3550;
+  
+  /* Ring focus - Neon glow */
+  --ring: rgba(0, 255, 136, 0.5);
+  
+  /* Chart colors - Vibrant tech colors */
+  --chart-1: #00ff88;
+  --chart-2: #00d9ff;
+  --chart-3: #b794f6;
+  --chart-4: #ff3864;
+  --chart-5: #ffd700;
+  
+  /* Font weights */
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  
+  /* Border radius - Slightly angular for tech feel */
+  --radius: 0.5rem;
+  
+  /* Sidebar - Darkest section */
+  --sidebar: #0a0e1f;
+  --sidebar-foreground: #e4e4f0;
+  --sidebar-primary: #00ff88;
+  --sidebar-primary-foreground: #0a0e27;
+  --sidebar-accent: #151b2e;
+  --sidebar-accent-foreground: #00ff88;
+  --sidebar-border: rgba(0, 255, 136, 0.1);
+  --sidebar-ring: rgba(0, 255, 136, 0.5);
+  
+  /* Success color */
+  --success: #00ff88;
+  --success-foreground: #0a0e27;
+  
+  /* Warning color */
+  --warning: #ffaa00;
+  --warning-foreground: #0a0e27;
+  
+  /* Info color */
+  --info: #00d9ff;
+  --info-foreground: #0a0e27;
+}
+
+.dark {
+  /* Keep same as root since we're always dark */
+  --background: #0a0e27;
+  --foreground: #e4e4f0;
+  --card: #0f1729;
+  --card-foreground: #e4e4f0;
+  --popover: #0f1729;
+  --popover-foreground: #e4e4f0;
+  --primary: #00ff88;
+  --primary-foreground: #0a0e27;
+  --secondary: #1a2332;
+  --secondary-foreground: #00d9ff;
+  --muted: #151b2e;
+  --muted-foreground: #8b92b0;
+  --accent: #1e2942;
+  --accent-foreground: #b794f6;
+  --destructive: #ff3864;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 255, 136, 0.15);
+  --input: rgba(0, 255, 136, 0.1);
+  --ring: rgba(0, 255, 136, 0.5);
+  --chart-1: #00ff88;
+  --chart-2: #00d9ff;
+  --chart-3: #b794f6;
+  --chart-4: #ff3864;
+  --chart-5: #ffd700;
+  --sidebar: #0a0e1f;
+  --sidebar-foreground: #e4e4f0;
+  --sidebar-primary: #00ff88;
+  --sidebar-primary-foreground: #0a0e27;
+  --sidebar-accent: #151b2e;
+  --sidebar-accent-foreground: #00ff88;
+  --sidebar-border: rgba(0, 255, 136, 0.1);
+  --sidebar-ring: rgba(0, 255, 136, 0.5);
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* Cybersecurity glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+  }
+
+  .glow-primary-sm {
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  }
+
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(183, 148, 246, 0.3);
+  }
+
+  .glow-danger {
+    box-shadow: 0 0 20px rgba(255, 56, 100, 0.3);
+  }
+
+  /* Animated gradient background for cards */
+  .cyber-gradient {
+    background: linear-gradient(135deg, #0f1729 0%, #1a2332 100%);
+    position: relative;
+  }
+
+  .cyber-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 217, 255, 0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Terminal-style text */
+  .terminal-text {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  /* Smooth scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0e27;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1a2332;
+    border-radius: 5px;
+    border: 2px solid #0a0e27;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2a3550;
+  }
+
+  /* Custom thin scrollbar for containers */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 136, 0.2);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 136, 0.3);
+  }
+
+  /* Avatar hover effects */
+  .avatar-hover-overlay {
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  /* Scale animation for icons */
+  @keyframes icon-bounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-icon-bounce {
+    animation: icon-bounce 0.3s ease-in-out;
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}

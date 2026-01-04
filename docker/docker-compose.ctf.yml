@@ -1,0 +1,55 @@
+version: '3.8'
+
+# CTF Automation Service (deployed separately for frequent restarts)
+# Run: docker-compose -f docker/docker-compose.ctf.yml up --build
+
+services:
+  # CTF Automation Service (New instance - backup original on 3003)
+  ctf-automation-new:
+    build:
+      context: ../packages/ctf-automation
+      dockerfile: Dockerfile
+    container_name: ctf-automation-new
+    ports:
+      - "4003:4003"  # New port, original 3003 kept for backup
+    env_file:
+      - ../.env  # Load environment variables from .env file in project root (relative to docker-compose file location)
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://ctf_user:${DB_PASSWORD:-ctf_password_123}@postgres-new:5432/ctf_platform
+      DB_HOST: postgres-new
+      DB_PORT: 5432
+      DB_NAME: ctf_platform
+      DB_USER: ctf_user
+      DB_PASSWORD: ${DB_PASSWORD:-ctf_password_123}
+      CTF_API_PORT: 4003
+      GUAC_CONTAINER_NAME: ctf-guacamole-db-new
+      GUAC_DB_USER: guacamole_user
+      GUAC_DB_PASSWORD: ${GUACAMOLE_DB_PASSWORD:-guacamole_password_123}
+      GUAC_DB_NAME: guacamole_db
+      CLONE_PATH: /tmp/ctf-repo
+      # API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, GITHUB_TOKEN) are loaded from .env file via env_file directive above
+    # Note: postgres-new and ctf-guacamole-db-new must be running (start with: npm run infra:up)
+    # The service will retry connecting to Guacamole DB if it's not ready yet (exponential backoff)
+    volumes:
+      - ../packages/ctf-automation:/app
+      - /app/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ctf_repo_data:/tmp/ctf-repo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+networks:
+  ctf-network:
+    name: ctf-network
+    external: true
+
+volumes:
+  ctf_repo_data:
+

@@ -1,0 +1,244 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 40px;
+}
+
+h1 {
+    color: #2d3748;
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 2.5em;
+}
+
+.subtitle {
+    text-align: center;
+    color: #718096;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+.info-box {
+    background: #ebf8ff;
+    border-left: 4px solid #3182ce;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+}
+
+.info-box h3 {
+    color: #2c5282;
+    margin-bottom: 15px;
+}
+
+.info-box p {
+    margin: 8px 0;
+    color: #2d3748;
+}
+
+.info-box code {
+    background: #2d3748;
+    color: #68d391;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.search-box {
+    background: #f7fafc;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    border: 2px solid #e2e8f0;
+}
+
+.search-box h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.search-box form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-box input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #cbd5e0;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.search-box button {
+    padding: 12px 30px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.search-box button:hover {
+    background: #5568d3;
+}
+
+.hint {
+    color: #718096;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.hint code {
+    background: #edf2f7;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #2d3748;
+}
+
+.search-results {
+    background: #fff5f5;
+    border-left: 4px solid #fc8181;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+}
+
+.search-results h3 {
+    color: #c53030;
+    margin-bottom: 15px;
+}
+
+.query-display {
+    background: #2d3748;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+.query-display code {
+    color: #68d391;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95em;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+}
+
+table th {
+    background: #4a5568;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+table td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+table tr:hover {
+    background: #f7fafc;
+}
+
+.error {
+    color: #e53e3e;
+    background: #fff5f5;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 4px solid #fc8181;
+}
+
+.hints-box {
+    background: #f0fff4;
+    border-left: 4px solid #48bb78;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+}
+
+.hints-box h3 {
+    color: #22543d;
+    margin-bottom: 15px;
+}
+
+.hints-box ul {
+    margin-left: 20px;
+    color: #2d3748;
+}
+
+.hints-box li {
+    margin: 8px 0;
+}
+
+.hints-box code {
+    background: #2d3748;
+    color: #68d391;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.network-diagram {
+    background: #fffaf0;
+    border-left: 4px solid #ed8936;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 5px;
+}
+
+.network-diagram h3 {
+    color: #7c2d12;
+    margin-bottom: 15px;
+}
+
+.network-diagram pre {
+    background: #2d3748;
+    color: #68d391;
+    padding: 20px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+    color: #718096;
+}
+
+.footer p {
+    margin: 5px 0;
+}

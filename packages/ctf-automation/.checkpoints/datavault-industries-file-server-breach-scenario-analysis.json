@@ -1,0 +1,63 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "ftp-server",
+        "type": "victim",
+        "role": "Corporate file server running vulnerable FTP service with misconfigured permissions",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "sensitive company documents",
+          "employee database backups",
+          "configuration files with credentials",
+          "flag file in restricted directory"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration tester's machine for network reconnaissance and FTP exploitation",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "FTP exploitation scripts",
+          "password wordlists"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through network scanning",
+      "FTP anonymous access leads to discovering user credentials",
+      "Proper FTP authentication required to access flag directory"
+    ],
+    "categories": [
+      "network"
+    ],
+    "scenario": {
+      "title": "DataVault Industries File Server Breach",
+      "description": "DataVault Industries runs a legacy FTP server for internal file sharing. Recent security audits revealed potential vulnerabilities in their file transfer protocols. Your task is to assess the security of their FTP infrastructure and retrieve sensitive data that may be exposed.",
+      "stages": [
+        "Network reconnaissance to discover FTP service on target",
+        "Enumerate FTP service and test for anonymous access",
+        "Exploit FTP misconfigurations to gain authenticated access",
+        "Navigate directory structure to locate and retrieve the flag"
+      ]
+    }
+  },
+  "challengeName": "datavault-industries-file-server-breach",
+  "timestamp": 1767120864961
+}

@@ -1,0 +1,99 @@
+version: '3.8'
+
+# ISOLATED TEST ENVIRONMENT - Terminal Access Alternatives
+# This is a separate test environment to evaluate alternatives to Guacamole
+# DO NOT USE IN PRODUCTION - This is for testing only
+
+services:
+  # Test Attacker Container (Kali Linux)
+  test-attacker:
+    image: kalilinux/kali-rolling:latest
+    container_name: test-attacker-terminal
+    hostname: attacker
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    networks:
+      test-network:
+        ipv4_address: 172.30.1.3
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    command: >
+      bash -c "
+      apt-get update && 
+      apt-get install -y openssh-server sudo vim nano curl wget git net-tools iputils-ping python3 nmap &&
+      useradd -m -s /bin/bash kali && 
+      echo 'kali:kali' | chpasswd && 
+      usermod -aG sudo kali &&
+      echo 'root:toor' | chpasswd &&
+      mkdir -p /var/run/sshd &&
+      sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config &&
+      sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
+      /usr/sbin/sshd -D &
+      tail -f /dev/null
+      "
+    stdin_open: true
+    tty: true
+
+  # Option 1: ttyd - Simple terminal sharing over web
+  # Access at: http://localhost:7681
+  # Uses SSH to connect to attacker container
+  ttyd-terminal:
+    image: tsl0922/ttyd:latest
+    container_name: test-ttyd-terminal
+    ports:
+      - "7681:7681"
+    networks:
+      test-network:
+        ipv4_address: 172.30.1.10
+    command: >
+      ttyd -p 7681 -i -c kali:kali ssh kali@172.30.1.3
+    depends_on:
+      - test-attacker
+
+  # Option 2: wetty - Web-based terminal emulator
+  # Access at: http://localhost:3000
+  wetty-terminal:
+    image: wettyoss/wetty:latest
+    container_name: test-wetty-terminal
+    ports:
+      - "3000:3000"
+    networks:
+      test-network:
+        ipv4_address: 172.30.1.11
+    environment:
+      - SSH_HOST=172.30.1.3
+      - SSH_PORT=22
+      - SSH_USER=kali
+      - SSH_PASSWORD=kali
+    depends_on:
+      - test-attacker
+
+  # Option 3: shellinabox - Web-based terminal emulator
+  # Access at: https://localhost:4200 (self-signed cert)
+  shellinabox-terminal:
+    image: sspreitzer/shellinabox:latest
+    container_name: test-shellinabox-terminal
+    ports:
+      - "4200:4200"
+    networks:
+      test-network:
+        ipv4_address: 172.30.1.12
+    environment:
+      - SIAB_USER=kali
+      - SIAB_PASSWORD=kali
+      - SIAB_SUDO=true
+    command: >
+      shellinaboxd --disable-ssl --no-beep -t -s /:SSH:172.30.1.3:22 --user-css Normal:+/usr/share/shellinabox/white-on-black.css
+    depends_on:
+      - test-attacker
+    restart: unless-stopped
+
+networks:
+  test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.1.0/24
+          gateway: 172.30.1.1
+

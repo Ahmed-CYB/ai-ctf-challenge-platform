@@ -1,0 +1,67 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "corporate-ftp",
+        "type": "victim",
+        "role": "Corporate FTP server hosting employee documents and system backups",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "employee database backup",
+          "configuration files",
+          "encrypted flag file",
+          "decoy documents",
+          "system logs"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration tester's machine for FTP exploitation",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "FTP clients",
+          "password lists",
+          "decryption utilities"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through network reconnaissance",
+      "FTP access requires credential brute-forcing or anonymous login exploitation",
+      "Flag extraction requires decrypting retrieved files using discovered keys"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Corporate Data Breach via Legacy FTP",
+      "description": "A multinational corporation still uses an old FTP server for internal file transfers. Recent security audits revealed potential vulnerabilities in their file sharing infrastructure. Your mission is to infiltrate their FTP server and retrieve the confidential project specifications.",
+      "stages": [
+        "Network reconnaissance to discover the FTP service and enumerate available services",
+        "FTP service exploitation through authentication bypass or credential attacks",
+        "File system exploration to locate sensitive documents and encrypted data",
+        "Cryptographic analysis to decrypt the final flag from retrieved backup files"
+      ]
+    }
+  },
+  "challengeName": "corporate-data-breach-via-legacy-ftp",
+  "timestamp": 1767244812835
+}

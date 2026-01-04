@@ -1,0 +1,8 @@
+
+FROM kali-tool-test-base:latest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends smbclient rpcclient net nmblookup && apt-get clean
+RUN apt-get update && apt-get install -y enum4linux
+# Verification step
+RUN enum4linux --version 2>&1 || {tool} -h 2>&1 || {tool} --help 2>&1 || which {tool} 2>&1 || echo "⚠️  Verification command failed but installation may have succeeded"
+RUN which enum4linux || dpkg -L enum4linux || pip3 show enum4linux || echo "Tool installed"

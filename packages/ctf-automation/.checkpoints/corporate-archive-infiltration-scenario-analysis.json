@@ -1,0 +1,66 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "ftp-archive-server",
+        "type": "victim",
+        "role": "Corporate FTP archive server with historical documents and hidden configuration files",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "historical company documents",
+          "backup configuration files",
+          "encrypted flag file",
+          "user credentials in config"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Network penetration testing workstation with FTP analysis tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "FTP clients",
+          "decryption utilities"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through network reconnaissance",
+      "FTP anonymous access reveals configuration files with encrypted credentials",
+      "Decrypted credentials provide access to restricted FTP directories containing the flag"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Corporate Archive Infiltration",
+      "description": "A corporate FTP server hosts archived documents and backup files. The server appears to allow anonymous access, but the real treasure lies in discovering hidden credentials and decrypting access to restricted directories.",
+      "stages": [
+        "Network reconnaissance to discover FTP service on target server",
+        "Anonymous FTP enumeration to discover accessible files and directories",
+        "Analysis of configuration files to extract encrypted credentials",
+        "Credential decryption using discovered cipher keys",
+        "Authenticated FTP access to restricted directories to retrieve the flag"
+      ]
+    }
+  },
+  "challengeName": "corporate-archive-infiltration",
+  "timestamp": 1767247633020
+}

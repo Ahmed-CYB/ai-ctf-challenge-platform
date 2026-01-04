@@ -1,0 +1,48 @@
+{
+  "name": "ctf-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI-Powered CTF Challenge Platform",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:ctf\"",
+    "dev:frontend": "cd packages/frontend && npm run dev",
+    "dev:backend": "cd packages/backend && npm run dev",
+    "dev:ctf": "cd packages/ctf-automation && npm start",
+    "infra:up": "docker-compose -f docker/docker-compose.infrastructure.yml up -d",
+    "infra:down": "docker-compose -f docker/docker-compose.infrastructure.yml down",
+    "infra:logs": "docker-compose -f docker/docker-compose.infrastructure.yml logs -f",
+    "app:up": "docker-compose -f docker/docker-compose.app.yml up --build",
+    "app:down": "docker-compose -f docker/docker-compose.app.yml down",
+    "app:logs": "docker-compose -f docker/docker-compose.app.yml logs -f",
+    "app:restart": "docker-compose -f docker/docker-compose.app.yml restart",
+    "ctf:up": "docker-compose -f docker/docker-compose.ctf.yml up --build",
+    "ctf:down": "docker-compose -f docker/docker-compose.ctf.yml down",
+    "ctf:logs": "docker-compose -f docker/docker-compose.ctf.yml logs -f",
+    "ctf:restart": "docker-compose -f docker/docker-compose.ctf.yml restart",
+    "dev:docker": "npm run infra:up && npm run app:up && npm run ctf:up",
+    "dev:docker:down": "npm run app:down && npm run ctf:down && npm run infra:down",
+    "dev:docker:logs": "docker-compose -f docker/docker-compose.app.yml -f docker/docker-compose.ctf.yml -f docker/docker-compose.infrastructure.yml logs -f",
+    "build": "npm run build --workspaces",
+    "build:frontend": "cd packages/frontend && npm run build",
+    "build:backend": "cd packages/backend && npm run build",
+    "build:ctf": "cd packages/ctf-automation && npm run build",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:reset": "node scripts/reset-db.js",
+    "health": "node scripts/health-check.js",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "install:all": "npm install && npm install --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

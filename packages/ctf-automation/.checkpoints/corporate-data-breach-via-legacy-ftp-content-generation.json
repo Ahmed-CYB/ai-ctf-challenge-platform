@@ -1,0 +1,129 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "hashcat",
+        "john",
+        "openssl",
+        "gpg"
+      ]
+    },
+    "corporate-ftp": {
+      "name": "corporate-ftp",
+      "type": "victim",
+      "role": "Corporate FTP server hosting employee documents and system backups",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "vsftpd.conf",
+          "path": "",
+          "content": "# vsftpd configuration - Anonymous FTP\nlisten=YES\nanonymous_enable=YES\nanon_upload_enable=NO\nanon_mkdir_write_enable=NO\nanon_root=/ftp\nno_anon_password=YES\nwrite_enable=YES\nlocal_enable=YES\nchroot_local_user=YES\nallow_writeable_chroot=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\npasv_enable=YES\npasv_min_port=21100\npasv_max_port=21110\nuserlist_enable=NO"
+        },
+        {
+          "name": "start.sh",
+          "path": "",
+          "content": "#!/bin/bash\nmkdir -p /ftp/public /ftp/data /ftp/private\necho \"CTF{network_ftp_anon_f38ky1i0s1}\" > /ftp/data/flag.txt\nchmod 644 /ftp/data/flag.txt\necho \"Welcome to the CTF FTP Server!\" > /ftp/public/welcome.txt\necho \"Important files may be in subdirectories\" > /ftp/public/readme.txt\nservice vsftpd start\ntail -f /dev/null"
+        },
+        {
+          "name": "README.txt",
+          "path": "",
+          "content": "FTP Challenge (Easy)\n\nObjective:\nConnect to the FTP server and find the flag.\n\nHints:\n1. Anonymous access is enabled\n2. Explore all directories\n3. Check subdirectories\n\nTools:\n- ftp\n- nmap\n- wget/curl\n\nFlag Format: CTF{...}"
+        },
+        {
+          "name": "project_specs.enc",
+          "path": "",
+          "content": "ENCRYPTED PROJECT SPECIFICATIONS\n=============================\n\nClient: REDACTED\nProject: Operation Nightfall\n\nEncrypted Data:\n4a5f6e3d2b1c8e9f7a4b6c3d5e2f1a8b9c7e4f6a3d5b2c8e1f9a7b4c6d3e5f2a1\n\nKey Fragment 1: The answer lies in the fibonacci sequence\nKey Fragment 2: XOR with ASCII values of 'NIGHTFALL'\nKey Fragment 3: Apply Caesar shift of 7 positions\n\nNote: Data was encrypted using our proprietary 3-stage cipher\nContact: admin@corp-secure.local for key recovery"
+        },
+        {
+          "name": "README.txt",
+          "path": "",
+          "content": "FTP FILE DIRECTORY\n==================\n\nThis directory contains confidential project files.\nAll sensitive data has been encrypted using our corporate security protocol.\n\nFile Structure:\n- project_specs.enc: Main project documentation (ENCRYPTED)\n- key_recovery.log: System logs for key generation process\n- backup_keys.txt: Emergency key backup (if needed)\n\nSecurity Notice:\nFiles are protected using multi-stage encryption.\nUnauthorized access attempts are logged and monitored.\n\nFor technical support: it-security@corp.internal"
+        },
+        {
+          "name": "key_recovery.log",
+          "path": "",
+          "content": "KEY GENERATION LOG\n==================\n\n[2024-01-15 09:23:41] Starting key generation process\n[2024-01-15 09:23:42] Fibonacci sequence initialized: 1,1,2,3,5,8,13,21,34,55\n[2024-01-15 09:23:43] Selected sequence positions: 3,5,8 (values: 2,5,13)\n[2024-01-15 09:23:44] Project codename: NIGHTFALL\n[2024-01-15 09:23:45] ASCII conversion: N=78, I=73, G=71, H=72, T=84, F=70, A=65, L=76, L=76\n[2024-01-15 09:23:46] XOR key generated from codename\n[2024-01-15 09:23:47] Caesar shift value: 7 (company security standard)\n[2024-01-15 09:23:48] Multi-stage encryption complete\n[2024-01-15 09:23:49] Original message: CTF{ftp_crypto_chain_mastery_2024}\n[2024-01-15 09:23:50] Stage 1 (Fibonacci): Applied position-based XOR\n[2024-01-15 09:23:51] Stage 2 (XOR): Applied with NIGHTFALL ASCII values\n[2024-01-15 09:23:52] Stage 3 (Caesar): Shifted by 7 positions\n[2024-01-15 09:23:53] Final encrypted hex: 4a5f6e3d2b1c8e9f7a4b6c3d5e2f1a8b9c7e4f6a3d5b2c8e1f9a7b4c6d3e5f2a1\n[2024-01-15 09:23:54] Encryption process completed successfully"
+        },
+        {
+          "name": "backup_keys.txt",
+          "path": "",
+          "content": "EMERGENCY KEY BACKUP\n====================\n\nIn case of key recovery failure, use the following information:\n\nCipher Type: Custom 3-stage encryption\nStage Order: Fibonacci → XOR → Caesar\n\nFibonacci Positions: Use 3rd, 5th, and 8th numbers\nXOR Keyword: Project codename in uppercase\nCaesar Shift: Standard corporate security offset\n\nRecovery Steps:\n1. Convert hex to binary\n2. Reverse Caesar cipher (subtract shift value)\n3. Reverse XOR with keyword (repeat as needed)\n4. Reverse Fibonacci XOR (use position values)\n5. Convert result back to ASCII\n\nWARNING: This is for emergency use only!\nAll key recovery attempts are logged and audited.\n\nAuthorized Personnel Only\nSecurity Level: CONFIDENTIAL"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "ssh server",
+          "difficulty": "easy",
+          "misconfiguration": "Anonymous FTP access enabled with sensitive files",
+          "exploitPath": "Connect via anonymous FTP and navigate to /data directory",
+          "tools": [
+            "nmap",
+            "ftp",
+            "wget"
+          ],
+          "servicePort": 21,
+          "setup": "apt-get update && apt-get install -y vsftpd\ncp /challenge/vsftpd.conf /etc/vsftpd.conf\nmkdir -p /var/run/vsftpd/empty\nchmod +x /challenge/start.sh\n/challenge/start.sh",
+          "hints": [
+            "Anonymous access is enabled",
+            "Explore all directories",
+            "Check subdirectories"
+          ],
+          "learningObjectives": [
+            "Understand FTP protocol",
+            "Learn anonymous FTP access",
+            "Practice directory enumeration"
+          ]
+        },
+        "crypto": {
+          "cryptoType": "custom",
+          "difficulty": "medium",
+          "solvingMethod": "Multi-stage decryption: 1) Convert hex to bytes 2) Reverse Caesar shift (-7) 3) XOR with 'NIGHTFALL' ASCII values (cycling) 4) XOR with Fibonacci values 2,5,13 (cycling) 5) Convert to ASCII",
+          "tools": [
+            "python",
+            "cyberchef",
+            "hex_editor",
+            "calculator"
+          ],
+          "setup": "python3 -c \"import binascii; data='4a5f6e3d2b1c8e9f7a4b6c3d5e2f1a8b9c7e4f6a3d5b2c8e1f9a7b4c6d3e5f2a1'; bytes_data=binascii.unhexlify(data); step1=[(b-7)%256 for b in bytes_data]; nightfall=[78,73,71,72,84,70,65,76,76]; step2=[step1[i]^nightfall[i%9] for i in range(len(step1))]; fib=[2,5,13]; step3=[step2[i]^fib[i%3] for i in range(len(step2))]; print(''.join(chr(b) for b in step3))\"",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{ftp_crypto_chain_mastery_2024}"
+    }
+  },
+  "machineIPs": {
+    "corporate-ftp": "172.23.193.103",
+    "attacker-workstation": "172.23.193.3"
+  },
+  "timestamp": 1767245109054
+}

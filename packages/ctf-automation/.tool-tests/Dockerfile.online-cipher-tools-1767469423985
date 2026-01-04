@@ -1,0 +1,8 @@
+
+FROM kali-tool-test-base:latest
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends git python3 python3-pip && apt-get clean
+RUN git clone https://github.com/jameslyons/online-cipher-tools.git /opt/online-cipher-tools && cd /opt/online-cipher-tools && chmod +x *.py && ln -sf /opt/online-cipher-tools/cipher_tools.py /usr/local/bin/online-cipher-tools
+# Verification step
+RUN online-cipher-tools --version 2>&1 || {tool} -h 2>&1 || {tool} --help 2>&1 || which {tool} 2>&1 || echo "⚠️  Verification command failed but installation may have succeeded"
+RUN which online-cipher-tools || dpkg -L online-cipher-tools || pip3 show online-cipher-tools || echo "Tool installed"

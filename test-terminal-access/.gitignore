@@ -1,0 +1,4 @@
+# Test environment files - can be ignored
+*.log
+*.tmp
+

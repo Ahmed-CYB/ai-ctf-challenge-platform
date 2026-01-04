@@ -1,0 +1,67 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "legacy-ftp-server",
+        "type": "victim",
+        "role": "Legacy FTP server hosting sensitive research data with misconfigured permissions",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "encrypted research files",
+          "user credential database",
+          "configuration files with secrets",
+          "backup archives"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration testing workstation for FTP enumeration and exploitation",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "FTP clients",
+          "decryption utilities",
+          "packet capture tools"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP server through network scanning",
+      "Anonymous FTP access reveals encrypted files that require password cracking",
+      "Configuration files contain credentials for privileged FTP access"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Research Lab Data Breach",
+      "description": "A pharmaceutical research lab's legacy FTP server contains critical drug trial data. The server has been misconfigured, allowing unauthorized access to sensitive encrypted research files and patient databases.",
+      "stages": [
+        "Network reconnaissance to discover the FTP server",
+        "Exploit anonymous FTP access to retrieve initial files",
+        "Crack encrypted archives to reveal credentials",
+        "Use discovered credentials for privileged FTP access",
+        "Extract final encrypted flag from restricted directories"
+      ]
+    }
+  },
+  "challengeName": "research-lab-data-breach",
+  "timestamp": 1767244389209
+}

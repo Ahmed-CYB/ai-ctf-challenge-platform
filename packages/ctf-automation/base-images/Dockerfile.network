@@ -1,0 +1,78 @@
+# Base Kali Image for Network Challenges
+# Pre-installed tools: nmap, wireshark, tcpdump, netcat, hping3
+# Image size: ~700MB
+
+FROM kalilinux/kali-rolling
+
+LABEL maintainer="CTF Platform"
+LABEL category="network"
+LABEL description="Lightweight Kali with network analysis tools"
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update and install base desktop environment
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    kali-desktop-xfce \
+    xfce4 \
+    xfce4-terminal \
+    tigervnc-standalone-server \
+    tigervnc-common \
+    dbus-x11 \
+    supervisor \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install network analysis tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    nmap \
+    masscan \
+    wireshark \
+    tshark \
+    tcpdump \
+    netcat-traditional \
+    hping3 \
+    arp-scan \
+    netdiscover \
+    curl \
+    wget \
+    python3 \
+    python3-pip \
+    git \
+    vim \
+    nano \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup VNC
+RUN mkdir -p /root/.vnc && \
+    echo "password" | vncpasswd -f > /root/.vnc/passwd && \
+    chmod 600 /root/.vnc/passwd
+
+# Create VNC startup script
+RUN echo '#!/bin/bash\n\
+xrdb $HOME/.Xresources\n\
+startxfce4 &' > /root/.vnc/xstartup && \
+    chmod +x /root/.vnc/xstartup
+
+# Setup supervisor
+RUN mkdir -p /var/log/supervisor && \
+    echo '[supervisord]\n\
+nodaemon=true\n\
+logfile=/var/log/supervisor/supervisord.log\n\
+pidfile=/var/run/supervisord.pid\n\
+\n\
+[program:vnc]\n\
+command=/usr/bin/vncserver :1 -geometry 1280x720 -depth 24 -localhost no\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/var/log/supervisor/vnc.log\n\
+stderr_logfile=/var/log/supervisor/vnc_err.log' > /etc/supervisor/conf.d/supervisord.conf
+
+# Expose VNC port
+EXPOSE 5901
+
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

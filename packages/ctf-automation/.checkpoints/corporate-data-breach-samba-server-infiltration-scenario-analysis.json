@@ -1,0 +1,61 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "corporate-fileserver",
+        "type": "victim",
+        "role": "Corporate file server running Samba with security misconfigurations simulating real-world enterprise vulnerabilities",
+        "services": [
+          "smb",
+          "ssh"
+        ],
+        "contains": [
+          "sensitive corporate documents",
+          "employee database files",
+          "configuration backups",
+          "flag hidden in restricted share"
+        ],
+        "categories": [
+          "network"
+        ]
+      },
+      {
+        "name": "pentester-workstation",
+        "type": "attacker",
+        "role": "Penetration tester's machine equipped with SMB enumeration and exploitation tools",
+        "services": [],
+        "contains": [
+          "network scanning tools",
+          "SMB exploitation utilities",
+          "credential wordlists"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must enumerate SMB shares to discover accessible directories",
+      "Flag retrieval requires exploiting Samba misconfigurations to access restricted content"
+    ],
+    "categories": [
+      "network"
+    ],
+    "scenario": {
+      "title": "Corporate Data Breach: Samba Server Infiltration",
+      "description": "TechCorp's file server has been configured with weak Samba settings by an inexperienced system administrator. As a penetration tester, you must identify and exploit these misconfigurations to access sensitive corporate data, simulating how real attackers could compromise enterprise file shares.",
+      "stages": [
+        "Network discovery and SMB service enumeration",
+        "Identify misconfigured Samba shares and weak access controls",
+        "Exploit null sessions or weak authentication mechanisms",
+        "Navigate through accessible shares to locate sensitive data",
+        "Extract the corporate flag from the restricted administrative share"
+      ]
+    }
+  },
+  "challengeName": "corporate-data-breach-samba-server-infiltration",
+  "timestamp": 1767350875669
+}

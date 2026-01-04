@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Vulnerable Web Application
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: ctf-example-webapp
+    hostname: webapp
+    ports:
+      - "80:80"
+    networks:
+      - ctf-network
+    depends_on:
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_PORT=3306
+      - DB_USER=webapp_user
+      - DB_PASSWORD=webapp_pass123
+      - DB_NAME=employees_db
+
+  # MySQL Database with Intentional Misconfigurations
+  database:
+    image: mysql:8.0
+    container_name: ctf-example-database
+    hostname: database
+    ports:
+      - "3306:3306"
+    networks:
+      - ctf-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password_123
+      - MYSQL_DATABASE=employees_db
+      - MYSQL_USER=webapp_user
+      - MYSQL_PASSWORD=webapp_pass123
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Kali Linux Attacker Machine
+  attacker:
+    image: kasmweb/kali-rolling-desktop:1.15.0
+    container_name: ctf-example-attacker
+    hostname: attacker
+    ports:
+      - "6901:6901"
+    networks:
+      - ctf-network
+    shm_size: "512m"
+    environment:
+      - VNC_PW=password
+      - KASM_PORT=6901
+
+networks:
+  ctf-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    internal: false

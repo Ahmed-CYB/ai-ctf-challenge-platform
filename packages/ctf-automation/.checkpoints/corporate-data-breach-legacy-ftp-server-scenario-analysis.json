@@ -1,0 +1,66 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "legacy-fileserver",
+        "type": "victim",
+        "role": "Old corporate FTP server with anonymous access and hidden directories",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "encrypted flag file",
+          "employee directory",
+          "backup files",
+          "configuration files"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration testing machine with network scanning and FTP tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network tools",
+          "FTP clients",
+          "decryption utilities"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through port scanning",
+      "Anonymous FTP access reveals hidden directory structure",
+      "Encrypted flag requires finding decryption key in backup files"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Corporate Data Breach - Legacy FTP Server",
+      "description": "A corporate whistleblower has leaked that sensitive financial documents are stored on an old FTP server at DataCorp Industries. The server was thought to be decommissioned, but intelligence suggests it's still running with default configurations. Your mission is to infiltrate the server and retrieve the classified budget report.",
+      "stages": [
+        "Reconnaissance: Discover the FTP service running on the target server",
+        "Access: Exploit anonymous FTP login to browse available directories",
+        "Exploration: Navigate through directory structure to find hidden folders",
+        "Data Recovery: Locate encrypted files and find decryption materials",
+        "Flag Extraction: Decrypt the classified document to reveal the flag"
+      ]
+    }
+  },
+  "challengeName": "corporate-data-breach-legacy-ftp-server",
+  "timestamp": 1767245159898
+}

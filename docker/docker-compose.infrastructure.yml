@@ -1,0 +1,91 @@
+version: '3.8'
+
+# Infrastructure Services - Long-running services that stay up
+# Run once: docker-compose -f docker/docker-compose.infrastructure.yml up -d
+
+services:
+  # PostgreSQL Database (New instance - backup original on 5432)
+  postgres-new:
+    image: postgres:15-alpine
+    container_name: ctf-postgres-new
+    environment:
+      POSTGRES_DB: ctf_platform
+      POSTGRES_USER: ctf_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ctf_password_123}
+    ports:
+      - "5433:5432"  # New port, original 5432 kept for backup
+    volumes:
+      - postgres_new_data:/var/lib/postgresql/data
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ../database/migrations:/docker-entrypoint-initdb.d/migrations
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ctf_user -d ctf_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+  # Guacamole Server (New instance - backup original on 8080)
+  guacamole-new:
+    image: guacamole/guacamole:latest
+    container_name: ctf-guacamole-new
+    ports:
+      - "8081:8080"  # New port, original 8080 kept for backup
+    environment:
+      GUACD_HOSTNAME: guacd-new
+      GUACD_PORT: 4822
+      MYSQL_HOSTNAME: guacamole-db-new
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USERNAME: guacamole_user
+      MYSQL_PASSWORD: ${GUACAMOLE_DB_PASSWORD:-guacamole_password_123}
+    depends_on:
+      - guacd-new
+      - guacamole-db-new
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+  # Guacamole Daemon
+  guacd-new:
+    image: guacamole/guacd:latest
+    container_name: ctf-guacd-new
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+  # Guacamole Database (New instance - backup original)
+  guacamole-db-new:
+    image: mysql:8.0
+    container_name: ctf-guacamole-db-new
+    environment:
+      MYSQL_ROOT_PASSWORD: ${GUACAMOLE_ROOT_PASSWORD:-root_password_123}
+      MYSQL_DATABASE: guacamole_db
+      MYSQL_USER: guacamole_user
+      MYSQL_PASSWORD: ${GUACAMOLE_DB_PASSWORD:-guacamole_password_123}
+    ports:
+      - "3307:3306"  # New port, original 3306 kept for backup
+    volumes:
+      - guacamole_db_new_data:/var/lib/mysql
+      - ../guacamole-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${GUACAMOLE_ROOT_PASSWORD:-root_password_123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+networks:
+  ctf-network:
+    name: ctf-network
+    driver: bridge
+
+volumes:
+  postgres_new_data:
+  guacamole_db_new_data:
+

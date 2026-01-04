@@ -1,0 +1,123 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "hashcat",
+        "john",
+        "openssl",
+        "gpg"
+      ]
+    },
+    "ftp-archive-server": {
+      "name": "ftp-archive-server",
+      "type": "victim",
+      "role": "Corporate FTP archive server with historical documents and hidden configuration files",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "vsftpd.conf",
+          "path": "",
+          "content": "# vsftpd configuration - Anonymous FTP\nlisten=YES\nanonymous_enable=YES\nanon_upload_enable=NO\nanon_mkdir_write_enable=NO\nanon_root=/ftp\nno_anon_password=YES\nwrite_enable=YES\nlocal_enable=YES\nchroot_local_user=YES\nallow_writeable_chroot=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\npasv_enable=YES\npasv_min_port=21100\npasv_max_port=21110\nuserlist_enable=NO"
+        },
+        {
+          "name": "start.sh",
+          "path": "",
+          "content": "#!/bin/bash\nmkdir -p /ftp/public /ftp/data /ftp/private\necho \"CTF{network_ftp_anon_ytf4c6kkn6}\" > /ftp/data/flag.txt\nchmod 644 /ftp/data/flag.txt\necho \"Welcome to the CTF FTP Server!\" > /ftp/public/welcome.txt\necho \"Important files may be in subdirectories\" > /ftp/public/readme.txt\nservice vsftpd start\ntail -f /dev/null"
+        },
+        {
+          "name": "README.txt",
+          "path": "",
+          "content": "FTP Challenge (Easy)\n\nObjective:\nConnect to the FTP server and find the flag.\n\nHints:\n1. Anonymous access is enabled\n2. Explore all directories\n3. Check subdirectories\n\nTools:\n- ftp\n- nmap\n- wget/curl\n\nFlag Format: CTF{...}"
+        },
+        {
+          "name": "ftp_config.txt",
+          "path": "",
+          "content": "# FTP Server Configuration Backup\n# Generated: 2024-03-15 14:22:31\n# Security Level: RESTRICTED\n\n[AUTHENTICATION]\nanonymous_login=true\nmax_clients=50\ntimeout=300\n\n[RESTRICTED_ACCESS]\n# Encrypted database credentials for admin access\n# Cipher: Ancient Hebrew substitution method\n# Note: Original alphabet maps to reversed alphabet\ndb_username=zwnrmhgizgli\ndb_password=hxvirgwzgz123\nrestricted_dir=/secure_vault\n\n[LOGGING]\nlog_level=INFO\nlog_file=/var/log/ftp_access.log\n\n# WARNING: This configuration contains sensitive data\n# Ensure proper access controls are in place"
+        },
+        {
+          "name": "database_schema.sql",
+          "path": "",
+          "content": "-- Corporate Database Schema Backup\n-- Classification: CONFIDENTIAL\n-- Access requires decrypted credentials from config\n\nCREATE DATABASE corporate_archive;\nUSE corporate_archive;\n\n-- Executive Communications Table\nCREATE TABLE exec_messages (\n    id INT PRIMARY KEY,\n    sender VARCHAR(100),\n    recipient VARCHAR(100),\n    subject VARCHAR(255),\n    encrypted_content TEXT,\n    timestamp DATETIME\n);\n\n-- Sample encrypted executive message\n-- Subject: Quarterly Financial Review\n-- From: CEO to CFO\n-- Encrypted using same ancient method as config file\nINSERT INTO exec_messages VALUES (\n    1,\n    'ceo@company.com',\n    'cfo@company.com',\n    'Jfzigviob Urmzmxrzo Iverv',\n    'Gsv uozt rh: XGU{zgyzhs_xrksvi_nzhgvi_2024}',\n    '2024-03-14 09:15:00'\n);\n\n-- Access this database using decrypted credentials\n-- from ftp_config.txt to retrieve the flag"
+        },
+        {
+          "name": "hint.txt",
+          "path": "",
+          "content": "CORPORATE ARCHIVE INFILTRATION - CRYPTOGRAPHY HINTS\n\n🔍 INVESTIGATION CLUES:\n1. The FTP configuration mentions an \"Ancient Hebrew substitution method\"\n2. Look for patterns where the alphabet maps to its reverse\n3. The cipher mentioned is historically significant in cryptography\n4. A=Z, B=Y, C=X... this pattern might be familiar\n\n💡 DECRYPTION HINTS:\n- Research classical substitution ciphers from ancient times\n- The cipher name rhymes with \"math\" and \"bash\"\n- Try online cipher tools or write a simple substitution script\n- The same cipher is used for both config credentials AND database content\n\n🛠️ TOOLS TO CONSIDER:\n- Online Atbash cipher decoders\n- Python string translation methods\n- CyberChef recipe builder\n- Manual alphabet reversal\n\n📁 ACCESS PATTERN:\n1. Decrypt the database credentials from ftp_config.txt\n2. Use those credentials to access the restricted database\n3. Decrypt the executive message content to find the flag\n\n⚠️ SECURITY NOTE:\nThis demonstrates why ancient ciphers are insufficient for modern security needs!"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "http service",
+          "difficulty": "easy",
+          "misconfiguration": "Anonymous FTP access enabled with sensitive files",
+          "exploitPath": "Connect via anonymous FTP and navigate to /data directory",
+          "tools": [
+            "nmap",
+            "ftp",
+            "wget"
+          ],
+          "servicePort": 21,
+          "setup": "apt-get update && apt-get install -y vsftpd\ncp /challenge/vsftpd.conf /etc/vsftpd.conf\nmkdir -p /var/run/vsftpd/empty\nchmod +x /challenge/start.sh\n/challenge/start.sh",
+          "hints": [
+            "Anonymous access is enabled",
+            "Explore all directories",
+            "Check subdirectories"
+          ],
+          "learningObjectives": [
+            "Understand FTP protocol",
+            "Learn anonymous FTP access",
+            "Practice directory enumeration"
+          ]
+        },
+        "crypto": {
+          "cryptoType": "atbash",
+          "difficulty": "medium",
+          "solvingMethod": "Decrypt Atbash cipher used for database credentials and message content. Atbash maps each letter to its reverse position in alphabet (A↔Z, B↔Y, etc.). Decrypt 'zwnrmhgizgli' to get 'administrator' and 'hxvirgwzgz123' to get 'secretdata123'. Then decrypt the executive message content to reveal the flag.",
+          "tools": [
+            "cyberchef",
+            "online-atbash-decoder",
+            "python"
+          ],
+          "setup": "echo 'Access FTP server anonymously to discover configuration files with encrypted credentials using ancient Hebrew Atbash substitution cipher'",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{atbash_cipher_master_2024}"
+    }
+  },
+  "machineIPs": {
+    "ftp-archive-server": "172.25.193.54",
+    "attacker-workstation": "172.25.193.3"
+  },
+  "timestamp": 1767247699516
+}

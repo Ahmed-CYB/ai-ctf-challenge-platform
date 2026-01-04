@@ -1,0 +1,142 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "hashcat",
+        "john",
+        "openssl",
+        "gpg"
+      ]
+    },
+    "legacy-fileserver": {
+      "name": "legacy-fileserver",
+      "type": "victim",
+      "role": "Old corporate FTP server with anonymous access and hidden directories",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "tftpd-hpa.conf",
+          "path": "/etc/default",
+          "content": "# /etc/default/tftpd-hpa\n\nTFTP_USERNAME=\"tftp\"\nTFTP_DIRECTORY=\"/srv/tftp\"\nTFTP_ADDRESS=\"0.0.0.0:24\"\nTFTP_OPTIONS=\"--secure --create --verbose\"\n\n# Legacy configuration - DO NOT CHANGE\n# Management requested all historical files remain accessible\n# Security review postponed until Q3 2024"
+        },
+        {
+          "name": "budget_report_2024.txt.enc",
+          "path": "/srv/tftp/datacorp/financial",
+          "content": "U2FsdGVkX1+vupppZksvRf5pq5g5XjFRIHkSJ+ixHH+HcCT8S/AV4qVfsNUV1s8xQm9QV+9rjFoqp6Ln8ObXeGhZF2nhVQ8h7DgKr5oXoE4="
+        },
+        {
+          "name": "decrypt_key.txt",
+          "path": "/srv/tftp/backup/legacy_keys",
+          "content": "DataCorp Legacy Decryption Keys\n===============================\n\nSystem: TFTP-BACKUP-01\nKey Type: AES-128\nPassword: dc_finance_2023\nNote: Used for quarterly financial reports\nExpiry: Never (legacy system)\n\n--- CONFIDENTIAL ---\nThis key decrypts all .enc files in /datacorp/financial/\nRotation scheduled for fiscal year 2025"
+        },
+        {
+          "name": "readme.txt",
+          "path": "/srv/tftp",
+          "content": "DataCorp Industries - Legacy TFTP Server\n========================================\n\nWARNING: This server contains archived financial data\n\nDirectory Structure:\n/datacorp/financial/ - Encrypted quarterly reports\n/backup/legacy_keys/ - Archive decryption keys\n/public/ - General corporate documents\n\nAccess Level: Internal Use Only\nMaintainer: IT-Legacy@datacorp.com\nLast Updated: March 2023\n\nNote: Server scheduled for decommission pending data migration"
+        },
+        {
+          "name": "corporate_structure.pdf",
+          "path": "/srv/tftp/public",
+          "content": "# This would be a PDF file containing corporate hierarchy\n# For CTF purposes, this is a text representation\n\nDataCorp Industries Organizational Chart\n=======================================\n\nCEO: Margaret Thompson\nCFO: Robert Chen (budget oversight)\nCTO: Sarah Williams\n\nIT Department:\n- Legacy Systems: Michael Rodriguez\n- Security: Jennifer Park\n- Network Admin: David Kumar\n\nFinance Department:\n- Budget Analysis: Lisa Anderson\n- Accounting: James Wilson\n\nClassification: Internal Distribution"
+        },
+        {
+          "name": "install_tftp.sh",
+          "path": "",
+          "content": "#!/bin/bash\n\n# Install TFTP server\napt-get update\napt-get install -y tftpd-hpa\n\n# Create directory structure\nmkdir -p /srv/tftp/datacorp/financial\nmkdir -p /srv/tftp/backup/legacy_keys\nmkdir -p /srv/tftp/public\n\n# Set permissions\nchown -R tftp:tftp /srv/tftp\nchmod -R 755 /srv/tftp\n\n# Start service\nsystemctl enable tftpd-hpa\nsystemctl start tftpd-hpa\n\n# Configure firewall\nufw allow 24/udp\n\necho \"TFTP server configured on port 24\"\necho \"Directory: /srv/tftp\"\necho \"Service status:\"\nsystemctl status tftpd-hpa"
+        },
+        {
+          "name": "generate_encrypted_flag.py",
+          "path": "",
+          "content": "#!/usr/bin/env python3\nfrom Crypto.Cipher import AES\nfrom Crypto.Protocol.KDF import PBKDF2\nfrom Crypto.Random import get_random_bytes\nimport base64\n\n# Original flag content\nflag_content = \"\"\"DATACORP INDUSTRIES - CONFIDENTIAL BUDGET REPORT Q1 2024\n\nDEPARTMENT ALLOCATIONS:\n- IT Infrastructure: $2.4M\n- Security Upgrades: $890K  \n- Legacy System Maintenance: $340K\n\nCLASSIFIED PROJECT FUNDING:\n- Project Phoenix: $5.2M\n- Whistleblower Investigation: $150K\n\nFLAG: CTF{legacy_tftp_weak_encryption_exposed_dc2024}\n\nAPPROVED BY: Robert Chen, CFO\nCLASSIFIATION: TOP SECRET\"\"\"\n\n# Encryption parameters\npassword = \"dc_finance_2023\"\nsalt = b'datacorp2024salt'\nkey = PBKDF2(password, salt, 16, count=1000)  # Weak iteration count\n\n# Encrypt with AES\ncipher = AES.new(key, AES.MODE_CBC)\npadded_data = flag_content + (16 - len(flag_content) % 16) * chr(16 - len(flag_content) % 16)\nencrypted = cipher.encrypt(padded_data.encode())\n\n# Combine salt + IV + encrypted data\nfinal_data = b'Salted__' + salt + cipher.iv + encrypted\nencoded = base64.b64encode(final_data).decode()\n\nprint(\"Encrypted flag:\")\nprint(encoded)\n\n# Verify decryption works\nprint(\"\\nDecryption test with openssl:\")\nprint(f\"echo '{encoded}' | base64 -d | openssl enc -aes-128-cbc -d -k '{password}'\")"
+        },
+        {
+          "name": "encrypted_budget.txt",
+          "path": "ftp/classified/",
+          "content": "VGhlIGNsYXNzaWZpZWQgYnVkZ2V0IHJlcG9ydCBoYXMgYmVlbiBlbmNyeXB0ZWQgZm9yIHNlY3VyaXR5LiBEZWNyeXB0aW9uIGtleSBsb2NhdGVkIGluIGJhY2t1cCBmaWxlcy4KCkVuY3J5cHRlZCBkYXRhOgpEMWFrczJzOXJ7YzVNTWUxbmQ0NEpHbm1iX20zMWF0N3l9czJiaDdDcmt3dGRfNE1iX3Nkc2NoX2hzaWFvOWt3dmJidDEwY3VfdGVfaWNfY19mbGRiaWdoZXJyam5oNXF0"
+        },
+        {
+          "name": "backup_config.txt",
+          "path": "ftp/backup/",
+          "content": "DataCorp FTP Server Backup Configuration\n========================================\n\nBackup Date: 2023-11-15\nSystem: legacy-fileserver.datacorp.local\nStatus: DECOMMISSIONED\n\nSecurity Notes:\n- All sensitive files encrypted using rail fence cipher\n- Cipher uses 4 rails for maximum security\n- Files encoded in Base64 for safe transmission\n- Original encryption key stored in: /backup/keys/\n\nWARNING: This server should have been taken offline months ago!\nContact IT immediately if found active.\n\nLast Admin: M.Harrison\nTicket: SEC-2023-1147"
+        },
+        {
+          "name": "cipher_key.log",
+          "path": "ftp/backup/keys/",
+          "content": "DataCorp Security Log - Cipher Configuration\n============================================\n\nCipher Type: Rail Fence Cipher\nRails: 4\nImplementation: Standard zigzag pattern\nEncoding: Base64 wrapper\n\nTest Vector:\nPlaintext: \"HELLO WORLD\"\nRail Pattern (4 rails):\nH   O   R  \n E L   O L \n  L   W   D\n    L     \n\nRead off: HORELOLOLWD\nFinal: Base64 encoded result\n\nProduction Key Details:\n- All classified documents use 4-rail configuration\n- Base64 encoding applied after rail fence encryption\n- Decryption: Base64 decode → Rail fence decrypt (4 rails)\n\nSigned: Chief Security Officer\nDate: 2023-11-15"
+        },
+        {
+          "name": "hint.txt",
+          "path": "",
+          "content": "Corporate Data Breach Investigation - Legacy FTP Server\n======================================================\n\nHints for retrieving the classified budget report:\n\n1. The FTP server may allow anonymous access - try common credentials\n2. Look for backup directories that might contain configuration files\n3. The encryption uses a classical cipher method, not modern cryptography\n4. Check the backup configuration for cipher details and parameters\n5. The data has been encoded for safe transmission - you'll need to reverse this first\n6. Rail fence ciphers arrange text in a zigzag pattern across multiple 'rails'\n7. The number of rails is specified in the backup configuration\n8. Remember: decode first, then decrypt using the specified rail count\n\nTools that might help:\n- FTP client for server access\n- Base64 decoder\n- Rail fence cipher tools or custom script\n- Text processing utilities\n\nThe flag is hidden within the decrypted budget report content."
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "tftp",
+          "misconfiguration": "TFTP server running on non-standard port 24 with world-readable directory structure containing encrypted files with weak AES-128 encryption and easily discoverable decryption keys stored in backup directory",
+          "exploitPath": "1. Port scan reveals TFTP on port 24 -> 2. Enumerate TFTP directory structure using tftp client -> 3. Download readme.txt to understand layout -> 4. Retrieve encrypted budget report from /datacorp/financial/ -> 5. Find decryption key in /backup/legacy_keys/ -> 6. Decrypt file using openssl with discovered password to reveal flag",
+          "tools": [
+            "nmap",
+            "tftp",
+            "openssl",
+            "base64"
+          ],
+          "servicePort": 24,
+          "setup": "sudo ./install_tftp.sh && sudo cp tftpd-hpa.conf /etc/default/ && sudo systemctl restart tftpd-hpa && python3 generate_encrypted_flag.py",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        },
+        "crypto": {
+          "cryptoType": "railfence",
+          "difficulty": "medium",
+          "solvingMethod": "Access FTP server anonymously, locate backup files containing cipher configuration, decode Base64 ciphertext, decrypt using 4-rail fence cipher to reveal flag",
+          "tools": [
+            "ftp",
+            "base64",
+            "railfence-cipher",
+            "python"
+          ],
+          "setup": "# Start FTP server with anonymous access enabled\nsudo systemctl start vsftpd\n# Ensure anonymous_enable=YES in /etc/vsftpd.conf\n# Create directory structure:\nsudo mkdir -p /srv/ftp/{classified,backup/keys}\n# Set appropriate permissions for anonymous access",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{r41l_f3nc3_br34ch_d4t4c0rp_budg3t_l34k3d}"
+    }
+  },
+  "machineIPs": {
+    "legacy-fileserver": "172.26.193.78",
+    "attacker-workstation": "172.26.193.3"
+  },
+  "timestamp": 1767245229569
+}

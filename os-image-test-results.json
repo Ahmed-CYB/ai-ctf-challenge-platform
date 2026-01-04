@@ -1,0 +1,212 @@
+[
+  {
+    "image": "ubuntu:22.04",
+    "description": "Ubuntu 22.04 LTS - Popular Debian-based Linux",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "28.18 MB",
+    "osInfo": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL",
+    "packageManager": "/usr/bin/apt-get\napt\nyum\napk\npacman\nzypper",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272545666 -p 8080:80 ubuntu:22.04 sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272545666 (f3c6567cdfd6b9418cb3513831163f1edd855856d0b823b0d4116b43975fb17f): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "ubuntu:20.04",
+    "description": "Ubuntu 20.04 LTS - Stable Debian-based Linux",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "26.24 MB",
+    "osInfo": "NAME=\"Ubuntu\"\nVERSION=\"20.04.6 LTS (Focal Fossa)\"\nID=ubuntu\nID_LIKE=debian\nPRETTY_NAME=\"Ubuntu 20.04.6 LTS\"\nVERSION_ID=\"20.04\"\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"",
+    "packageManager": "/usr/bin/apt-get\napt\nyum\napk\npacman\nzypper",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272579418 -p 8080:80 ubuntu:20.04 sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272579418 (f802ec56726c7c6230fd75e8f316d8f572821334dbaf392ebf57d63f6f1dd80d): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "debian:bullseye",
+    "description": "Debian Bullseye - Stable Linux distribution",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "51.27 MB",
+    "osInfo": "PRETTY_NAME=\"Debian GNU/Linux 11 (bullseye)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"11\"\nVERSION=\"11 (bullseye)\"\nVERSION_CODENAME=bullseye\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https:/",
+    "packageManager": "/usr/bin/apt-get\napt\nyum\napk\npacman\nzypper",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272604294 -p 8080:80 debian:bullseye sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272604294 (0851256203ea9714c2e43c9aeb78bda8dbbae8e1fc3183c67173de2a0fbecbee): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "debian:bookworm",
+    "description": "Debian Bookworm - Latest stable Debian",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "46.24 MB",
+    "osInfo": "PRETTY_NAME=\"Debian GNU/Linux 12 (bookworm)\"\nNAME=\"Debian GNU/Linux\"\nVERSION_ID=\"12\"\nVERSION=\"12 (bookworm)\"\nVERSION_CODENAME=bookworm\nID=debian\nHOME_URL=\"https://www.debian.org/\"\nSUPPORT_URL=\"https:/",
+    "packageManager": "/usr/bin/apt-get\napt\nyum\napk\npacman\nzypper",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272622982 -p 8080:80 debian:bookworm sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272622982 (0724382bbf4ce9a5ea3368c771f6d141d287b4bb594e0315358bcbd24de7cf2c): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "alpine:latest",
+    "description": "Alpine Linux - Minimal lightweight Linux",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "3.69 MB",
+    "osInfo": "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.23.2\nPRETTY_NAME=\"Alpine Linux v3.23\"\nHOME_URL=\"https://alpinelinux.org/\"\nBUG_REPORT_URL=\"https://gitlab.alpinelinux.org/alpine/aports/-/issues\"",
+    "packageManager": "/sbin/apk\napk\npacman\nzypper",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272645561 -p 8080:80 alpine:latest sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272645561 (90f63e4423e98cfff66e2e15d82af3c236b21cc28ffd05ba22a18c03a0dec9f1): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "centos:7",
+    "description": "CentOS 7 - Enterprise Linux (legacy)",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "72.58 MB",
+    "osInfo": "NAME=\"CentOS Linux\"\nVERSION=\"7 (Core)\"\nID=\"centos\"\nID_LIKE=\"rhel fedora\"\nVERSION_ID=\"7\"\nPRETTY_NAME=\"CentOS Linux 7 (Core)\"\nANSI_COLOR=\"0;31\"\nCPE_NAME=\"cpe:/o:centos:centos:7\"\nHOME_URL=\"https://www.ce",
+    "packageManager": "unknown",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272655983 -p 8080:80 centos:7 sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272655983 (5d3dae1456aa5dbe5a1ee7eafa2e06385675e25a0371618d4e4d0a6991e2d292): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "rockylinux:9",
+    "description": "Rocky Linux 9 - RHEL-compatible Linux",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "61.34 MB",
+    "osInfo": "NAME=\"Rocky Linux\"\nVERSION=\"9.3 (Blue Onyx)\"\nID=\"rocky\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"9.3\"\nPLATFORM_ID=\"platform:el9\"\nPRETTY_NAME=\"Rocky Linux 9.3 (Blue Onyx)\"\nANSI_COLOR=\"0;32\"\nLOGO=\"fedor",
+    "packageManager": "unknown",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272668945 -p 8080:80 rockylinux:9 sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272668945 (d28ad7be55c596638962ad80a4c252d99c6aab3a1f32136566df02282c40ef99): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "fedora:latest",
+    "description": "Fedora - Cutting-edge Linux distribution",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "64.23 MB",
+    "osInfo": "NAME=\"Fedora Linux\"\nVERSION=\"43 (Container Image)\"\nRELEASE_TYPE=stable\nID=fedora\nVERSION_ID=43\nVERSION_CODENAME=\"\"\nPRETTY_NAME=\"Fedora Linux 43 (Container Image)\"\nANSI_COLOR=\"0;38;2;60;110;180\"\nLOGO=f",
+    "packageManager": "unknown",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272705887 -p 8080:80 fedora:latest sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272705887 (e83789d63d7f8e0d4d2a26999d1ccc46850aeabe6e104a70c32dab4a651dc8a2): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "archlinux:latest",
+    "description": "Arch Linux - Rolling release Linux",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "166.61 MB",
+    "osInfo": "NAME=\"Arch Linux\"\nPRETTY_NAME=\"Arch Linux\"\nID=arch\nBUILD_ID=rolling\nVERSION_ID=20251228.0.475343\nANSI_COLOR=\"38;2;23;147;209\"\nHOME_URL=\"https://archlinux.org/\"\nDOCUMENTATION_URL=\"https://wiki.archlinu",
+    "packageManager": "unknown",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272730167 -p 8080:80 archlinux:latest sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272730167 (78387dde4e7362ddc1ad7e26fbe4f4a55677e92cf1c46fdac220a33d31303531): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "opensuse:leap",
+    "description": "openSUSE Leap - Stable SUSE Linux",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Pull failed: Command failed: docker pull opensuse:leap\nError response from daemon: failed to resolve reference \"docker.io/library/opensuse:leap\": docker.io/library/opensuse:leap: not found\n"
+    ]
+  },
+  {
+    "image": "busybox:latest",
+    "description": "BusyBox - Minimal Unix utilities",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": "2.12 MB",
+    "osInfo": "Linux bef8d317a6c0 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 GNU/Linux",
+    "packageManager": "unknown",
+    "errors": [
+      "Port test: Command failed: docker run -d --name port-test-1767272751040 -p 8080:80 busybox:latest sleep 10\ndocker: Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint port-test-1767272751040 (25286b14ef1718934a33a06a640817a4fb866fc1c09e4921d4e4b2124d36b73e): Bind for 0.0.0.0:8080 failed: port is already allocated\n\nRun 'docker run --help' for more information\n"
+    ]
+  },
+  {
+    "image": "phusion/baseimage:latest",
+    "description": "Phusion Baseimage - Ubuntu-based with init system",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Pull failed: Command failed: docker pull phusion/baseimage:latest\nError response from daemon: failed to resolve reference \"docker.io/phusion/baseimage:latest\": docker.io/phusion/baseimage:latest: not found\n"
+    ]
+  },
+  {
+    "image": "mcr.microsoft.com/windows/servercore:ltsc2022",
+    "description": "Windows Server Core - Windows container",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Pull failed: Command failed: docker pull mcr.microsoft.com/windows/servercore:ltsc2022\nError response from daemon: no matching manifest for linux/amd64 in the manifest list entries: no match for platform in manifest: not found\n"
+    ]
+  },
+  {
+    "image": "freebsd:latest",
+    "description": "FreeBSD - BSD Unix system",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Pull failed: Command failed: docker pull freebsd:latest\nError response from daemon: pull access denied for freebsd, repository does not exist or may require 'docker login'\n"
+    ]
+  }
+]

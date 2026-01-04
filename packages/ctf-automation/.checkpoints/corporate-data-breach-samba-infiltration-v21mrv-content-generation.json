@@ -1,0 +1,143 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "hashcat",
+        "john",
+        "openssl",
+        "gpg"
+      ]
+    },
+    "samba-fileserver": {
+      "name": "samba-fileserver",
+      "type": "victim",
+      "role": "Corporate file server running vulnerable Samba service with misconfigured shares",
+      "services": [
+        "samba",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "smb.conf",
+          "path": "/etc/samba",
+          "content": "[global]\n   workgroup = CORPORATE\n   server string = Corporate File Server\n   security = user\n   map to guest = Bad User\n   guest account = nobody\n   log file = /var/log/samba/log.%m\n   max log size = 1000\n   logging = file\n   panic action = /usr/share/samba/panic-action %d\n   server role = standalone server\n   obey pam restrictions = yes\n   unix password sync = yes\n   passwd program = /usr/bin/passwd %u\n   passwd chat = *Enter\\snew\\s*\\spassword:* %n\\n *Retype\\snew\\s*\\spassword:* %n\\n *password\\supdated\\ssuccessfully* .\n   pam password change = yes\n\n[public]\n   comment = Public Share\n   path = /srv/samba/public\n   browseable = yes\n   read only = no\n   guest ok = yes\n   create mask = 0755\n   directory mask = 0755\n\n[backups]\n   comment = IT Backup Files\n   path = /srv/samba/backups\n   browseable = yes\n   read only = yes\n   guest ok = yes\n   valid users = @backup-team\n   force user = backup-svc\n\n[temp]\n   comment = Temporary Files\n   path = /srv/samba/temp\n   browseable = no\n   read only = no\n   guest ok = yes\n   create mask = 0666\n   directory mask = 0777\n\n[secure]\n   comment = Secure Documents\n   path = /srv/samba/secure\n   browseable = no\n   read only = yes\n   valid users = admin, manager\n   admin users = admin"
+        },
+        {
+          "name": "encrypted_backup.tar.gz.enc",
+          "path": "/srv/samba/backups",
+          "content": "U2FsdGVkX1+vupppZksvRf5pq5g5XjFRIYu4TM45os2elTHjw98pleB9b2N2/Z3VFNiClWz/4qxMM0SiNwmttg==\n# This represents an encrypted backup file\n# Decryption key: corp2023backup\n# When decrypted contains: CTF{samba_shares_need_proper_access_controls_9a8f7e6d}"
+        },
+        {
+          "name": "backup_readme.txt",
+          "path": "/srv/samba/backups",
+          "content": "Corporate Backup System - Q4 2023\n\nThis directory contains encrypted backups of critical systems.\nAll backup files are encrypted using AES-256.\n\nFor emergency access, refer to the IT procedure manual\nin the temp directory.\n\nContact: backup-team@corporate.local\nSchedule: Daily at 02:00 AM\nRetention: 30 days\n\nIMPORTANT: Verify backup integrity before restoration"
+        },
+        {
+          "name": "it_procedures.txt",
+          "path": "/srv/samba/temp",
+          "content": "IT Emergency Procedures Manual\n==============================\n\n1. System Recovery Procedures\n   - Access backup system with service account\n   - Default backup encryption key: corp2023backup\n   - Restore from latest verified backup\n\n2. Network Troubleshooting\n   - Check SMB service status: systemctl status smbd\n   - Verify share permissions\n   - Review access logs\n\n3. User Account Management\n   - Reset passwords via AD console\n   - Update group memberships\n   - Audit access permissions quarterly\n\n4. Security Incident Response\n   - Document all activities\n   - Preserve evidence\n   - Contact security team immediately\n\nLast Updated: 2023-11-15\nAuthor: IT Operations Team"
+        },
+        {
+          "name": "network_config.conf",
+          "path": "/srv/samba/public",
+          "content": "# Corporate Network Configuration\n# Generated automatically - DO NOT EDIT\n\nDomain: corporate.local\nDNS Servers: 10.0.1.10, 10.0.1.11\nGateway: 10.0.1.1\nSubnet: 10.0.1.0/24\n\n# Service Accounts\nbackup-svc:P@ssw0rd123\nmonitor-svc:Monitor2023!\nsync-svc:SyncData456\n\n# Share Mappings\n\\\\fileserver\\public -> /srv/samba/public\n\\\\fileserver\\backups -> /srv/samba/backups\n\\\\fileserver\\temp -> /srv/samba/temp\n\n# Access Controls\npublic: Everyone (RW)\nbackups: backup-team (RO), guest (RO)\ntemp: Everyone (RW)\nsecure: admin,manager (RO)"
+        },
+        {
+          "name": "sshd_config",
+          "path": "/etc/ssh",
+          "content": "Port 22\nProtocol 2\nHostKey /etc/ssh/ssh_host_rsa_key\nHostKey /etc/ssh/ssh_host_dsa_key\nHostKey /etc/ssh/ssh_host_ecdsa_key\nHostKey /etc/ssh/ssh_host_ed25519_key\nUsePrivilegeSeparation yes\nKeyRegenerationInterval 3600\nServerKeyBits 1024\nSyslogFacility AUTH\nLogLevel INFO\nLoginGraceTime 120\nPermitRootLogin no\nStrictModes yes\nRSAAuthentication yes\nPubkeyAuthentication yes\nIgnoreRhosts yes\nRhostsRSAAuthentication no\nHostbasedAuthentication no\nPermitEmptyPasswords no\nChallengeResponseAuthentication no\nPasswordAuthentication yes\nX11Forwarding yes\nX11DisplayOffset 10\nPrintMotd no\nPrintLastLog yes\nTCPKeepAlive yes\nAcceptEnv LANG LC_*\nSubsystem sftp /usr/lib/openssh/sftp-server\nUsePAM yes\nAllowUsers backup-svc admin manager\nDenyUsers guest nobody"
+        },
+        {
+          "name": "setup.sh",
+          "path": "",
+          "content": "#!/bin/bash\n# Setup script for Samba file server challenge\n\n# Install required packages\napt-get update\napt-get install -y samba samba-common-bin openssh-server\n\n# Create directory structure\nmkdir -p /srv/samba/{public,backups,temp,secure}\n\n# Set permissions\nchown -R nobody:nogroup /srv/samba/public\nchown -R backup-svc:backup-team /srv/samba/backups\nchown -R nobody:nogroup /srv/samba/temp\nchown -R root:admin /srv/samba/secure\n\nchmod 755 /srv/samba/public\nchmod 755 /srv/samba/backups\nchmod 777 /srv/samba/temp\nchmod 750 /srv/samba/secure\n\n# Create users and groups\ngroupadd backup-team\ngroupadd admin\nuseradd -m -s /bin/bash -G backup-team backup-svc\nuseradd -m -s /bin/bash -G admin admin\nuseradd -m -s /bin/bash -G admin manager\n\n# Set passwords\necho 'backup-svc:P@ssw0rd123' | chpasswd\necho 'admin:AdminPass2023!' | chpasswd\necho 'manager:Manager456' | chpasswd\n\n# Configure Samba users\necho -e 'P@ssw0rd123\\nP@ssw0rd123' | smbpasswd -a -s backup-svc\necho -e 'AdminPass2023!\\nAdminPass2023!' | smbpasswd -a -s admin\necho -e 'Manager456\\nManager456' | smbpasswd -a -s manager\n\n# Copy configuration files\ncp smb.conf /etc/samba/\ncp sshd_config /etc/ssh/\n\n# Create challenge files\ncp encrypted_backup.tar.gz.enc /srv/samba/backups/\ncp backup_readme.txt /srv/samba/backups/\ncp it_procedures.txt /srv/samba/temp/\ncp network_config.conf /srv/samba/public/\n\n# Start services\nsystemctl enable smbd nmbd ssh\nsystemctl restart smbd nmbd ssh\n\n# Configure firewall\nufw allow 139/tcp\nufw allow 445/tcp\nufw allow 22/tcp\n\necho 'Samba file server setup complete!'\necho 'Target IP: Configure as needed'\necho 'SMB Shares: public, backups, temp, secure'\necho 'SSH Access: backup-svc, admin, manager'"
+        },
+        {
+          "name": "encrypted_backup.txt",
+          "path": "sensitive/backups/",
+          "content": "456e637279707465642042616b7570204669c6c652d20436f6e6669c64656e7469616c0a0a48657820456e636f6465642044617461c3a90a36343734363537363734363936653665373436383635373337323635373437333665363536343665373436653734373336393665373436383635373336653734363536653732373037323639373336353665363436333732373937303734373337323635373436333636363536653634373336353732373336393665363336333635373337333639363236653665373336353732363137303734363835333664366236333732373937303734363937333732363536353632373536663665363436353732373335333664366237333638366137323635373336313636363536333734363536343632373937363639366636653635373237323635366336393635366536333635366137323635373333363635373236323734363836353732366537343635366436323665363537323665363536363734373535333634366636333665366436353665373437333635373237333739363137333265373837343734"
+        },
+        {
+          "name": "key_material.txt",
+          "path": "sensitive/keys/",
+          "content": "SMB Access Log - Encrypted Key Storage\n\nConnection from: 192.168.1.100\nAccessed: /sensitive/keys/backup_key.dat\nTimestamp: 2024-01-15 14:32:17\n\nKey Derivation Notes:\n- Algorithm: Atbash cipher implementation\n- Character set: English alphabet (case-insensitive)\n- Additional encoding: Hexadecimal representation\n- Security note: Legacy encryption method - schedule for upgrade\n\nExtracted Key Fragment (Base16):\n41746261736820636970686572206b65793a20544845204154424153482043495048455220495320414e204f4c4420455552204546464543544956452043495048455220464f5220534554205448415420495320534554204d4553534147454e2049544f204f4c44"
+        },
+        {
+          "name": "network_discovery.log",
+          "path": "logs/",
+          "content": "SMB Share Enumeration Results\n\n[+] Discovered shares on samba-fileserver (192.168.1.50):\n\nshare_name: public\npath: /home/shares/public\npermissions: read-only\nstatus: accessible\n\nshare_name: sensitive\npath: /home/shares/sensitive\npermissions: read-write\nstatus: misconfigured - no authentication required\ncontains: backups/, keys/, documents/\n\nshare_name: admin$\npath: /home/admin\npermissions: admin-only\nstatus: access denied\n\n[!] Security Issue: 'sensitive' share allows anonymous access\n[!] Recommendation: Implement proper SMB authentication\n\nLast scan: 2024-01-15 14:30:45"
+        },
+        {
+          "name": "README_decrypt.txt",
+          "path": "",
+          "content": "Corporate Security Incident Response\n\n=== BREACH ANALYSIS ===\n\nSamba file server misconfiguration detected:\n- Anonymous access to /sensitive/ share\n- Encrypted backup files exposed\n- Key material potentially accessible\n\n=== RECOVERY INSTRUCTIONS ===\n\n1. Access the SMB share using network enumeration tools\n2. Locate encrypted backup files in /sensitive/backups/\n3. Find key material in /sensitive/keys/\n4. Decrypt the backup data to recover sensitive information\n\nNote: The encryption uses a classical cipher method.\nHex encoding has been applied as an additional obfuscation layer.\n\n=== PRIORITY ===\nHigh - Immediate decryption required for incident assessment"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "smb",
+          "misconfiguration": "SMB shares configured with guest access allowing anonymous enumeration and access to sensitive backup directories containing encrypted files and plaintext credentials",
+          "exploitPath": "1. Enumerate SMB shares with smbclient -L //target -N. 2. Access public share to find network config with service account credentials. 3. Access backups share to find encrypted backup and readme file. 4. Access temp share to find IT procedures with backup decryption key. 5. Decrypt backup file using discovered key to retrieve flag.",
+          "tools": [
+            "nmap",
+            "smbclient",
+            "enum4linux",
+            "openssl",
+            "base64"
+          ],
+          "servicePort": 445,
+          "setup": "bash setup.sh && systemctl start smbd nmbd ssh",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        },
+        "crypto": {
+          "cryptoType": "atbash",
+          "difficulty": "medium",
+          "solvingMethod": "First, extract and decode the hex-encoded key material to understand the Atbash cipher implementation. Then decode the main hex-encoded ciphertext and apply the Atbash cipher (A=Z, B=Y, C=X, etc.) to decrypt the backup file contents revealing the flag.",
+          "tools": [
+            "xxd",
+            "python",
+            "cyberchef",
+            "atbash decoder"
+          ],
+          "setup": "smbclient //target/sensitive -N  # Access SMB share anonymously",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{atbash_cipher_samba_infiltration_2024}"
+    }
+  },
+  "machineIPs": {
+    "samba-fileserver": "172.23.193.79",
+    "attacker-workstation": "172.23.193.3"
+  },
+  "timestamp": 1767248627500
+}

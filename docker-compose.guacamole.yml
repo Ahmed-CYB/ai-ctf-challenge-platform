@@ -1,0 +1,81 @@
+services:
+  # Apache Guacamole - Centralized Remote Access Gateway
+  guacamole:
+    image: guacamole/guacamole:latest
+    container_name: ctf-guacamole
+    hostname: guacamole
+    ports:
+      - "8080:8080"
+    environment:
+      - GUACD_HOSTNAME=guacd
+      - GUACD_PORT=4822
+      - MYSQL_HOSTNAME=guacamole-db
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=guacamole_db
+      - MYSQL_USER=guacamole_user
+      - MYSQL_PASSWORD=guacamole_pass
+      - GUACAMOLE_HOME=/etc/guacamole
+    depends_on:
+      - guacd
+      - guacamole-db
+    networks:
+      - ctf-guacamole-network
+      - ctf-instances-network
+    restart: unless-stopped
+
+  # Guacamole Daemon - Handles VNC/RDP/SSH Connections
+  guacd:
+    image: guacamole/guacd:latest
+    container_name: ctf-guacd
+    hostname: guacd
+    ports:
+      - "4822:4822"
+    networks:
+      - ctf-guacamole-network
+      - ctf-instances-network
+    restart: unless-stopped
+
+  # MySQL Database for Guacamole
+  guacamole-db:
+    image: mysql:8.0
+    container_name: ctf-guacamole-db
+    hostname: guacamole-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password_123
+      - MYSQL_DATABASE=guacamole_db
+      - MYSQL_USER=guacamole_user
+      - MYSQL_PASSWORD=guacamole_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - guacamole-data:/var/lib/mysql
+      - ./guacamole-init.sql:/docker-entrypoint-initdb.d/initdb.sql:ro
+    networks:
+      - ctf-guacamole-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx-guacamole:
+    image: nginx:alpine
+    container_name: ctf-nginx-guacamole
+    hostname: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-guacamole.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - guacamole
+    networks:
+      - ctf-guacamole-network
+    restart: unless-stopped
+
+volumes:
+  guacamole-data:
+    driver: local
+
+networks:
+  ctf-guacamole-network:
+    external: true
+  
+  ctf-instances-network:
+    external: true

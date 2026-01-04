@@ -1,0 +1,65 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": "",
+    "machines": [
+      {
+        "name": "samba-fileserver",
+        "type": "victim",
+        "role": "Corporate file server running vulnerable Samba service with misconfigured shares",
+        "services": [
+          "samba",
+          "ssh"
+        ],
+        "contains": [
+          "encrypted backup files",
+          "configuration files",
+          "user directories",
+          "hidden flag file"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-workstation",
+        "type": "attacker",
+        "role": "Penetration testing machine with network reconnaissance and SMB exploitation tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "network scanning tools",
+          "SMB enumeration scripts",
+          "decryption utilities"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must enumerate SMB shares to discover accessible directories",
+      "Flag retrieval requires decrypting found backup files using discovered credentials"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Corporate Data Breach - Samba Infiltration",
+      "description": "A corporate file server running Samba has been misconfigured, exposing sensitive backup files. The IT department encrypted important data, but poor security practices may have left the keys accessible through network enumeration.",
+      "stages": [
+        "Network discovery and SMB service enumeration",
+        "SMB share enumeration and access testing",
+        "File extraction from accessible shares",
+        "Credential discovery and cryptographic key recovery",
+        "Flag decryption and retrieval"
+      ]
+    }
+  },
+  "challengeName": "corporate-data-breach-samba-infiltration-v21mrv",
+  "timestamp": 1767248361355
+}

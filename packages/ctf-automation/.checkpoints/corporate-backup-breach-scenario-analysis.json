@@ -1,0 +1,67 @@
+{
+  "scenarioPlan": {
+    "machineCount": 2,
+    "needsUserConfirmation": false,
+    "confirmationReason": null,
+    "machines": [
+      {
+        "name": "ftp-server",
+        "type": "victim",
+        "role": "Legacy FTP server hosting corporate backup files with misconfigured permissions",
+        "services": [
+          "ftp",
+          "ssh"
+        ],
+        "contains": [
+          "encrypted backup archives",
+          "configuration files",
+          "user credentials",
+          "hidden flag file"
+        ],
+        "categories": [
+          "network",
+          "crypto"
+        ]
+      },
+      {
+        "name": "attacker-kali",
+        "type": "attacker",
+        "role": "Penetration testing machine with network analysis and FTP exploitation tools",
+        "services": [
+          "ssh"
+        ],
+        "contains": [
+          "exploitation tools",
+          "network scanners",
+          "FTP clients"
+        ],
+        "categories": [
+          "network"
+        ]
+      }
+    ],
+    "dependencies": [
+      "Attacker must discover FTP service through network reconnaissance",
+      "Anonymous FTP access leads to encrypted backup files",
+      "Backup file decryption reveals credentials for privileged FTP access",
+      "Privileged access reveals hidden directory containing the flag"
+    ],
+    "categories": [
+      "network",
+      "crypto"
+    ],
+    "scenario": {
+      "title": "Corporate Backup Breach",
+      "description": "A corporation's legacy FTP server contains sensitive backup files. The server has been misconfigured, allowing unauthorized access to encrypted archives that may contain valuable information.",
+      "stages": [
+        "Network reconnaissance to discover the FTP service",
+        "Exploit anonymous FTP access to retrieve backup files",
+        "Decrypt backup archives to extract credentials",
+        "Use discovered credentials for privileged FTP access",
+        "Navigate hidden directories to locate the corporate flag"
+      ]
+    }
+  },
+  "challengeName": "corporate-backup-breach",
+  "timestamp": 1767119447548
+}

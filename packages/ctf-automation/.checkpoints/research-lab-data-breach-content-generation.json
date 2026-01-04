@@ -1,0 +1,162 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "masscan",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp",
+        "hashcat",
+        "john",
+        "openssl",
+        "gpg"
+      ]
+    },
+    "legacy-ftp-server": {
+      "name": "legacy-ftp-server",
+      "type": "victim",
+      "role": "Legacy FTP server hosting sensitive research data with misconfigured permissions",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "inetd.conf",
+          "path": "/etc",
+          "content": "# Internet daemon configuration file\n# Enable telnet service for testing\ntelnet stream tcp nowait root /usr/sbin/in.telnetd in.telnetd\n# FTP service\nftp stream tcp nowait root /usr/sbin/vsftpd vsftpd\n# Custom testing port\n26 stream tcp nowait root /usr/sbin/in.telnetd in.telnetd"
+        },
+        {
+          "name": "vsftpd.conf",
+          "path": "/etc/vsftpd",
+          "content": "# Research Lab FTP Configuration\nlisten=YES\nlisten_ipv6=NO\nanonymous_enable=YES\nlocal_enable=YES\nwrite_enable=YES\nlocal_umask=022\nanon_upload_enable=NO\nanon_mkdir_write_enable=NO\ndirmessage_enable=YES\nuse_localtime=YES\nxferlog_enable=YES\nconnect_from_port_20=YES\nchroot_local_user=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\nrsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem\nrsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key\nssl_enable=NO\nanon_root=/var/ftp/research\nlocal_root=/var/ftp/secure\nftpd_banner=PharmaCorp Research Lab FTP Server v2.1\nmax_clients=10\nmax_per_ip=3"
+        },
+        {
+          "name": "passwd",
+          "path": "/etc",
+          "content": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nsync:x:4:65534:sync:/bin:/bin/sync\ngames:x:5:60:games:/usr/games:/usr/sbin/nologin\nman:x:6:12:man:/var/cache/man:/usr/sbin/nologin\nlp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin\nmail:x:8:8:mail:/var/mail:/usr/sbin/nologin\nnews:x:9:9:news:/var/spool/news:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nbackup:x:34:34:backup:/var/backups:/usr/sbin/nologin\nlist:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin\nirc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin\ngnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\nresearch:x:1001:1001:Research User:/home/research:/bin/bash\ndrchen:x:1002:1002:Dr Chen Laboratory:/home/drchen:/bin/bash\ntestuser:x:1003:1003:Testing Account:/home/testuser:/bin/bash"
+        },
+        {
+          "name": "shadow",
+          "path": "/etc",
+          "content": "root:$6$rounds=4096$salt123$encrypted_hash:18000:0:99999:7:::\ndaemon:*:18000:0:99999:7:::\nbin:*:18000:0:99999:7:::\nsys:*:18000:0:99999:7:::\nsync:*:18000:0:99999:7:::\ngames:*:18000:0:99999:7:::\nman:*:18000:0:99999:7:::\nlp:*:18000:0:99999:7:::\nmail:*:18000:0:99999:7:::\nnews:*:18000:0:99999:7:::\nwww-data:*:18000:0:99999:7:::\nbackup:*:18000:0:99999:7:::\nlist:*:18000:0:99999:7:::\nirc:*:18000:0:99999:7:::\ngnats:*:18000:0:99999:7:::\nnobody:*:18000:0:99999:7:::\nresearch:$1$weak$9ijqXyGHjwBJeoAVtrOtH.:18000:0:99999:7:::\ndrchen:$1$salt$Bx8r7ZHqpvTEaGfZV4Qr30:18000:0:99999:7:::\ntestuser:$1$test$qHqhS8p.OKgHYoYNlGqPP0:18000:0:99999:7:::"
+        },
+        {
+          "name": "README.txt",
+          "path": "/var/ftp/research",
+          "content": "PharmaCorp Research Lab - Public Data Repository\n\nThis directory contains publicly available research abstracts and documentation.\nFor access to secure data, please contact the research team.\n\nPublic Files:\n- abstracts/\n- protocols/\n- general_info.txt\n\nNote: All sensitive data has been moved to the secure FTP area.\nAccess credentials are managed by the IT department.\n\nFor technical support, use the legacy telnet interface on port 26.\nLogin with testing credentials for system diagnostics."
+        },
+        {
+          "name": "general_info.txt",
+          "path": "/var/ftp/research",
+          "content": "PharmaCorp Research Laboratory Information\n==========================================\n\nEstablished: 1987\nLocation: Building 7, Level 3\nDepartment Head: Dr. Sarah Chen\n\nCurrent Projects:\n- Phase II Clinical Trials for PC-401\n- Biomarker Analysis Studies\n- Drug Interaction Research\n\nSecurity Notice:\nAll research data is encrypted using proprietary algorithms.\nLegacy systems use MD5-based encryption for compatibility.\n\nIT Contact: helpdesk@pharmacorp.local\nEmergency Access: Use telnet diagnostic port for system recovery\n\nSystem Information:\n- FTP Server: vsftpd 2.1.0\n- Encryption: Custom implementation\n- Backup Schedule: Daily at 02:00 UTC"
+        },
+        {
+          "name": "trial_data_encrypted.txt",
+          "path": "/var/ftp/research/abstracts",
+          "content": "ENCRYPTED RESEARCH DATA - PC-401 TRIAL\n=====================================\n\nVGhpcyBpcyBlbmNyeXB0ZWQgZGF0YSBmcm9tIHRoZSBQQy00MDEgY2xpbmljYWwgdHJpYWwuCkVuY3J5cHRpb24gTWV0aG9kOiBNRDUgSGFzaCBCYXNlZCBYT1IKS2V5IEhpbnQ6IERyLiBDaGVuJ3MgZmF2b3JpdGUgbGFiIG51bWJlcgoKRGF0YSBTdW1tYXJ5OgotIFBhdGllbnQgQ291bnQ6IDEyNAotIFRyaWFsIER1cmF0aW9uOiAxOCBtb250aHMKLSBFZmZpY2FjeSBSYXRlOiA4Ny4yJQotIFNpZGUgRWZmZWN0czogTWlub3IgaGVhZGFjaGUsIGRpenppbmVzcwoKQ1RGe3BoNHJtNGNfcjNzMzRyY2hfbjN0dzByazFuZ19jaDRsbDNuZzN9Cg=="
+        },
+        {
+          "name": "config.ini",
+          "path": "/var/ftp/research/protocols",
+          "content": "[Database]\nhost=db.pharmacorp.local\nport=5432\ndatabase=research_db\nuser=research\npassword=lab2023data\n\n[FTP_Access]\nsecure_user=drchen\nsecure_pass=research401\nsecure_path=/var/ftp/secure\n\n[Encryption]\nmethod=md5_xor\nkey_source=user_preference\ndefault_key=laboratory7\n\n[Backup]\nschedule=daily\nretention=30_days\nencryption=enabled\n\n[Legacy_Access]\ntelnet_port=26\ntest_user=testuser\ntest_pass=testing123\ndiag_mode=enabled\n\n[Security]\nfirewall=disabled_for_testing\nlogging=minimal\naudit=quarterly"
+        },
+        {
+          "name": "secure_data.txt",
+          "path": "/var/ftp/secure",
+          "content": "SECURE RESEARCH DATABASE ACCESS\n===============================\n\nPatient Data - RESTRICTED ACCESS\n\nDatabase contains:\n- 124 patient records (PC-401 trial)\n- Genetic markers and biodata\n- Treatment responses and outcomes\n- Adverse event reports\n\nAccess Log:\n2024-01-15 09:23:14 - drchen - Data export initiated\n2024-01-15 09:45:32 - drchen - Encryption key updated\n2024-01-15 10:12:07 - research - Backup verification complete\n\nFlag Location: Primary research database contains the validation key.\nQuery: SELECT validation_key FROM clinical_trials WHERE trial_code='PC-401';\n\nCTF{l3g4cy_t3ln3t_w34k_3ncrypt10n_d4t4_br34ch}\n\nNote: This flag validates successful exploitation of the legacy telnet service\nand demonstrates understanding of weak encryption in testing environments."
+        },
+        {
+          "name": "login_banner.txt",
+          "path": "/etc/telnet",
+          "content": "PharmaCorp Research Lab - Legacy Diagnostic System\n==================================================\n\nWARNING: This is a restricted system for authorized personnel only.\nUnauthorized access is prohibited and will be prosecuted.\n\nSystem: legacy-ftp-server\nService: Telnet Diagnostic Interface\nPort: 26 (Custom Testing Port)\n\nFor technical support: IT Help Desk x2847\nEmergency procedures: See Security Manual Section 7.3\n\nLogin required. Testing credentials available in system documentation.\n"
+        },
+        {
+          "name": "motd",
+          "path": "/etc",
+          "content": "Welcome to PharmaCorp Research Laboratory System\n\nSystem Maintenance Notice:\n- Legacy telnet service running on port 26 for compatibility testing\n- Weak encryption algorithms in use for legacy system support\n- Security audit scheduled for Q2 2024\n\nImportant Reminders:\n1. All research data must be properly encrypted\n2. Use strong passwords for all accounts\n3. Report security incidents immediately\n4. Testing environments may have relaxed security controls\n\nFor assistance: helpdesk@pharmacorp.local\nLast updated: January 2024\n"
+        },
+        {
+          "name": "start_services.sh",
+          "path": "/usr/local/bin",
+          "content": "#!/bin/bash\n# PharmaCorp Research Lab Service Startup Script\n\necho \"Starting PharmaCorp Research Lab Services...\"\n\n# Start FTP service\necho \"Starting FTP server...\"\nsudo service vsftpd start\n\n# Start telnet service on standard port\necho \"Starting telnet service...\"\nsudo service inetd start\n\n# Start custom telnet service on port 26\necho \"Starting diagnostic telnet service on port 26...\"\nsudo netcat -l -p 26 -e /bin/login &\n\n# Set proper permissions\nsudo chmod 755 /var/ftp/research\nsudo chmod 755 /var/ftp/secure\nsudo chown -R research:research /var/ftp/research\nsudo chown -R drchen:research /var/ftp/secure\n\necho \"Services started successfully.\"\necho \"FTP: Port 21 (anonymous access enabled)\"\necho \"Telnet: Port 23 (standard)\"\necho \"Telnet Diagnostic: Port 26 (testing)\"\necho \"SSH: Port 22 (standard users)\"\n\n# Display network configuration\necho \"\\nNetwork Configuration:\"\nip addr show | grep inet\nnetstat -tlnp | grep -E ':(21|22|23|26)'\n\necho \"\\nSystem ready for research operations.\""
+        },
+        {
+          "name": "research_data.enc",
+          "path": "",
+          "content": "526573656172636820446174612056657273696f6e20322e330a0a456e637279707465642050617469656e7420446174613a0a3438363535363738366436663633373537333635366537343230373436663230373436383635323035323435343135323433343832303436343135323434302030612030612035343638363536353230373036313734363936353665373432303639363736333665373436313639364536653230373336383666373737333230373337393664373037343666364437333230364636363230363536653633373237393730373436393666364530610a0a50617469656e74204944733a0a50543030313a203436363c3437343637203c3437343635203c3437343639203c343734363420435446377b34363634363536333732373937303734366636653566363836353738356636333638363136393665356637333663366637373635363435663633373236353631366337643a0a50543030323a2034363663343734363720343637343636203436373436352034363734363420435446377b34363634363536333732373937303734366636653566363836353738356636333638363136393665356637333663366637373635363435663633373236353631366337643a0a50543030333a2034363635343734363820343637343636203436373436352034363734363420435446377b34363634363536333732373937303734366636653566363836353738356636333638363136393665356637333663366637373635363435663633373236353631366337643a"
+        },
+        {
+          "name": "lab_notes.txt",
+          "path": "",
+          "content": "Research Lab Security Notes\n\nDr. Martinez's Personal Log:\n- All patient data has been encrypted using our standard protocol\n- The encryption uses multiple layers for security compliance\n- First layer: ASCII to hexadecimal conversion for data obfuscation\n- Second layer: Simple character substitution (medical industry standard)\n- All research files follow the same encoding pattern\n- Emergency access: The pattern is consistent across all files\n\nIMPORTANT: If the encoding appears corrupted, remember that medical data often uses standardized character mappings. The '<' character might be a transcription error in our legacy system.\n\nSecurity Reminder: The flag format follows our standard CTF{} pattern and should be clearly visible once properly decoded."
+        },
+        {
+          "name": "ftp_config.log",
+          "path": "",
+          "content": "FTP Server Configuration Log\n=========================\n\nAnonymous access enabled for research_data directory\nEncryption method: Multi-layer encoding\nData format: Hexadecimal encoded ASCII\nCharacter encoding: Standard ASCII table\n\nSystem Administrator Notes:\n- All sensitive files are encoded in hexadecimal format\n- Use standard hex-to-ASCII conversion tools\n- Look for patterns in the decoded output\n- Some legacy systems may have character mapping issues\n\nLast accessed: 2024-01-15 14:23:07\nAccess level: READ-ONLY for anonymous users"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "telnet",
+          "misconfiguration": "Weak MD5-based encryption in testing environment with legacy telnet service on custom port 26",
+          "exploitPath": "1. Network scan discovers FTP (21), SSH (22), Telnet (23, 26) 2. Anonymous FTP access reveals configuration files with telnet credentials 3. Telnet login on port 26 with testing credentials 4. Decode base64 encrypted data using MD5 key hint 5. Access secure FTP area with discovered credentials",
+          "tools": [
+            "nmap",
+            "ftp",
+            "telnet",
+            "base64",
+            "hashcat"
+          ],
+          "servicePort": 26,
+          "setup": "sudo apt-get install vsftpd telnetd inetutils-inetd; sudo systemctl enable vsftpd inetd; sudo /usr/local/bin/start_services.sh",
+          "difficulty": "medium",
+          "hints": [],
+          "learningObjectives": []
+        },
+        "crypto": {
+          "cryptoType": "hex_encoding_chain",
+          "difficulty": "medium",
+          "solvingMethod": "First convert the hexadecimal data to ASCII text, then analyze the decoded content for character substitution patterns. The '<' characters in the decoded text are actually encoded hex values that need further conversion.",
+          "tools": [
+            "xxd",
+            "python3",
+            "cyberchef",
+            "hex2ascii"
+          ],
+          "setup": "echo 'Use hex decoding tools to convert the encrypted data. Look for nested encoding patterns in the decoded output.'",
+          "hints": [],
+          "learningObjectives": []
+        }
+      },
+      "flag": "CTF{decryption_hex_chain_slowered_creatl}"
+    }
+  },
+  "machineIPs": {
+    "legacy-ftp-server": "172.25.193.162",
+    "attacker-workstation": "172.25.193.3"
+  },
+  "timestamp": 1767244486668
+}

@@ -1,0 +1,66 @@
+version: '3.8'
+
+# Application Services - Frontend + Backend (deployed together)
+# Run: docker-compose -f docker/docker-compose.app.yml up --build
+
+services:
+  # Backend API (New instance - backup original on 3002)
+  backend-new:
+    build:
+      context: ../packages/backend
+      dockerfile: Dockerfile
+    container_name: ctf-backend-new
+    ports:
+      - "4002:4002"  # New port, original 3002 kept for backup
+    env_file:
+      - ../.env  # Load environment variables from .env file in project root
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://ctf_user:${DB_PASSWORD:-ctf_password_123}@postgres-new:5432/ctf_platform
+      BACKEND_PORT: 4002
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this-in-production}
+      FRONTEND_URL: http://localhost:4000
+    depends_on:
+      - postgres-new
+    # Note: postgres-new must be running (start with: npm run infra:up)
+    volumes:
+      - ../packages/backend:/app
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+  # Frontend (New instance - backup original on 3000)
+  frontend-new:
+    build:
+      context: ../packages/frontend
+      dockerfile: Dockerfile
+    container_name: ctf-frontend-new
+    ports:
+      - "4000:4000"  # New port, original 3000 kept for backup
+    environment:
+      VITE_API_BASE_URL: http://localhost:4002/api
+      VITE_CTF_API_URL: http://localhost:4003/api/chat
+    depends_on:
+      - backend-new
+    # Note: No volume mount for frontend - uses pre-built static files from Docker image
+    # For development, use: npm run dev:frontend (runs locally, not in Docker)
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ctf-network
+    restart: unless-stopped
+
+networks:
+  ctf-network:
+    name: ctf-network
+    external: true
+

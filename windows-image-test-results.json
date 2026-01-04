@@ -1,0 +1,114 @@
+[
+  {
+    "image": "mcr.microsoft.com/windows/servercore:ltsc2022",
+    "description": "Windows Server Core 2022 - Full Windows Server",
+    "type": "Windows",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Requires Windows containers mode (not Linux containers mode)"
+    ],
+    "notes": [
+      "To use this image, switch Docker Desktop to Windows containers mode"
+    ]
+  },
+  {
+    "image": "mcr.microsoft.com/windows/servercore:ltsc2019",
+    "description": "Windows Server Core 2019 - Previous LTS",
+    "type": "Windows",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Requires Windows containers mode (not Linux containers mode)"
+    ],
+    "notes": [
+      "To use this image, switch Docker Desktop to Windows containers mode"
+    ]
+  },
+  {
+    "image": "mcr.microsoft.com/windows/nanoserver:ltsc2022",
+    "description": "Windows Nano Server 2022 - Minimal Windows",
+    "type": "Windows",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Requires Windows containers mode (not Linux containers mode)"
+    ],
+    "notes": [
+      "To use this image, switch Docker Desktop to Windows containers mode"
+    ]
+  },
+  {
+    "image": "mcr.microsoft.com/windows/nanoserver:ltsc2019",
+    "description": "Windows Nano Server 2019 - Minimal Windows",
+    "type": "Windows",
+    "valid": false,
+    "pullable": false,
+    "runnable": false,
+    "portsConfigurable": false,
+    "servicesConfigurable": false,
+    "size": null,
+    "osInfo": null,
+    "packageManager": null,
+    "errors": [
+      "Requires Windows containers mode (not Linux containers mode)"
+    ],
+    "notes": [
+      "To use this image, switch Docker Desktop to Windows containers mode"
+    ]
+  },
+  {
+    "image": "ubuntu:22.04",
+    "description": "Ubuntu with Samba (Windows-like SMB services)",
+    "type": "Linux (Windows-like)",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": true,
+    "servicesConfigurable": true,
+    "size": "28.18 MB",
+    "osInfo": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL",
+    "packageManager": "unknown",
+    "errors": [],
+    "notes": [
+      "Can install Samba for SMB/CIFS (Windows file sharing)",
+      "Can install Active Directory services (Samba AD)"
+    ]
+  },
+  {
+    "image": "rockylinux:9",
+    "description": "Rocky Linux with Samba/Active Directory (Windows-like)",
+    "type": "Linux (Windows-like)",
+    "valid": true,
+    "pullable": true,
+    "runnable": true,
+    "portsConfigurable": true,
+    "servicesConfigurable": true,
+    "size": "61.34 MB",
+    "osInfo": "NAME=\"Rocky Linux\"\nVERSION=\"9.3 (Blue Onyx)\"\nID=\"rocky\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"9.3\"\nPLATFORM_ID=\"platform:el9\"\nPRETTY_NAME=\"Rocky Linux 9.3 (Blue Onyx)\"\nANSI_COLOR=\"0;32\"\nLOGO=\"fedor",
+    "packageManager": "apt-get",
+    "errors": [],
+    "notes": [
+      "Can install Samba for SMB/CIFS (Windows file sharing)",
+      "Can install Active Directory services (Samba AD)"
+    ]
+  }
+]

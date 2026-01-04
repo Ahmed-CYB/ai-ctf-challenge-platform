@@ -1,0 +1,20 @@
+# Multi-Machine Challenge Example - Web Application
+FROM php:8.2-apache
+
+# Install MySQL extension
+RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
+
+# Copy application files
+COPY index.php /var/www/html/
+COPY style.css /var/www/html/
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Enable Apache modules
+RUN a2enmod rewrite
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]

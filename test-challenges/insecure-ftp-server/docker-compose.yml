@@ -1,0 +1,31 @@
+services:
+  victim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: insecure-ftp-victim
+    hostname: victim
+    networks:
+      ctf-network:
+        ipv4_address: 172.25.50.10
+    
+  attacker:
+    build:
+      context: ./attacker
+      dockerfile: Dockerfile.attacker
+    container_name: insecure-ftp-attacker
+    hostname: attacker
+    networks:
+      ctf-network:
+        ipv4_address: 172.25.50.100
+    shm_size: 512m
+    stdin_open: true
+    tty: true
+
+networks:
+  ctf-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.50.0/24
+          gateway: 172.25.50.1

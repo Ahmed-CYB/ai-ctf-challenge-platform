@@ -1,0 +1,91 @@
+{
+  "machineContents": {
+    "attacker-workstation": {
+      "type": "attacker",
+      "tools": [
+        "nmap",
+        "wireshark",
+        "tcpdump",
+        "netcat",
+        "hping3",
+        "masscan",
+        "ssh",
+        "nc",
+        "net-tools",
+        "iputils-ping",
+        "python3",
+        "curl",
+        "wget",
+        "git",
+        "vim",
+        "nano",
+        "bash",
+        "ftp",
+        "lftp",
+        "telnet",
+        "ssh-client",
+        "smbclient",
+        "nfs-common",
+        "snmp",
+        "tftp"
+      ]
+    },
+    "ftp-server": {
+      "name": "ftp-server",
+      "type": "victim",
+      "role": "Corporate file server running vulnerable FTP service with misconfigured permissions",
+      "services": [
+        "ftp",
+        "ssh"
+      ],
+      "files": [
+        {
+          "name": "vsftpd.conf",
+          "path": "",
+          "content": "# vsftpd configuration - Anonymous FTP\nlisten=YES\nanonymous_enable=YES\nanon_upload_enable=NO\nanon_mkdir_write_enable=NO\nanon_root=/ftp\nno_anon_password=YES\nwrite_enable=YES\nlocal_enable=YES\nchroot_local_user=YES\nallow_writeable_chroot=YES\nsecure_chroot_dir=/var/run/vsftpd/empty\npam_service_name=vsftpd\npasv_enable=YES\npasv_min_port=21100\npasv_max_port=21110\nuserlist_enable=NO"
+        },
+        {
+          "name": "start.sh",
+          "path": "",
+          "content": "#!/bin/bash\nmkdir -p /ftp/public /ftp/data /ftp/private\necho \"CTF{network_ftp_anon_rs9xqdsk2t}\" > /ftp/data/flag.txt\nchmod 644 /ftp/data/flag.txt\necho \"Welcome to the CTF FTP Server!\" > /ftp/public/welcome.txt\necho \"Important files may be in subdirectories\" > /ftp/public/readme.txt\nservice vsftpd start\ntail -f /dev/null"
+        },
+        {
+          "name": "README.txt",
+          "path": "",
+          "content": "FTP Challenge (Easy)\n\nObjective:\nConnect to the FTP server and find the flag.\n\nHints:\n1. Anonymous access is enabled\n2. Explore all directories\n3. Check subdirectories\n\nTools:\n- ftp\n- nmap\n- wget/curl\n\nFlag Format: CTF{...}"
+        }
+      ],
+      "configurations": {
+        "network": {
+          "serviceType": "http service",
+          "difficulty": "easy",
+          "misconfiguration": "Anonymous FTP access enabled with sensitive files",
+          "exploitPath": "Connect via anonymous FTP and navigate to /data directory",
+          "tools": [
+            "nmap",
+            "ftp",
+            "wget"
+          ],
+          "servicePort": 21,
+          "setup": "apt-get update && apt-get install -y vsftpd\ncp /challenge/vsftpd.conf /etc/vsftpd.conf\nmkdir -p /var/run/vsftpd/empty\nchmod +x /challenge/start.sh\n/challenge/start.sh",
+          "hints": [
+            "Anonymous access is enabled",
+            "Explore all directories",
+            "Check subdirectories"
+          ],
+          "learningObjectives": [
+            "Understand FTP protocol",
+            "Learn anonymous FTP access",
+            "Practice directory enumeration"
+          ]
+        }
+      },
+      "flag": "CTF{ftp_6427f6a3_mjsy79_ed1be0a0}"
+    }
+  },
+  "machineIPs": {
+    "ftp-server": "172.25.193.188",
+    "attacker-workstation": "172.25.193.3"
+  },
+  "timestamp": 1767120973164
+}
