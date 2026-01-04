@@ -28,13 +28,6 @@ Before responding, classify the message into one of these categories:
    - Do NOT provide step-by-step guides unless specifically asked
    - Keep it concise and focused on platform features
 
-4. **VAGUE CREATION REQUEST** - User wants to create a challenge but hasn't provided enough details
-   Examples: "can you help me create ctf challenge?", "create a challenge for me", "i want to create a challenge"
-   - These should be treated as questions that need clarification
-   - Ask the user for specific details: what type of vulnerability, what difficulty level, what services/protocols
-   - Be helpful and guide them to provide the necessary information
-   - Do NOT start creating a challenge - ask for clarification first
-
 **STEP 2: RESPOND APPROPRIATELY BASED ON CLASSIFICATION**
 
 **FOR CONVERSATIONAL/GREETING MESSAGES:**
@@ -62,14 +55,6 @@ Before responding, classify the message into one of these categories:
 - Examples:
   * "what can you do" → "I can help you create CTF challenges, deploy existing challenges, and answer questions about cybersecurity and CTF techniques. What would you like to do?"
   * "what can this platform do" → "This platform lets you create, deploy, and practice CTF challenges. You can ask me to create challenges, deploy them, or ask questions about cybersecurity."
-
-**FOR VAGUE CREATION REQUESTS:**
-- User wants to create a challenge but hasn't provided enough details
-- Ask for clarification: what type of vulnerability, difficulty level, services/protocols
-- Be helpful and guide them to provide necessary information
-- Do NOT start creating a challenge - ask for clarification first
-- Examples:
-  * "can you help me create ctf challenge?" → "I'd be happy to help you create a CTF challenge! To get started, I need a few details:\n\n1. What type of vulnerability would you like? (e.g., SQL injection, FTP, SMB/EternalBlue, XSS)\n2. What difficulty level? (Easy, Medium, or Hard)\n3. Any specific services or protocols? (e.g., web server, FTP server, Samba)\n\nOnce you provide these details, I can create a customized challenge for you!"
 
 **ABSOLUTE RULE:**
 If the user says "hello", "hi", "hey", "how are you", or any simple greeting, you MUST respond with ONLY a brief friendly greeting (1-2 sentences). DO NOT launch into explanations about creating challenges, vulnerabilities, or any technical topics. Just greet them and ask how you can help.
@@ -142,11 +127,6 @@ export async function answerQuestion(userMessage, conversationHistory = []) {
     
     // Add explicit instruction for greetings and general questions at the top
     const messageLower = userMessage.trim().toLowerCase();
-    const isVagueCreation = userMessage.includes('[VAGUE_CREATION_REQUEST]');
-    
-    // Extract missing details if present
-    const missingDetailsMatch = userMessage.match(/\[MISSING:\s*([^\]]+)\]/);
-    const missingDetails = missingDetailsMatch ? missingDetailsMatch[1].split(',').map(d => d.trim()) : [];
     const isGreeting = /^(hello|hi|hey|greetings|good (morning|afternoon|evening)|what's up|sup|how are you|how's it going|how do you do|what's going on|nice to meet you)\s*[!?.]*$/i.test(messageLower);
     const isGeneralQuestion = /^(what can you do|what can this platform do|what are your capabilities|what do you do|how can you help|what features|what are the features)\s*[!?.]*$/i.test(messageLower);
     
@@ -163,28 +143,6 @@ ${SYSTEM_PROMPT}`;
 
 Example response:
 - "what can you do" → "I can help you create CTF challenges, deploy existing challenges, and answer questions about cybersecurity and CTF techniques. What would you like to do?"
-
-${SYSTEM_PROMPT}`;
-    } else if (isVagueCreation) {
-      // Build clarification message based on missing details
-      let clarificationPoints = [];
-      if (missingDetails.length > 0 && missingDetails.some(d => d.includes('vulnerability') || d.includes('challenge'))) {
-        clarificationPoints.push('What type of vulnerability/challenge would you like? (e.g., SQL injection, FTP, SMB/EternalBlue, XSS, crypto)');
-      } else {
-        clarificationPoints.push('What type of vulnerability/challenge would you like? (e.g., SQL injection, FTP, SMB/EternalBlue, XSS, crypto)');
-      }
-      clarificationPoints.push('What difficulty level? (Easy, Medium, or Hard)');
-      clarificationPoints.push('Any specific services or protocols? (e.g., web server, FTP server, Samba)');
-      
-      enhancedSystemPrompt = `**CRITICAL: THIS IS A VAGUE CREATION REQUEST. THE USER WANTS TO CREATE A CHALLENGE BUT HASN'T PROVIDED ENOUGH DETAILS. DO NOT START CREATING A CHALLENGE. INSTEAD, ASK FOR CLARIFICATION.**
-
-You MUST ask the user for:
-${clarificationPoints.map((p, i) => `${i + 1}. ${p}`).join('\n')}
-
-Be friendly and helpful. Guide them to provide the necessary information.
-
-Example response:
-- "create for me ctf challenge" → "I'd be happy to help you create a CTF challenge! To get started, I need a few details:\n\n${clarificationPoints.map((p, i) => `${i + 1}. ${p}`).join('\n')}\n\nOnce you provide these details, I can create a customized challenge for you!"
 
 ${SYSTEM_PROMPT}`;
     }
@@ -210,26 +168,20 @@ Always provide the complete, ready-to-run command with actual IPs and ports.`;
       { role: 'system', content: enhancedSystemPrompt }
     ];
 
-    // For greetings, general questions, and vague creation requests, don't include conversation history to avoid technical context bleeding in
+    // For greetings and general questions, don't include conversation history to avoid technical context bleeding in
     // For technical questions, include recent history for context
-    if (!isGreeting && !isGeneralQuestion && !isVagueCreation) {
+    if (!isGreeting && !isGeneralQuestion) {
       // Add conversation history (limited to last 10 messages to manage token usage)
       const recentHistory = conversationHistory.slice(-10);
       messages.push(...recentHistory);
     }
 
-    // Clean up message (remove prefixes and markers) before sending to AI
-    let cleanMessage = userMessage
-      .replace(/^\[VAGUE_CREATION_REQUEST\]\s*/i, '')
-      .replace(/\s*\[MISSING:[^\]]+\]\s*/g, '')
-      .trim();
-    
     // Add current user message
-    messages.push({ role: 'user', content: cleanMessage });
+    messages.push({ role: 'user', content: userMessage });
 
     // Adjust parameters based on question type
-    const temperature = (isGreeting || isGeneralQuestion || isVagueCreation) ? 0.9 : 0.7; // Higher temperature for more natural conversational responses
-    const maxTokens = isGreeting ? 100 : (isGeneralQuestion ? 200 : (isVagueCreation ? 300 : 2000)); // Limit tokens appropriately
+    const temperature = (isGreeting || isGeneralQuestion) ? 0.9 : 0.7; // Higher temperature for more natural conversational responses
+    const maxTokens = isGreeting ? 100 : (isGeneralQuestion ? 200 : 2000); // Limit tokens for greetings/general questions to force brevity
     
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4',

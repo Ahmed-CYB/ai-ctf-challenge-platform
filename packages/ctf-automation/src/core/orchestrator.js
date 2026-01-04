@@ -65,7 +65,7 @@ export class Orchestrator {
         
         case 'question':
           // Pass the original message directly, not from requirements
-          return await this.handleQuestion(message, conversationHistory, requirements);
+          return await this.handleQuestion(message, conversationHistory);
         
         default:
           return this.errorHandler.handleUnknownRequestType(type);
@@ -82,21 +82,6 @@ export class Orchestrator {
     this.logger.info('Orchestrator', 'Starting challenge creation workflow');
 
     try {
-      // 🔍 Validate that we have sufficient details before proceeding
-      const validation = this.validateCreationRequirements(requirements, conversationHistory);
-      if (!validation.valid) {
-        this.logger.info('Orchestrator', 'Insufficient details for challenge creation, asking for clarification');
-        // Route to question handler to ask for clarification
-        const originalMessage = conversationHistory.length > 0 
-          ? conversationHistory[conversationHistory.length - 1]?.content 
-          : 'create ctf challenge';
-        return await this.handleQuestion(originalMessage, conversationHistory, {
-          needsClarification: true,
-          originalIntent: 'create',
-          missingDetails: validation.missingDetails
-        });
-      }
-
       // Step 1: Design challenge (AI)
       this.logger.info('Orchestrator', 'Phase 1: Challenge Design');
       // Pass original message for better vulnerability extraction
@@ -347,7 +332,7 @@ export class Orchestrator {
   /**
    * Handle question requests
    */
-  async handleQuestion(userMessage, conversationHistory, requirements = {}) {
+  async handleQuestion(userMessage, conversationHistory) {
     this.logger.info('Orchestrator', 'Handling question request');
     
     try {
@@ -362,18 +347,8 @@ export class Orchestrator {
         };
       }
       
-      // Pass requirements to questions agent if this is a vague creation request
-      let enhancedMessage = userMessage;
-      if (requirements.needsClarification && requirements.originalIntent === 'create') {
-        enhancedMessage = `[VAGUE_CREATION_REQUEST] ${userMessage}`;
-        // Add missing details context if available
-        if (requirements.missingDetails && requirements.missingDetails.length > 0) {
-          enhancedMessage += ` [MISSING: ${requirements.missingDetails.join(', ')}]`;
-        }
-      }
-      
       // Answer the question using the questions agent
-      const result = await answerQuestion(enhancedMessage, conversationHistory);
+      const result = await answerQuestion(userMessage, conversationHistory);
       
       if (!result.success) {
         return {
@@ -399,42 +374,6 @@ export class Orchestrator {
       this.logger.error('Orchestrator', 'Question handling failed', error.stack);
       return this.errorHandler.handleError(error, 'Orchestrator.handleQuestion');
     }
-  }
-
-  /**
-   * Validate that creation requirements have sufficient details
-   * Returns { valid: boolean, missingDetails: string[] }
-   */
-  validateCreationRequirements(requirements, conversationHistory = []) {
-    const missingDetails = [];
-    
-    // Check if we have a challenge type or specific vulnerability mentioned
-    const hasChallengeType = requirements.challengeType && 
-                            requirements.challengeType !== 'unknown' && 
-                            requirements.challengeType !== null;
-    
-    // Check if we have services mentioned
-    const hasServices = requirements.services && 
-                        Array.isArray(requirements.services) && 
-                        requirements.services.length > 0;
-    
-    // Check conversation history for technical keywords
-    const lastMessage = conversationHistory.length > 0 
-      ? conversationHistory[conversationHistory.length - 1]?.content || ''
-      : '';
-    const hasTechnicalKeywords = /(ftp|ssh|samba|smb|sql|injection|xss|eternal|blue|vulnerability|exploit|crypto|web|network|pwn|buffer|overflow|hash|encrypt|decrypt)/i.test(lastMessage);
-    
-    // If we don't have challenge type, services, or technical keywords, it's vague
-    if (!hasChallengeType && !hasServices && !hasTechnicalKeywords) {
-      missingDetails.push('vulnerability type or challenge category');
-    }
-    
-    // Note: We don't require difficulty level as it can default to medium
-    
-    return {
-      valid: missingDetails.length === 0,
-      missingDetails
-    };
   }
 }
 

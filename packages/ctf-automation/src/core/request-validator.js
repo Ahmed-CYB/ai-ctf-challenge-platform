@@ -69,18 +69,6 @@ export class RequestValidator {
       requestType = context.intent;
     }
 
-    // 🔍 Check if creation request is too vague and needs clarification
-    if (requestType === 'create') {
-      const isVague = this.isVagueCreationRequest(message, requirements);
-      if (isVague) {
-        this.logger.info('RequestValidator', 'Vague creation request detected, treating as question');
-        requestType = 'question';
-        // Update requirements to indicate this is a clarification question
-        requirements.needsClarification = true;
-        requirements.originalIntent = 'create';
-      }
-    }
-
     return {
       valid: true,
       type: requestType,
@@ -384,43 +372,6 @@ export class RequestValidator {
       isWindowsVuln: false,
       message: null
     };
-  }
-
-  /**
-   * Check if a creation request is too vague and needs clarification
-   * Returns true if the request lacks specific details about what challenge to create
-   */
-  isVagueCreationRequest(message, requirements) {
-    const messageLower = message.toLowerCase().trim();
-    
-    // Check for vague patterns
-    const vaguePatterns = [
-      /^(can you )?(help me )?(create|make|generate|build)( a| an)?( ctf )?challenge(\?)?$/i,
-      /^(can you )?(help me )?create( a| an)?( ctf )?challenge( for me)?(\?)?$/i,
-      /^(can you )?create( a| an)?( ctf )?challenge( please)?(\?)?$/i,
-      /^(i want|i need|i would like)( to)?( create| make| generate)( a| an)?( ctf )?challenge(\?)?$/i,
-      /^(please )?(create|make|generate)( a| an)?( ctf )?challenge( for me)?(\?)?$/i,
-      /^create( for me| for you)?( a| an)?( ctf )?challenge(\?)?$/i,
-      /^(create|make|generate)( for me)( a| an)?( ctf )?challenge(\?)?$/i
-    ];
-
-    // Check if message matches vague patterns
-    const isVaguePattern = vaguePatterns.some(pattern => pattern.test(messageLower));
-    
-    if (!isVaguePattern) {
-      return false; // Not a vague pattern, proceed with creation
-    }
-
-    // Even if it matches a vague pattern, check if it has specific details
-    const hasSpecificDetails = 
-      requirements.challengeType || // Has challenge type
-      requirements.services?.length > 0 || // Has services mentioned
-      requirements.scenario || // Has scenario
-      /(ftp|ssh|samba|smb|sql|injection|xss|eternal|blue|vulnerability|exploit|crypto|web|network|pwn)/i.test(message) || // Has technical keywords
-      /(easy|medium|hard|beginner|advanced|intermediate|difficulty)/i.test(message); // Has difficulty level
-
-    // If it matches vague pattern but has no specific details, it's vague
-    return !hasSpecificDetails;
   }
 }
 
