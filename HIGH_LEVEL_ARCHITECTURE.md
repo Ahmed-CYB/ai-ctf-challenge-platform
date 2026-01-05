@@ -8,98 +8,200 @@ This document provides a simplified, high-level view of the AI CTF Challenge Pla
 
 ```mermaid
 graph TB
-    subgraph "👤 User Interface"
+    subgraph "👤 User Layer"
         User[User Browser]
     end
 
-    subgraph "🌐 Application Layer"
-        Frontend[Frontend Service<br/>React + TypeScript<br/>Port: 4000<br/>━━━━━━━━━━━━━━━━<br/>• Dashboard UI<br/>• Chat Interface<br/>• Challenge Management]
-        
-        Backend[Backend API Service<br/>Express.js<br/>Port: 4002<br/>━━━━━━━━━━━━━━━━<br/>• Authentication<br/>• Session Management<br/>• Chat History<br/>• User Management]
-        
-        CTFAuto[CTF Automation Service<br/>Node.js + AI Agents<br/>Port: 4003<br/>━━━━━━━━━━━━━━━━<br/>• Challenge Creation<br/>• Challenge Deployment<br/>• Container Management<br/>• AI-Powered Generation]
+    subgraph "🌐 Frontend Layer"
+        Frontend[React + TypeScript<br/>Frontend Service<br/>Port: 4000<br/>━━━━━━━━━━━━━━━━<br/>• Dashboard UI<br/>• Chat Interface<br/>• Challenge Management<br/>• Profile & Settings]
     end
 
-    subgraph "🤖 AI Agent System"
-        Classifier[Classifier Agent<br/>Request Routing]
+    subgraph "🔧 Backend Layer"
+        Backend[Express.js<br/>Backend API Service<br/>Port: 4002<br/>━━━━━━━━━━━━━━━━<br/>• Authentication & Authorization<br/>• Session Management<br/>• Chat History Storage<br/>• User Management<br/>• JWT Token Generation]
+    end
+
+    subgraph "🤖 CTF Automation Layer"
+        CTFAuto[Node.js<br/>CTF Automation Service<br/>Port: 4003<br/>━━━━━━━━━━━━━━━━<br/>• Request Processing<br/>• Agent Orchestration<br/>• Response Formatting]
+        
+        Classifier[Classifier Agent<br/>Request Classification & Routing]
         CreateAgent[Create Agent<br/>Challenge Generation]
         DeployAgent[Deploy Agent<br/>Deployment Orchestration]
-        ValidatorAgent[Validator Agent<br/>Pre/Post Deployment Checks]
+        ValidatorAgent[Validator Agent<br/>Pre/Post Deployment Validation]
         QuestionsAgent[Questions Agent<br/>Q&A Handler]
     end
 
-    subgraph "💾 Data Layer"
-        PostgreSQL[(PostgreSQL Database<br/>Port: 5433<br/>━━━━━━━━━━━━━━━━<br/>• Users & Sessions<br/>• Challenges Metadata<br/>• Chat History<br/>• OS Images & Tools)]
+    subgraph "💾 Database Layer"
+        PostgreSQL[(PostgreSQL<br/>Port: 5433<br/>━━━━━━━━━━━━━━━━<br/>• Users & Sessions<br/>• Challenges Metadata<br/>• Chat History<br/>• OS Images & Tools<br/>• Package Mappings)]
         
-        MySQL[(MySQL Database<br/>Port: 3307<br/>━━━━━━━━━━━━━━━━<br/>• Guacamole Users<br/>• Connection Configs)]
+        MySQL[(MySQL<br/>Port: 3307<br/>━━━━━━━━━━━━━━━━<br/>• Guacamole Users<br/>• Connection Configs<br/>• Connection Parameters)]
     end
 
-    subgraph "🐳 Container Infrastructure"
-        DockerEngine[Docker Engine<br/>━━━━━━━━━━━━━━━━<br/>• Container Management<br/>• Network Isolation<br/>• Challenge Networks]
+    subgraph "🐳 Container Infrastructure Layer"
+        DockerEngine[Docker Engine<br/>Docker API<br/>━━━━━━━━━━━━━━━━<br/>• Container Management<br/>• Network Isolation<br/>• Image Building<br/>• Volume Management]
         
-        Guacamole[Apache Guacamole<br/>Port: 8081<br/>━━━━━━━━━━━━━━━━<br/>• Browser SSH Access<br/>• Session Isolation<br/>• Connection Management]
+        Guacamole[Apache Guacamole<br/>Port: 8081<br/>━━━━━━━━━━━━━━━━<br/>• Browser SSH/RDP Access<br/>• Session Isolation<br/>• Connection Management<br/>• WebSocket Protocol]
         
-        ChallengeContainers[Challenge Containers<br/>━━━━━━━━━━━━━━━━<br/>• Attacker Machines<br/>• Victim Machines<br/>• Isolated Networks]
+        ChallengeContainers[Challenge Containers<br/>Isolated Networks<br/>━━━━━━━━━━━━━━━━<br/>• Attacker Machines<br/>Kali Linux with Tools<br/>• Victim Machines<br/>Vulnerable Services<br/>• Network: 172.23.x.x/24]
     end
 
-    subgraph "☁️ External Services"
-        GitHub[GitHub Repository<br/>━━━━━━━━━━━━━━━━<br/>• Challenge Storage<br/>• Version Control]
+    subgraph "☁️ External Services Layer"
+        GitHub[GitHub Repository<br/>Git API<br/>━━━━━━━━━━━━━━━━<br/>• Challenge Storage<br/>• Version Control<br/>• File Management]
         
-        OpenAI[OpenAI API<br/>━━━━━━━━━━━━━━━━<br/>• GPT-4<br/>• Challenge Generation]
+        OpenAI[OpenAI API<br/>GPT-4<br/>━━━━━━━━━━━━━━━━<br/>• Challenge Generation<br/>• Code Generation<br/>• Content Creation]
         
-        Anthropic[Anthropic API<br/>━━━━━━━━━━━━━━━━<br/>• Claude<br/>• AI Assistance]
+        Anthropic[Anthropic API<br/>Claude<br/>━━━━━━━━━━━━━━━━<br/>• AI Assistance<br/>• Validation Logic<br/>• Error Analysis]
     end
 
-    %% User Flow
-    User -->|HTTP/WebSocket| Frontend
-    Frontend -->|REST API| Backend
-    Backend -->|REST API| CTFAuto
+    %% User Interactions
+    User -->|"HTTP/WebSocket<br/>User Requests,<br/>Display Results"| Frontend
+    Frontend -->|"REST API<br/>POST /api/chat<br/>GET /api/challenges<br/>POST /api/auth/login<br/>Returns: JSON Responses,<br/>JWT Tokens"| Backend
+    Backend -->|"REST API<br/>POST /api/chat<br/>{message, sessionId}<br/>Returns: AI Response,<br/>Challenge Info"| CTFAuto
 
-    %% Agent Routing
-    CTFAuto --> Classifier
-    Classifier -->|CREATE| CreateAgent
-    Classifier -->|DEPLOY| DeployAgent
-    Classifier -->|QUESTION| QuestionsAgent
-    DeployAgent --> ValidatorAgent
+    %% CTF Automation Internal Flow
+    CTFAuto -->|"Route Request<br/>Classify Intent"| Classifier
+    Classifier -->|"Intent: CREATE<br/>Route to Create Agent"| CreateAgent
+    Classifier -->|"Intent: DEPLOY<br/>Route to Deploy Agent"| DeployAgent
+    Classifier -->|"Intent: QUESTION<br/>Route to Questions Agent"| QuestionsAgent
+    DeployAgent -->|"Validate Challenge<br/>Pre/Post Checks"| ValidatorAgent
+    ValidatorAgent -->|"Validation Results<br/>Error Reports"| DeployAgent
 
-    %% Data Access
-    Backend -->|Read/Write| PostgreSQL
-    CTFAuto -->|Read/Write| PostgreSQL
-    CTFAuto -->|Read/Write| MySQL
-    Guacamole -->|Read/Write| MySQL
+    %% Database Interactions
+    Backend -->|"SQL: INSERT, SELECT, UPDATE<br/>Store Users, Sessions,<br/>Chat History,<br/>Validate JWT Tokens"| PostgreSQL
+    PostgreSQL -->|"User Data, Session Info,<br/>Chat Messages,<br/>Challenge Metadata"| Backend
+    
+    CTFAuto -->|"SQL: SELECT, INSERT, UPDATE<br/>Read Challenge Metadata,<br/>Store OS Images,<br/>Store Tool Installations"| PostgreSQL
+    PostgreSQL -->|"Challenge Data,<br/>OS Image Info,<br/>Tool Installation Methods"| CTFAuto
+    
+    CTFAuto -->|"SQL: INSERT, SELECT<br/>Create Guacamole Users,<br/>Store Connection Configs"| MySQL
+    MySQL -->|"Guacamole User Data,<br/>Connection Parameters"| CTFAuto
+    
+    Guacamole -->|"SQL: SELECT, INSERT, UPDATE<br/>Read Connection Configs,<br/>Store User Sessions"| MySQL
+    MySQL -->|"Connection Data,<br/>User Permissions"| Guacamole
 
     %% Container Management
-    CTFAuto -->|Docker API| DockerEngine
-    DockerEngine -->|Create/Manage| ChallengeContainers
-    CTFAuto -->|Manage Connections| Guacamole
-    Guacamole -->|SSH Access| ChallengeContainers
+    CTFAuto -->|"Docker API<br/>docker compose up,<br/>docker network create,<br/>Get Container IPs"| DockerEngine
+    DockerEngine -->|"Container Status,<br/>Network Info,<br/>Container IPs"| CTFAuto
+    
+    DockerEngine -->|"Create Containers,<br/>Attach Networks,<br/>Start Services"| ChallengeContainers
+    ChallengeContainers -->|"Container Logs,<br/>Health Status"| DockerEngine
+    
+    CTFAuto -->|"Guacamole API<br/>Create Connections,<br/>Create Users,<br/>Grant Permissions"| Guacamole
+    Guacamole -->|"Connection URLs,<br/>Connection Status"| CTFAuto
+    
+    Guacamole -->|"SSH/RDP Protocol<br/>WebSocket Connection,<br/>Terminal Access"| ChallengeContainers
+    ChallengeContainers -->|"Terminal Output,<br/>Connection Status"| Guacamole
 
-    %% External Services
-    CreateAgent -->|Push/Pull| GitHub
-    DeployAgent -->|Clone| GitHub
-    CreateAgent -->|AI Calls| OpenAI
-    CreateAgent -->|AI Calls| Anthropic
-    DeployAgent -->|AI Calls| OpenAI
-    DeployAgent -->|AI Calls| Anthropic
+    %% External Service Interactions
+    CreateAgent -->|"Git API<br/>git push, git commit<br/>Create Repository,<br/>Push Challenge Files"| GitHub
+    GitHub -->|"Repository URL,<br/>Commit Hash,<br/>Push Status"| CreateAgent
+    
+    DeployAgent -->|"Git API<br/>git clone, git pull<br/>Clone Challenge Repository"| GitHub
+    GitHub -->|"Challenge Files,<br/>Docker Compose Configs"| DeployAgent
+    
+    CreateAgent -->|"OpenAI API<br/>POST /v1/chat/completions<br/>Generate Challenge Content,<br/>Create Dockerfiles"| OpenAI
+    OpenAI -->|"Generated Content,<br/>AI Responses"| CreateAgent
+    
+    CreateAgent -->|"Anthropic API<br/>POST /v1/messages<br/>Generate Challenge Logic,<br/>Validate Structure"| Anthropic
+    Anthropic -->|"AI Responses,<br/>Validation Results"| CreateAgent
+    
+    DeployAgent -->|"OpenAI API<br/>Error Analysis,<br/>Fix Suggestions"| OpenAI
+    OpenAI -->|"Error Fixes,<br/>Code Suggestions"| DeployAgent
+    
+    DeployAgent -->|"Anthropic API<br/>Deployment Validation,<br/>Error Resolution"| Anthropic
+    Anthropic -->|"Validation Results,<br/>Fix Recommendations"| DeployAgent
 
     %% Styling
-    style User fill:#e1f5ff,stroke:#01579b,stroke-width:2px
-    style Frontend fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    style Backend fill:#fff9c4,stroke:#f57f17,stroke-width:2px
-    style CTFAuto fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
-    style PostgreSQL fill:#b39ddb,stroke:#4a148c,stroke-width:2px
-    style MySQL fill:#b39ddb,stroke:#4a148c,stroke-width:2px
-    style DockerEngine fill:#90caf9,stroke:#0d47a1,stroke-width:2px
-    style Guacamole fill:#a5d6a7,stroke:#1b5e20,stroke-width:2px
-    style ChallengeContainers fill:#ffccbc,stroke:#bf360c,stroke-width:2px
-    style GitHub fill:#ffccbc,stroke:#bf360c,stroke-width:2px
-    style OpenAI fill:#ffccbc,stroke:#bf360c,stroke-width:2px
-    style Anthropic fill:#ffccbc,stroke:#bf360c,stroke-width:2px
+    style User fill:#e1f5ff,stroke:#01579b,stroke-width:3px
+    style Frontend fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style Backend fill:#fff9c4,stroke:#f57f17,stroke-width:3px
+    style CTFAuto fill:#f8bbd0,stroke:#c2185b,stroke-width:3px
+    style PostgreSQL fill:#b39ddb,stroke:#4a148c,stroke-width:3px
+    style MySQL fill:#b39ddb,stroke:#4a148c,stroke-width:3px
+    style DockerEngine fill:#90caf9,stroke:#0d47a1,stroke-width:3px
+    style Guacamole fill:#a5d6a7,stroke:#1b5e20,stroke-width:3px
+    style ChallengeContainers fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+    style GitHub fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+    style OpenAI fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+    style Anthropic fill:#ffccbc,stroke:#bf360c,stroke-width:3px
     style Classifier fill:#e1bee7,stroke:#4a148c,stroke-width:2px
     style CreateAgent fill:#c5e1a5,stroke:#33691e,stroke-width:2px
     style DeployAgent fill:#ffab91,stroke:#bf360c,stroke-width:2px
     style ValidatorAgent fill:#ffe082,stroke:#f57f17,stroke-width:2px
     style QuestionsAgent fill:#b2dfdb,stroke:#004d40,stroke-width:2px
+```
+
+---
+
+## 🔗 Detailed Component Interactions
+
+```mermaid
+graph LR
+    subgraph "Frontend Layer"
+        React[React + TypeScript<br/>Vite Build Tool]
+    end
+
+    subgraph "Backend Layer"
+        Express[Express.js<br/>REST API Server]
+        JWT[JWT Authentication<br/>jsonwebtoken]
+        Bcrypt[Password Hashing<br/>bcryptjs]
+    end
+
+    subgraph "CTF Automation Layer"
+        NodeJS[Node.js<br/>CTF Service]
+        Agents[AI Agent System<br/>Multi-Agent Architecture]
+    end
+
+    subgraph "Database Layer"
+        PG[(PostgreSQL<br/>pg Library)]
+        MySQL_DB[(MySQL<br/>mysql2 Library)]
+    end
+
+    subgraph "Container Layer"
+        Docker[Docker Engine<br/>dockerode Library]
+        GuacAPI[Guacamole API<br/>REST + Database]
+    end
+
+    subgraph "External APIs"
+        GitAPI[GitHub API<br/>@octokit/rest]
+        OpenAIClient[OpenAI SDK<br/>openai]
+        AnthropicClient[Anthropic SDK<br/>@anthropic-ai/sdk]
+    end
+
+    React -->|"HTTP Requests<br/>POST /api/auth/login<br/>POST /api/chat<br/>GET /api/challenges<br/>Returns: JSON, JWT Tokens"| Express
+    Express -->|"Verify Token<br/>Validate Session<br/>Generate JWT"| JWT
+    Express -->|"Hash Passwords<br/>Compare Hashes"| Bcrypt
+    Express -->|"SQL Queries<br/>pg.Pool<br/>Connection Pool"| PG
+    Express -->|"HTTP Proxy<br/>POST /api/chat<br/>Forward Requests"| NodeJS
+    
+    NodeJS -->|"Route Requests<br/>Agent Selection"| Agents
+    Agents -->|"SQL Queries<br/>Read/Write Data"| PG
+    Agents -->|"SQL Queries<br/>Guacamole Config"| MySQL_DB
+    Agents -->|"Docker API<br/>Container Operations"| Docker
+    Agents -->|"REST API<br/>Create Connections"| GuacAPI
+    
+    Agents -->|"Git Operations<br/>Clone, Push, Commit"| GitAPI
+    Agents -->|"AI Requests<br/>Chat Completions"| OpenAIClient
+    Agents -->|"AI Requests<br/>Messages API"| AnthropicClient
+    
+    Docker -->|"Container Status<br/>Network Info"| Agents
+    GuacAPI -->|"Connection URLs<br/>User Management"| Agents
+    GitAPI -->|"Repository Data<br/>File Contents"| Agents
+    OpenAIClient -->|"AI Responses<br/>Generated Content"| Agents
+    AnthropicClient -->|"AI Responses<br/>Validation Results"| Agents
+
+    style React fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style Express fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style JWT fill:#ffe082,stroke:#f57f17,stroke-width:2px
+    style Bcrypt fill:#ffe082,stroke:#f57f17,stroke-width:2px
+    style NodeJS fill:#f8bbd0,stroke:#c2185b,stroke-width:2px
+    style Agents fill:#e1bee7,stroke:#4a148c,stroke-width:2px
+    style PG fill:#b39ddb,stroke:#4a148c,stroke-width:2px
+    style MySQL_DB fill:#b39ddb,stroke:#4a148c,stroke-width:2px
+    style Docker fill:#90caf9,stroke:#0d47a1,stroke-width:2px
+    style GuacAPI fill:#a5d6a7,stroke:#1b5e20,stroke-width:2px
+    style GitAPI fill:#ffccbc,stroke:#bf360c,stroke-width:2px
+    style OpenAIClient fill:#ffccbc,stroke:#bf360c,stroke-width:2px
+    style AnthropicClient fill:#ffccbc,stroke:#bf360c,stroke-width:2px
 ```
 
 ---
@@ -141,30 +243,151 @@ graph TB
 
 ---
 
+## 🛠️ Technology Stack
+
+### **Frontend Technologies**
+- **React 18+**: UI framework
+- **TypeScript**: Type-safe JavaScript
+- **Vite**: Build tool and dev server
+- **Axios**: HTTP client for API calls
+- **React Router**: Client-side routing
+- **WebSocket**: Real-time communication
+
+### **Backend Technologies**
+- **Node.js**: Runtime environment
+- **Express.js**: Web framework
+- **jsonwebtoken**: JWT token generation/verification
+- **bcryptjs**: Password hashing
+- **pg (node-postgres)**: PostgreSQL client
+- **cookie-parser**: Cookie handling
+- **helmet**: Security headers
+- **cors**: Cross-origin resource sharing
+
+### **CTF Automation Technologies**
+- **Node.js**: Runtime environment
+- **dockerode**: Docker API client
+- **@octokit/rest**: GitHub API client
+- **openai**: OpenAI SDK
+- **@anthropic-ai/sdk**: Anthropic SDK
+- **mysql2**: MySQL client
+- **pg (node-postgres)**: PostgreSQL client
+- **fs-extra**: Enhanced file system operations
+- **yaml**: YAML parser for docker-compose files
+
+### **Database Technologies**
+- **PostgreSQL 15+**: Main relational database
+- **MySQL 8+**: Guacamole database
+- **Connection Pooling**: pg.Pool for PostgreSQL
+- **Prepared Statements**: SQL injection prevention
+
+### **Container Technologies**
+- **Docker**: Container runtime
+- **Docker Compose**: Multi-container orchestration
+- **Docker Networks**: Network isolation (172.23.x.x/24)
+- **Docker Volumes**: Persistent storage
+
+### **Remote Access Technologies**
+- **Apache Guacamole**: Browser-based SSH/RDP
+- **Guacamole Protocol**: WebSocket-based protocol
+- **SSH**: Secure shell access
+- **RDP**: Remote desktop protocol (for Windows)
+
+### **AI/ML Technologies**
+- **OpenAI GPT-4**: Large language model
+- **Anthropic Claude**: Large language model
+- **Word Embeddings**: Text vectorization (if used)
+- **LIME**: Explainability (if implemented)
+
+---
+
 ## 🔄 Key Data Flows
 
 ### **Challenge Creation Flow**
-1. User → Frontend → Backend → CTF Automation
-2. Classifier routes to Create Agent
-3. Create Agent uses AI APIs to generate challenge
-4. Challenge files pushed to GitHub
-5. Metadata saved to PostgreSQL
+```
+User → Frontend: "Create FTP challenge"
+Frontend → Backend: POST /api/chat {message, sessionId, token}
+Backend → PostgreSQL: INSERT INTO chat_messages, SELECT session data
+Backend → CTF Automation: POST /api/chat {message, sessionId}
+CTF Automation → Classifier: Route request
+Classifier → Create Agent: Intent: CREATE
+Create Agent → OpenAI API: Generate challenge structure, Dockerfiles
+OpenAI API → Create Agent: Challenge content, configurations
+Create Agent → Anthropic API: Validate challenge structure
+Anthropic API → Create Agent: Validation results
+Create Agent → GitHub: git push challenge files
+GitHub → Create Agent: Repository URL, commit hash
+Create Agent → PostgreSQL: INSERT INTO challenges (metadata)
+Create Agent → CTF Automation: Challenge created response
+CTF Automation → Backend: Return success message
+Backend → PostgreSQL: UPDATE chat_messages with response
+Backend → Frontend: JSON response with challenge info
+Frontend → User: Display "Challenge created successfully"
+```
 
 ### **Challenge Deployment Flow**
-1. User → Frontend → Backend → CTF Automation
-2. Classifier routes to Deploy Agent
-3. Deploy Agent clones from GitHub
-4. Docker containers created and started
-5. Guacamole connections configured
-6. Validation performed
-7. Access URL returned to user
+```
+User → Frontend: "Deploy challenge-name"
+Frontend → Backend: POST /api/chat {message, sessionId, token}
+Backend → CTF Automation: POST /api/chat {message, sessionId}
+CTF Automation → Classifier: Route request
+Classifier → Deploy Agent: Intent: DEPLOY
+Deploy Agent → PostgreSQL: SELECT challenge metadata
+Deploy Agent → GitHub: git clone challenge repository
+GitHub → Deploy Agent: Challenge files, docker-compose.yml
+Deploy Agent → Validator Agent: Pre-deploy validation
+Validator Agent → Deploy Agent: Validation results
+Deploy Agent → Docker Engine: docker compose up --build
+Docker Engine → Challenge Containers: Create and start containers
+Challenge Containers → Docker Engine: Container status, IPs
+Deploy Agent → Validator Agent: Post-deploy validation
+Validator Agent → Challenge Containers: Test services, check health
+Challenge Containers → Validator Agent: Service status
+Deploy Agent → MySQL: INSERT INTO guacamole_connection
+Deploy Agent → Guacamole API: Create connection, create user
+Guacamole → MySQL: Store connection configs
+Guacamole → Deploy Agent: Connection URL
+Deploy Agent → PostgreSQL: UPDATE challenge deployment status
+Deploy Agent → CTF Automation: Deployment complete with URL
+CTF Automation → Backend: Return deployment info
+Backend → Frontend: JSON response with Guacamole URL
+Frontend → User: Display connection link
+```
 
 ### **Authentication Flow**
-1. User credentials → Backend
-2. JWT token generated
-3. Session created in PostgreSQL
-4. Guacamole user created (if needed)
-5. Token returned to Frontend
+```
+User → Frontend: Enter credentials (username, password)
+Frontend → Backend: POST /api/auth/login {username, password}
+Backend → PostgreSQL: SELECT * FROM users WHERE username
+PostgreSQL → Backend: User data, hashed password
+Backend → Backend: bcrypt.compare(password, hash)
+Backend → Backend: jwt.sign({userId, username})
+Backend → PostgreSQL: INSERT INTO sessions (sessionId, userId, token)
+PostgreSQL → Backend: Session created
+Backend → MySQL: SELECT FROM session_guacamole_users WHERE sessionId
+MySQL → Backend: Check if Guacamole user exists
+Backend → Guacamole API: Create user ctf_{sessionId} (if needed)
+Guacamole → MySQL: INSERT INTO guacamole_user
+Backend → Frontend: {token, sessionId, userInfo}
+Frontend → Frontend: Store token in localStorage
+Frontend → User: Redirect to dashboard
+```
+
+### **User Access to Challenge Flow**
+```
+User → Frontend: Click "Access Challenge" button
+Frontend → Backend: GET /api/challenges/{id}/access {token}
+Backend → PostgreSQL: SELECT session, validate token
+Backend → CTF Automation: GET /api/challenges/{id}/connection {sessionId}
+CTF Automation → MySQL: SELECT guacamole_connection WHERE sessionId
+MySQL → CTF Automation: Connection parameters
+CTF Automation → Guacamole API: Get connection URL
+Guacamole → Challenge Containers: Establish SSH/RDP connection
+Challenge Containers → Guacamole: Terminal session active
+Guacamole → CTF Automation: Connection URL with token
+CTF Automation → Backend: Return access URL
+Backend → Frontend: Return Guacamole URL
+Frontend → User: Open Guacamole in new tab, display terminal
+```
 
 ---
 
