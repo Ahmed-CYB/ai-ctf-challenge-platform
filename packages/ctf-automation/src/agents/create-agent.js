@@ -53,12 +53,10 @@ Reference these platforms for challenge design patterns and quality standards:
      * Working service startup commands
    - Categories: Web, Database, CMS, Frameworks, Network Services
    - Examples: CVE-2017-5638 (Struts2), FTP misconfigurations, Samba vulnerabilities
-   - **When creating challenges**: Always reference Vulhub's working examples for:
-     * FTP challenges → Check vulhub/ftp/ for correct vsftpd.conf and setup
-     * Samba challenges → Check vulhub/samba/ for correct smb.conf and configurations
-     * Web challenges → Check vulhub/apache/, vulhub/nginx/ for server configs
-     * Database challenges → Check vulhub/mysql/, vulhub/postgres/ for DB setups
-   - **IMPORTANT**: Vulhub provides TESTED, WORKING configurations - use them as templates to avoid errors
+   - **When creating challenges**: Always search Vulhub repository for relevant examples matching your challenge type
+     * Search by service type (FTP, Samba, Web, Database, SSH, etc.) to find correct configurations
+     * Use Vulhub's tested, working configurations as templates to avoid errors
+   - **IMPORTANT**: Vulhub provides TESTED, WORKING configurations - search and adapt them for your challenge needs
 
 2. **picoCTF** (https://github.com/picoCTF/picoCTF)
    - Educational CTF platform by Carnegie Mellon

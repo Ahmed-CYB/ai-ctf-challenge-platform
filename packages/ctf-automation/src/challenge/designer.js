@@ -11,6 +11,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Logger } from '../core/logger.js';
 import { linuxOnlyValidator } from '../core/linux-only-validator.js';
+import { vulhubTemplateManager } from '../services/vulhub-template-manager.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -127,8 +128,29 @@ export class ChallengeDesigner {
         };
       }
 
-      // Build design prompt
-      const designPrompt = this.buildDesignPrompt(requirements, conversationHistory);
+      // 🔥 NEW: Fetch Vulhub template if service type is identified
+      let vulhubTemplate = null;
+      const serviceType = this.extractServiceType(requirements, conversationHistory);
+      if (serviceType) {
+        this.logger.info('ChallengeDesigner', 'Fetching Vulhub template', { serviceType });
+        try {
+          vulhubTemplate = await vulhubTemplateManager.getAdaptedTemplate(
+            requirements,
+            serviceType,
+            this.extractVulnerability(conversationHistory)
+          );
+          if (vulhubTemplate) {
+            this.logger.success('ChallengeDesigner', 'Vulhub template loaded', { 
+              name: vulhubTemplate.originalVulhub?.name 
+            });
+          }
+        } catch (error) {
+          this.logger.warn('ChallengeDesigner', 'Vulhub fetch failed, continuing with AI generation', error.message);
+        }
+      }
+
+      // Build design prompt (include Vulhub template if available)
+      const designPrompt = this.buildDesignPrompt(requirements, conversationHistory, vulhubTemplate);
 
       // Generate design using AI
       const response = await anthropic.messages.create({
@@ -147,6 +169,23 @@ export class ChallengeDesigner {
 
       // Parse JSON from response
       const design = this.parseDesign(content);
+
+      // 🔥 NEW: Merge Vulhub template data if available
+      if (vulhubTemplate && design) {
+        design.vulhubTemplate = vulhubTemplate;
+        // Use Vulhub flag if AI didn't generate one
+        if (!design.flag && vulhubTemplate.flag) {
+          design.flag = vulhubTemplate.flag;
+        }
+        // Use Vulhub flag location if specified
+        if (vulhubTemplate.flagLocation && design.machines) {
+          design.machines.forEach(machine => {
+            if (machine.role === 'victim' && !machine.flagLocation) {
+              machine.flagLocation = vulhubTemplate.flagLocation;
+            }
+          });
+        }
+      }
 
       // Validate design
       const validation = this.validateDesign(design);
@@ -193,10 +232,70 @@ export class ChallengeDesigner {
   }
 
   /**
+   * Extract service type from requirements or conversation
+   */
+  extractServiceType(requirements, conversationHistory) {
+    // Check requirements first
+    if (requirements.services && requirements.services.length > 0) {
+      return requirements.services[0].toLowerCase();
+    }
+
+    // Check conversation history for service mentions
+    const allText = JSON.stringify(conversationHistory).toLowerCase();
+    const services = ['ftp', 'samba', 'smb', 'http', 'web', 'ssh', 'apache', 'nginx', 'mysql', 'postgres'];
+    
+    for (const service of services) {
+      if (allText.includes(service)) {
+        return service;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Extract vulnerability name from conversation
+   */
+  extractVulnerability(conversationHistory) {
+    const allText = JSON.stringify(conversationHistory).toLowerCase();
+    
+    // Look for CVE patterns
+    const cveMatch = allText.match(/cve-[\d-]+/i);
+    if (cveMatch) {
+      return cveMatch[0].toUpperCase();
+    }
+
+    // Look for vulnerability names
+    const vulns = ['eternalblue', 'ms17-010', 'bluekeep', 'struts', 'weblogic'];
+    for (const vuln of vulns) {
+      if (allText.includes(vuln)) {
+        return vuln;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Build design prompt from requirements
    */
-  buildDesignPrompt(requirements, conversationHistory) {
+  buildDesignPrompt(requirements, conversationHistory, vulhubTemplate = null) {
     let prompt = `Create a perfect CTF challenge with the following requirements:\n\n`;
+
+    // 🔥 NEW: Include Vulhub template if available
+    if (vulhubTemplate) {
+      prompt += `\n🔥 VULHUB TEMPLATE AVAILABLE:\n`;
+      prompt += `A working Vulhub configuration has been fetched and adapted for this challenge.\n`;
+      prompt += `Template: ${vulhubTemplate.originalVulhub?.name || 'Unknown'}\n`;
+      prompt += `Flag: ${vulhubTemplate.flag}\n`;
+      prompt += `Flag Location: ${vulhubTemplate.flagLocation}\n\n`;
+      prompt += `IMPORTANT: Use the Vulhub template as the BASE configuration.\n`;
+      prompt += `- Keep all working Dockerfile and docker-compose configurations\n`;
+      prompt += `- Use the provided flag: ${vulhubTemplate.flag}\n`;
+      prompt += `- Ensure flag is accessible at: ${vulhubTemplate.flagLocation}\n`;
+      prompt += `- Integrate any additional user requirements\n`;
+      prompt += `- Ensure Guacamole SSH access (attacker container with SSH on port 22)\n\n`;
+    }
 
     // Get original user message to preserve full context - let AI understand naturally
     const originalMessage = this.extractOriginalMessage(conversationHistory);

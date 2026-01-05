@@ -142,6 +142,35 @@ export class ContainerManager {
       return { success: false, error: error.message };
     }
   }
+
+  /**
+   * Get all running challenge names (excluding the specified challenge)
+   */
+  async getRunningChallenges(excludeChallengeName = null) {
+    try {
+      const containers = await this.docker.listContainers({ all: false }); // Only running containers
+      
+      const challengeNames = new Set();
+      
+      for (const container of containers) {
+        const name = container.Names[0]?.replace('/', '') || '';
+        
+        // Extract challenge name from container name pattern: ctf-{challengeName}-{machineType}
+        const match = name.match(/^ctf-(.+?)-(attacker|victim|database|api)/);
+        if (match) {
+          const challengeName = match[1];
+          if (!excludeChallengeName || challengeName !== excludeChallengeName) {
+            challengeNames.add(challengeName);
+          }
+        }
+      }
+      
+      return Array.from(challengeNames);
+    } catch (error) {
+      this.logger.error('ContainerManager', 'Failed to get running challenges', error.stack);
+      return [];
+    }
+  }
 }
 
 

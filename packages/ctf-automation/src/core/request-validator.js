@@ -56,9 +56,24 @@ export class RequestValidator {
 
     // Classify the request
     const classification = await classify(message, conversationHistory);
+    
+    // Validate classification result
+    if (!classification || typeof classification !== 'object') {
+      this.logger.warn('RequestValidator', 'Classification returned invalid result', { classification });
+      return {
+        valid: false,
+        error: 'Failed to classify request'
+      };
+    }
 
     // Extract context using AI (for challenge names and intent)
     const context = await contextAgent.extractContext(message, conversationHistory);
+    
+    // Validate context result - use empty object if invalid
+    if (!context || typeof context !== 'object') {
+      this.logger.warn('RequestValidator', 'Context extraction returned invalid result, using empty context', { context });
+      context = {};
+    }
 
     // Extract requirements based on classification and context
     const requirements = this.extractRequirements(message, classification, context);
@@ -83,6 +98,19 @@ export class RequestValidator {
    * Extract requirements from message, classification, and AI context
    */
   extractRequirements(message, classification, context = {}) {
+    // Validate inputs
+    if (!message || typeof message !== 'string') {
+      message = '';
+    }
+    
+    if (!classification || typeof classification !== 'object') {
+      classification = {};
+    }
+    
+    if (!context || typeof context !== 'object') {
+      context = {};
+    }
+    
     const messageLower = message.toLowerCase();
     const requestType = classification.category?.toLowerCase() || context.intent || 'unknown';
     

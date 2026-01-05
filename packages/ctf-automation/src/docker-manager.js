@@ -1403,11 +1403,18 @@ export class DockerManager {
         }
         
         console.log(`✅ Cleanup completed using docker compose down`);
+        
+        // 🔥 NEW: Also explicitly remove networks by name to ensure cleanup
+        await this.deleteChallengeNetworks(challengeName);
+        
         return true;
         
       } catch (fileError) {
         // Fallback to manual cleanup if docker-compose.yml not found
         console.log(`  ⚠️  docker-compose.yml not found, using fallback cleanup`);
+        
+        // 🔥 NEW: Delete networks by name in fallback too
+        await this.deleteChallengeNetworks(challengeName);
         
         const networkName = `ctf-${challengeName}-network`;
         const containersToRemove = [
@@ -1457,6 +1464,88 @@ export class DockerManager {
     } catch (error) {
       console.error('Error cleaning up:', error);
       return false;
+    }
+  }
+
+  /**
+   * Delete all networks associated with a challenge
+   * Called during cleanup to ensure networks are removed
+   */
+  async deleteChallengeNetworks(challengeName) {
+    try {
+      console.log(`🧹 Deleting networks for challenge: ${challengeName}`);
+      
+      const { execSync } = await import('child_process');
+      
+      // Get all networks
+      const networksOutput = execSync('docker network ls --format "{{.Name}}"', { encoding: 'utf8' });
+      const allNetworks = networksOutput.trim().split('\n').filter(n => n && n.trim());
+      
+      // Find networks matching challenge name patterns
+      const networkPatterns = [
+        `ctf-${challengeName}-net`, // Standard format
+        `${challengeName.replace(/-/g, '_')}_ctf-${challengeName}-net`, // Docker Compose format
+        `${challengeName}_ctf-${challengeName}-net`, // Alternative format
+        `ctf-${challengeName}-default-net` // Default format
+      ];
+      
+      let deletedCount = 0;
+      
+      for (const networkName of allNetworks) {
+        // Check if network matches any pattern
+        const matches = networkPatterns.some(pattern => {
+          return networkName === pattern || networkName.includes(challengeName);
+        });
+        
+        // Don't delete infrastructure networks
+        if (matches && 
+            !networkName.includes('ctf-instances-network') && 
+            !networkName.includes('ctf-network') &&
+            !networkName.includes('bridge') &&
+            !networkName.includes('host') &&
+            !networkName.includes('none')) {
+          try {
+            console.log(`  🗑️  Removing network: ${networkName}`);
+            
+            // First, disconnect all containers
+            try {
+              const inspectOutput = execSync(
+                `docker network inspect ${networkName} --format "{{range .Containers}}{{.Name}} {{end}}"`, 
+                { encoding: 'utf8', stdio: 'pipe' }
+              ).trim();
+              
+              const containers = inspectOutput.split(' ').filter(c => c && c.trim());
+              for (const container of containers) {
+                try {
+                  execSync(`docker network disconnect ${networkName} ${container} --force`, { stdio: 'ignore' });
+                } catch (disconnectError) {
+                  // Continue
+                }
+              }
+            } catch (inspectError) {
+              // Network might not exist or be in use, continue to removal attempt
+            }
+            
+            // Remove network
+            execSync(`docker network rm ${networkName}`, { stdio: 'ignore' });
+            console.log(`  ✅ Removed network: ${networkName}`);
+            deletedCount++;
+          } catch (rmError) {
+            console.log(`  ⚠️  Could not remove network ${networkName}: ${rmError.message}`);
+          }
+        }
+      }
+      
+      if (deletedCount > 0) {
+        console.log(`✅ Deleted ${deletedCount} network(s) for challenge: ${challengeName}`);
+      } else {
+        console.log(`  ℹ️  No networks found to delete for challenge: ${challengeName}`);
+      }
+      
+      return deletedCount;
+    } catch (error) {
+      console.error(`❌ Error deleting networks for ${challengeName}:`, error.message);
+      return 0;
     }
   }
 }

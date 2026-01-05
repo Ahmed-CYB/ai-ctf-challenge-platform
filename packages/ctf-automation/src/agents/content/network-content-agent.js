@@ -13,10 +13,8 @@ const NETWORK_CONTENT_PROMPT = `You are an expert network security CTF challenge
 
 🔧 PRIMARY REFERENCE FOR DOCKER CONFIGURATIONS - VULHUB:
 - **ALWAYS reference Vulhub** (https://github.com/vulhub/vulhub) for correct service configurations
-- Vulhub provides WORKING Dockerfiles, docker-compose.yml, and service configs that are TESTED and VERIFIED
-- For FTP challenges: Reference vulhub/ftp/ for correct vsftpd.conf patterns and directory structures
-- For Samba challenges: Reference vulhub/samba/ for correct smb.conf patterns and share configurations
-- For SSH challenges: Reference vulhub/ssh/ for correct sshd_config patterns
+- Vulhub provides 200+ WORKING Dockerfiles, docker-compose.yml, and service configs that are TESTED and VERIFIED
+- **Search Vulhub repository** for relevant examples matching your challenge type (FTP, Samba, SSH, Web, Database, etc.)
 - Use Vulhub examples to ensure:
   * Correct configuration file syntax
   * Proper directory structures (/var/ftp/, /srv/samba/, etc.)
@@ -72,7 +70,7 @@ OUTPUT REQUIREMENTS:
   3. Any initialization scripts or commands needed
 - Example setup for FTP (reference Vulhub's FTP configurations):
   "setup": "cp /challenge/vsftpd.conf /etc/vsftpd.conf && mkdir -p /var/run/vsftpd/empty && mkdir -p /var/ftp/data/classified && chmod 555 /var/ftp && chmod 755 /var/ftp/data && chmod 755 /var/ftp/data/classified && cp /challenge/flag.txt /var/ftp/data/classified/flag.txt && chmod 644 /var/ftp/data/classified/flag.txt && chown ftp:ftp /var/ftp/data/classified/flag.txt && service vsftpd start || /usr/sbin/vsftpd &"
-  - **Reference Vulhub**: Check vulhub/ftp/ for correct vsftpd.conf patterns (anonymous_enable=YES, anon_root=/var/ftp, etc.)
+  - **Reference Vulhub**: Search Vulhub repository for FTP/vsftpd examples to find correct vsftpd.conf patterns (anonymous_enable=YES, anon_root=/var/ftp, etc.)
   - **Directory structure**: Use /var/ftp/ as root (not /ftp/) - match Vulhub patterns
   - **Permissions**: Root directory must NOT be writable (chmod 555) for chroot to work
 - Example setup for Samba:

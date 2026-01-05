@@ -40,6 +40,14 @@ export class StructureBuilder {
       const uniqueName = await gitManager.generateUniqueChallengeName(design.name);
       this.logger.info('StructureBuilder', 'Generated unique name', { uniqueName });
 
+      // 🔥 NEW: Preserve Vulhub template if available
+      const vulhubTemplate = design.vulhubTemplate || null;
+      if (vulhubTemplate) {
+        this.logger.info('StructureBuilder', 'Vulhub template preserved', {
+          name: vulhubTemplate.originalVulhub?.name
+        });
+      }
+
       // Step 2: Count victim machines for IP allocation
       const victimCount = design.machines?.filter(m => m.role === 'victim').length || 0;
       this.logger.info('StructureBuilder', 'Counted victim machines', { victimCount });
@@ -90,7 +98,8 @@ export class StructureBuilder {
         machines: machines,
         attackerTools: attackerTools, // Add tools for dockerfile generator
         requirements: design.requirements,
-        hints: design.hints
+        hints: design.hints,
+        vulhubTemplate: vulhubTemplate // 🔥 NEW: Preserve Vulhub template for dockerfile generator
       };
 
       // Step 6: Create directory structure
@@ -282,7 +291,9 @@ export class StructureBuilder {
           branch: commitResult.branch,
           githubUrl: `https://github.com/${process.env.GITHUB_OWNER || 'Ahmed-CYB'}/${process.env.GITHUB_REPO || 'mcp-test'}/tree/${commitResult.branch}/challenges/${structure.name}`
         });
-        console.log(`✅ Challenge "${structure.name}" pushed to GitHub: ${commitResult.commitSha.substring(0, 7)}`);
+        this.logger.success('StructureBuilder', `Challenge "${structure.name}" pushed to GitHub`, { 
+          commitSha: commitResult.commitSha.substring(0, 7) 
+        });
       } else if (commitResult.committed) {
         this.logger.error('StructureBuilder', '❌ Challenge committed but NOT pushed to GitHub', { 
           name: structure.name,

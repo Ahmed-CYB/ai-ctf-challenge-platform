@@ -137,14 +137,29 @@ export class Deployer {
         victims: containers.victims.map(v => ({ name: v.name, ip: v.ip, running: v.running }))
       });
 
-      // Step 5: Setup networks
-      await this.networkManager.setupNetworks(challengeName, containers);
+      // Step 5: Setup networks (connect guacd to challenge network)
+      const networkSetupResult = await this.networkManager.setupNetworks(challengeName, containers);
+      if (!networkSetupResult) {
+        this.logger.warn('Deployer', 'Network setup had issues, but continuing deployment');
+      }
 
       // Step 6: Refresh container info after network setup (IPs might be assigned now)
       if (!containers.attacker?.ip || containers.victims.some(v => !v.ip)) {
         this.logger.info('Deployer', 'Refreshing container info after network setup');
         await new Promise(resolve => setTimeout(resolve, 3000));
         containers = await this.containerManager.getContainerInfo(challengeName);
+      }
+      
+      // Verify guacd connection one more time before Guacamole setup
+      if (containers.attacker?.ip) {
+        this.logger.info('Deployer', 'Verifying guacd connection for Guacamole access');
+        const networks = await this.docker.listNetworks();
+        const challengeNetwork = networks.find(n => 
+          n.Name.includes(challengeName) && !n.Name.includes('ctf-instances-network')
+        );
+        if (challengeNetwork) {
+          await this.networkManager.connectGuacdToNetwork(challengeNetwork.Name);
+        }
       }
 
       // Step 7: Health check
@@ -391,11 +406,96 @@ export class Deployer {
   }
 
   /**
+   * Delete existing networks with the same name before deployment
+   * Prevents "Pool overlaps" errors from orphaned networks
+   */
+  async deleteExistingNetworks(challengeName) {
+    try {
+      this.logger.info('Deployer', 'Checking for existing networks to delete', { challengeName });
+      
+      const { execSync } = await import('child_process');
+      
+      // Get all networks
+      const networksOutput = execSync('docker network ls --format "{{.Name}}"', { encoding: 'utf8' });
+      const allNetworks = networksOutput.trim().split('\n').filter(n => n && n.trim());
+      
+      // Find networks matching challenge name patterns
+      const networkPatterns = [
+        `ctf-${challengeName}-net`, // Standard format
+        `${challengeName.replace(/-/g, '_')}_ctf-${challengeName}-net`, // Docker Compose format
+        `${challengeName}_ctf-${challengeName}-net`, // Alternative format
+        `ctf-${challengeName}-default-net` // Default format
+      ];
+      
+      let deletedCount = 0;
+      
+      for (const networkName of allNetworks) {
+        // Check if network matches any pattern
+        const matches = networkPatterns.some(pattern => {
+          // Exact match or contains pattern
+          return networkName === pattern || networkName.includes(challengeName);
+        });
+        
+        if (matches && !networkName.includes('ctf-instances-network') && !networkName.includes('ctf-network')) {
+          try {
+            this.logger.info('Deployer', 'Deleting existing network', { networkName });
+            execSync(`docker network rm ${networkName}`, { stdio: 'ignore' });
+            deletedCount++;
+            this.logger.success('Deployer', 'Deleted existing network', { networkName });
+          } catch (rmError) {
+            // Network might have active endpoints, try to force disconnect first
+            try {
+              // Get containers connected to this network
+              const inspectOutput = execSync(`docker network inspect ${networkName} --format "{{range .Containers}}{{.Name}} {{end}}"`, { encoding: 'utf8', stdio: 'pipe' }).trim();
+              const containers = inspectOutput.split(' ').filter(c => c && c.trim());
+              
+              // Disconnect containers
+              for (const container of containers) {
+                try {
+                  execSync(`docker network disconnect ${networkName} ${container} --force`, { stdio: 'ignore' });
+                } catch (disconnectError) {
+                  // Continue
+                }
+              }
+              
+              // Try to remove network again
+              execSync(`docker network rm ${networkName}`, { stdio: 'ignore' });
+              deletedCount++;
+              this.logger.success('Deployer', 'Deleted network after disconnecting containers', { networkName });
+            } catch (forceError) {
+              this.logger.warn('Deployer', 'Could not delete network (may have active endpoints)', { 
+                networkName, 
+                error: forceError.message 
+              });
+            }
+          }
+        }
+      }
+      
+      if (deletedCount > 0) {
+        this.logger.success('Deployer', `Deleted ${deletedCount} existing network(s)`, { challengeName });
+      } else {
+        this.logger.debug('Deployer', 'No existing networks found to delete', { challengeName });
+      }
+      
+      return deletedCount;
+    } catch (error) {
+      this.logger.warn('Deployer', 'Failed to delete existing networks, continuing anyway', { 
+        error: error.message 
+      });
+      return 0;
+    }
+  }
+
+  /**
    * Deploy containers using docker compose
    */
   async deployContainers(challengePath, challengeName) {
     try {
       this.logger.info('Deployer', 'Deploying containers', { challengePath });
+
+      // 🔥 NEW: Delete existing networks with the same name before deployment
+      await this.deleteExistingNetworks(challengeName);
 
       // Normalize path for Windows (use forward slashes or properly escape)
       const composeFile = path.join(challengePath, 'docker-compose.yml');
@@ -691,12 +791,13 @@ export class Deployer {
                 logs: logOutput.substring(0, 1000)
               });
               
-              // Log full error to console for debugging
-              console.error(`\n❌ Container ${victim.name} Error Details:`);
-              console.error(`   Status: ${victim.status}`);
-              console.error(`   Exit Code: ${exitCode}`);
-              console.error(`   Restart Count: ${restartCount}`);
-              console.error(`   Last 50 lines of logs:\n${logOutput}`);
+              // Log full error details for debugging
+              this.logger.error('Deployer', `Container ${victim.name} error details`, {
+                status: victim.status,
+                exitCode,
+                restartCount,
+                logs: logOutput
+              });
             }
           } catch (logError) {
             this.logger.warn('Deployer', 'Could not read container logs', { name: victim.name, error: logError.message });

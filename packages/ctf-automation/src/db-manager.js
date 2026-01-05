@@ -1,7 +1,10 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
+import { Logger } from './core/logger.js';
 
 dotenv.config();
+
+const logger = new Logger();
 
 const { Pool } = pg;
 
@@ -19,7 +22,11 @@ class DatabaseManager {
     });
     
     // Log connection info for debugging (without password)
-    console.log(`📊 Database connection configured: ${this.pool.options.host}:${this.pool.options.port}/${this.pool.options.database}`);
+    logger.info('DatabaseManager', 'Database connection configured', {
+      host: this.pool.options.host,
+      port: this.pool.options.port,
+      database: this.pool.options.database
+    });
     
     // ✅ FIX: Register graceful shutdown handlers for connection pool cleanup
     this._registerShutdownHandlers();
@@ -31,13 +38,13 @@ class DatabaseManager {
    */
   _registerShutdownHandlers() {
     const gracefulShutdown = async (signal) => {
-      console.log(`\n🛑 Received ${signal}, closing database connections...`);
+      logger.info('DatabaseManager', `Received ${signal}, closing database connections`);
       try {
         await this.pool.end();
-        console.log('✅ Database connections closed gracefully');
+        logger.success('DatabaseManager', 'Database connections closed gracefully');
         process.exit(0);
       } catch (error) {
-        console.error('❌ Error closing database connections:', error);
+        logger.error('DatabaseManager', 'Error closing database connections', error.stack);
         process.exit(1);
       }
     };
@@ -48,18 +55,18 @@ class DatabaseManager {
     
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error) => {
-      console.error('❌ Uncaught exception:', error);
+      logger.error('DatabaseManager', 'Uncaught exception', error.stack);
       try {
         await this.pool.end();
       } catch (poolError) {
-        console.error('❌ Error closing pool during exception:', poolError);
+        logger.error('DatabaseManager', 'Error closing pool during exception', poolError.stack);
       }
       process.exit(1);
     });
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', async (reason, promise) => {
-      console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+      logger.error('DatabaseManager', 'Unhandled rejection', null, { promise, reason });
       // Don't exit immediately, but log the error
     });
   }
@@ -118,7 +125,7 @@ class DatabaseManager {
       
       return result.rows[0];
     } catch (error) {
-      console.error('Error saving message:', error);
+      logger.error('DatabaseManager', 'Error saving message', error.stack);
       throw error;
     }
   }
@@ -135,10 +142,10 @@ class DatabaseManager {
       `;
       
       const result = await this.pool.query(query);
-      console.log(`Cleared ${result.rowCount} old messages`);
+      logger.info('DatabaseManager', `Cleared ${result.rowCount} old messages`);
       return result.rowCount;
     } catch (error) {
-      console.error('Error clearing old messages:', error);
+      logger.error('DatabaseManager', 'Error clearing old messages', error.stack);
       throw error;
     }
   }
@@ -198,7 +205,7 @@ class DatabaseManager {
       const result = await this.pool.query(query, [newExpiresAt, sessionId]);
       return result.rows.length > 0;
     } catch (error) {
-      console.error('Error extending session expiration:', error);
+      logger.error('DatabaseManager', 'Error extending session expiration', error.stack);
       return false;
     }
   }
@@ -219,7 +226,7 @@ class DatabaseManager {
       const result = await this.pool.query(query, [sessionId]);
       return result.rows.length > 0 ? result.rows[0] : null;
     } catch (error) {
-      console.error('Error getting session:', error);
+      logger.error('DatabaseManager', 'Error getting session', error.stack);
       return null;
     }
   }
@@ -245,7 +252,7 @@ class DatabaseManager {
       ]);
       return true;
     } catch (error) {
-      console.error('Error tracking session activity:', error);
+      logger.error('DatabaseManager', 'Error tracking session activity', error.stack);
       // Don't throw - activity tracking is non-critical
       return false;
     }
@@ -274,8 +281,106 @@ class DatabaseManager {
         timestamp: row.timestamp
       }));
     } catch (error) {
-      console.error('Error getting session activity:', error);
+      logger.error('DatabaseManager', 'Error getting session activity', error.stack);
       return [];
+    }
+  }
+
+  /**
+   * Store pending deployment (waiting for confirmation)
+   */
+  async storePendingDeployment(sessionId, challengeName, existingChallengeName) {
+    try {
+      // Create table if it doesn't exist (for backward compatibility)
+      await this.pool.query(`
+        CREATE TABLE IF NOT EXISTS pending_deployments (
+          session_id VARCHAR(255) PRIMARY KEY,
+          challenge_name VARCHAR(255) NOT NULL,
+          existing_challenge_name VARCHAR(255),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      const query = `
+        INSERT INTO pending_deployments (session_id, challenge_name, existing_challenge_name, created_at)
+        VALUES ($1, $2, $3, NOW())
+        ON CONFLICT (session_id) DO UPDATE 
+        SET challenge_name = $2, existing_challenge_name = $3, created_at = NOW()
+      `;
+      await this.pool.query(query, [sessionId, challengeName, existingChallengeName]);
+      logger.info('DatabaseManager', 'Stored pending deployment', { sessionId, challengeName, existingChallengeName });
+      return true;
+    } catch (error) {
+      logger.error('DatabaseManager', 'Error storing pending deployment', error.stack);
+      return false;
+    }
+  }
+
+  /**
+   * Get pending deployment for session
+   */
+  async getPendingDeployment(sessionId) {
+    try {
+      // Check if table exists first
+      const tableCheck = await this.pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'pending_deployments'
+        )
+      `);
+      
+      if (!tableCheck.rows[0]?.exists) {
+        return null; // Table doesn't exist yet
+      }
+      
+      const query = `
+        SELECT challenge_name, existing_challenge_name, created_at
+        FROM pending_deployments
+        WHERE session_id = $1
+      `;
+      const result = await this.pool.query(query, [sessionId]);
+      if (result.rows.length > 0) {
+        return result.rows[0];
+      }
+      return null;
+    } catch (error) {
+      // If table doesn't exist, return null (graceful fallback)
+      if (error.message.includes('does not exist') || error.message.includes('relation')) {
+        return null;
+      }
+      logger.error('DatabaseManager', 'Error getting pending deployment', error.stack);
+      return null;
+    }
+  }
+
+  /**
+   * Clear pending deployment
+   */
+  async clearPendingDeployment(sessionId) {
+    try {
+      // Check if table exists first
+      const tableCheck = await this.pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'pending_deployments'
+        )
+      `);
+      
+      if (!tableCheck.rows[0]?.exists) {
+        return true; // Table doesn't exist, nothing to clear
+      }
+      
+      const query = `DELETE FROM pending_deployments WHERE session_id = $1`;
+      await this.pool.query(query, [sessionId]);
+      logger.info('DatabaseManager', 'Cleared pending deployment', { sessionId });
+      return true;
+    } catch (error) {
+      // If table doesn't exist, return true (graceful fallback)
+      if (error.message.includes('does not exist') || error.message.includes('relation')) {
+        return true;
+      }
+      logger.error('DatabaseManager', 'Error clearing pending deployment', error.stack);
+      return false;
     }
   }
 

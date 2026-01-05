@@ -13,8 +13,8 @@ const WEB_CONTENT_PROMPT = `You are an expert web security CTF challenge creator
 
 🔧 PRIMARY REFERENCE FOR DOCKER CONFIGURATIONS - VULHUB:
 - **ALWAYS reference Vulhub** (https://github.com/vulhub/vulhub) for correct web application Docker configurations
-- Vulhub provides WORKING Dockerfiles and docker-compose.yml for web vulnerabilities
-- For web challenges: Reference vulhub/apache/, vulhub/nginx/, vulhub/php/ for correct server configurations
+- Vulhub provides 200+ WORKING Dockerfiles and docker-compose.yml for web vulnerabilities
+- **Search Vulhub repository** for relevant examples matching your challenge type (Apache, Nginx, PHP, Node.js, etc.)
 - Use Vulhub examples to ensure:
   * Correct web server configurations (Apache, Nginx)
   * Proper database connection setups (MySQL, PostgreSQL)

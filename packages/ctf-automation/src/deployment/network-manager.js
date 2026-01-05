@@ -18,6 +18,7 @@ export class NetworkManager {
 
   /**
    * Setup networks for deployment
+   * CRITICAL: Connects guacd to challenge network so Guacamole can access attacker
    */
   async setupNetworks(challengeName, containers) {
     try {
@@ -30,42 +31,89 @@ export class NetworkManager {
       );
 
       if (!challengeNetwork) {
+        this.logger.error('NetworkManager', 'Challenge network not found', { challengeName, availableNetworks: networks.map(n => n.Name) });
         throw new Error(`Challenge network not found for ${challengeName}`);
       }
 
-      // Connect guacd to challenge network
-      await this.connectGuacdToNetwork(challengeNetwork.Name);
+      this.logger.info('NetworkManager', 'Found challenge network', { 
+        networkName: challengeNetwork.Name,
+        networkId: challengeNetwork.Id 
+      });
 
-      this.logger.success('NetworkManager', 'Networks setup complete');
+      // CRITICAL: Connect guacd to challenge network (enables Guacamole access)
+      const connected = await this.connectGuacdToNetwork(challengeNetwork.Name);
+      
+      if (connected) {
+        this.logger.success('NetworkManager', 'Networks setup complete - Guacamole can now access attacker');
+        return true;
+      } else {
+        this.logger.warn('NetworkManager', 'Network setup completed but guacd connection had issues');
+        return false;
+      }
 
     } catch (error) {
       this.logger.error('NetworkManager', 'Network setup failed', error.stack);
-      throw error;
+      // Don't throw - allow deployment to continue even if guacd connection fails
+      // The connection can be retried later
+      return false;
     }
   }
 
   /**
    * Connect guacd to challenge network
+   * CRITICAL: This enables Guacamole to access the attacker container
    */
   async connectGuacdToNetwork(networkName) {
-    try {
-      const guacdContainer = 'ctf-guacd-new';
-      const network = this.docker.getNetwork(networkName);
+    const guacdContainer = 'ctf-guacd-new';
+    const maxRetries = 3;
+    let lastError = null;
 
-      // Check if already connected
-      const networkInfo = await network.inspect();
-      const isConnected = networkInfo.Containers && 
-        Object.values(networkInfo.Containers).some(c => c.Name === guacdContainer);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const network = this.docker.getNetwork(networkName);
 
-      if (!isConnected) {
+        // Check if already connected
+        const networkInfo = await network.inspect();
+        const isConnected = networkInfo.Containers && 
+          Object.values(networkInfo.Containers).some(c => c.Name === guacdContainer);
+
+        if (isConnected) {
+          this.logger.info('NetworkManager', 'Guacd already connected to network', { networkName });
+          return true;
+        }
+
+        // Connect guacd to network
         await network.connect({ Container: guacdContainer });
-        this.logger.info('NetworkManager', 'Connected guacd to network', { networkName });
-      }
+        
+        // Verify connection
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const verifyInfo = await network.inspect();
+        const verified = verifyInfo.Containers && 
+          Object.values(verifyInfo.Containers).some(c => c.Name === guacdContainer);
 
-    } catch (error) {
-      this.logger.warn('NetworkManager', 'Failed to connect guacd', error.message);
-      // Don't throw - this is not critical
+        if (verified) {
+          this.logger.success('NetworkManager', 'Connected guacd to network', { networkName });
+          return true;
+        } else {
+          throw new Error('Connection verification failed');
+        }
+
+      } catch (error) {
+        lastError = error;
+        this.logger.warn('NetworkManager', `Failed to connect guacd (attempt ${attempt}/${maxRetries})`, { 
+          networkName, 
+          error: error.message 
+        });
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+        }
+      }
     }
+
+    // If all retries failed, log error but don't throw (deployment can continue)
+    this.logger.error('NetworkManager', 'Failed to connect guacd after all retries', lastError?.stack);
+    return false;
   }
 
   /**

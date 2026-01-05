@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { execSync } from 'child_process';
 import { dbManager } from './db-manager.js';
+import { Logger } from './core/logger.js';
 
 /**
  * Subnet Allocator for CTF Platform
@@ -24,6 +25,7 @@ export class SubnetAllocator {
   constructor() {
     this.allocations = new Map(); // In-memory cache for performance
     this.dbEnabled = true; // Use database by default
+    this.logger = new Logger();
   }
 
   /**
@@ -33,6 +35,17 @@ export class SubnetAllocator {
    */
   isSubnetInUse(subnet) {
     try {
+      const [newIp, newMask] = subnet.split('/');
+      const newIpParts = newIp.split('.').map(Number);
+      const newMaskBits = parseInt(newMask);
+      
+      // CRITICAL: Explicitly reject 172.24.x.x subnets - they overlap with ctf-network (172.24.0.0/16)
+      // Docker will reject these even if we skip checking infrastructure networks
+      if (newIpParts[0] === 172 && newIpParts[1] === 24) {
+        this.logger.warn('SubnetAllocator', `Subnet ${subnet} is in reserved range 172.24.x.x (overlaps with ctf-network infrastructure)`);
+        return true; // Treat as "in use" to prevent allocation
+      }
+      
       // Get all networks, including those in error state
       const networks = execSync('docker network ls --format "{{.Name}}"', { encoding: 'utf8' });
       const networkList = networks.trim().split('\n').filter(n => n);
@@ -49,10 +62,6 @@ export class SubnetAllocator {
         'host',
         'none'
       ];
-      
-      const [newIp, newMask] = subnet.split('/');
-      const newIpParts = newIp.split('.').map(Number);
-      const newMaskBits = parseInt(newMask);
       
       for (const network of networkList) {
         // Skip infrastructure networks - they use different IP ranges for platform services
@@ -80,7 +89,7 @@ export class SubnetAllocator {
             if (network.includes('ctf-') || network.includes('_ctf-')) {
               // Try to get network info using docker network inspect with error handling
               // If it fails, the network might be partially created - be conservative and assume conflict
-              console.log(`⚠️  Network ${network} might be in error state, checking subnet overlap...`);
+              this.logger.warn('SubnetAllocator', `Network ${network} might be in error state, checking subnet overlap`);
               // For now, skip networks we can't inspect (they might be partially created)
               // But we should try to remove them
               continue;
@@ -99,7 +108,7 @@ export class SubnetAllocator {
               
               // Exact match
               if (config.Subnet === subnet) {
-                console.log(`⚠️  Subnet ${subnet} already in use by network: ${network}`);
+                this.logger.warn('SubnetAllocator', `Subnet ${subnet} already in use by network: ${network}`);
                 return true;
               }
               
@@ -110,7 +119,7 @@ export class SubnetAllocator {
               const existingMaskBits = parseInt(existingMask);
               
               if (this.checkCIDROverlap(newIpParts, newMaskBits, existingIpParts, existingMaskBits)) {
-                console.log(`⚠️  Subnet ${subnet} overlaps with ${config.Subnet} in network: ${network}`);
+                this.logger.warn('SubnetAllocator', `Subnet ${subnet} overlaps with ${config.Subnet} in network: ${network}`);
                 return true;
               }
             }
@@ -123,7 +132,7 @@ export class SubnetAllocator {
       
       return false;
     } catch (error) {
-      console.warn('Could not check Docker networks:', error.message);
+      this.logger.warn('SubnetAllocator', 'Could not check Docker networks', { error: error.message });
       return false; // Assume not in use if we can't check
     }
   }
@@ -175,17 +184,18 @@ export class SubnetAllocator {
       
       // Skip reserved ranges
       if (reservedOctets.includes(secondOctet)) {
-        console.log(`⏭️  Skipping reserved range 172.${secondOctet}.x.x`);
+        this.logger.debug('SubnetAllocator', `Skipping reserved range 172.${secondOctet}.x.x`);
         continue;
       }
       
       // Try different user IDs within this octet range
+      // Start from 1 instead of 0 for third octet (172.x.1.x instead of 172.x.0.x)
       for (let attempt = 0; attempt < 20; attempt++) {
-        const userIdNum = (startUserId + attempt) % 256;
+        const userIdNum = ((startUserId + attempt - 1) % 255) + 1; // Ensures range 1-255
         const subnet = `172.${secondOctet}.${userIdNum}.0/24`;
         
         if (!this.isSubnetInUse(subnet)) {
-          console.log(`✅ Found available subnet: ${subnet}`);
+          this.logger.info('SubnetAllocator', `Found available subnet: ${subnet}`);
           return {
             userIdNum,
             subnet,
@@ -201,10 +211,10 @@ export class SubnetAllocator {
         }
       }
       
-      console.log(`⚠️  No available subnets in 172.${secondOctet}.x.x range, trying next range...`);
+      this.logger.warn('SubnetAllocator', `No available subnets in 172.${secondOctet}.x.x range, trying next range`);
     }
     
-    console.error(`❌ Could not find available subnet after trying all ranges`);
+    this.logger.error('SubnetAllocator', 'Could not find available subnet after trying all ranges');
     return null;
   }
 
@@ -286,7 +296,7 @@ export class SubnetAllocator {
     }
     
     if (allocatedIPs.length < count) {
-      console.warn(`⚠️ Could only allocate ${allocatedIPs.length} of ${count} requested IPs`);
+      this.logger.warn('SubnetAllocator', `Could only allocate ${allocatedIPs.length} of ${count} requested IPs`);
     }
     
     return allocatedIPs;
@@ -315,7 +325,7 @@ export class SubnetAllocator {
     // Validate victim count (0-5)
     const validVictimCount = Math.max(0, Math.min(5, victimCount));
     if (victimCount !== validVictimCount) {
-      console.warn(`⚠️ Victim count adjusted from ${victimCount} to ${validVictimCount} (allowed: 0-5)`);
+      this.logger.warn('SubnetAllocator', `Victim count adjusted from ${victimCount} to ${validVictimCount} (allowed: 0-5)`);
     }
     
     const instanceId = `${challengeName}-${userId}`;
@@ -339,24 +349,27 @@ export class SubnetAllocator {
           const dbAllocation = existingResult.rows[0];
           const allocation = this._convertDbToAllocation(dbAllocation);
           this.allocations.set(instanceId, allocation); // Cache it
-          console.log(`📊 Retrieved existing subnet allocation from database for ${instanceId}`);
+          this.logger.info('SubnetAllocator', `Retrieved existing subnet allocation from database for ${instanceId}`);
           return allocation;
         }
       } catch (dbError) {
-        console.warn('⚠️  Database check failed, falling back to in-memory allocation:', dbError.message);
+        this.logger.warn('SubnetAllocator', 'Database check failed, falling back to in-memory allocation', { error: dbError.message });
         // Continue with in-memory allocation
       }
     }
 
     // Generate deterministic IDs from hashes
     const challengeId = this.hashToNumber(challengeName, 11); // 0-10 (maps to 172.20-172.30)
-    const userIdNum = this.hashToNumber(userId.toString(), 256); // 0-255
+    // Start from 1 instead of 0 for third octet (172.x.1.x instead of 172.x.0.x)
+    const userIdNum = this.hashToNumber(userId.toString(), 255) + 1; // 1-255
 
     // First, try the hash-based subnet
     // Skip 172.22.x.x which is reserved for Guacamole
+    // Skip 172.24.x.x which overlaps with ctf-network (172.24.0.0/16)
     let secondOctet = 20 + challengeId;
-    if (secondOctet === 22) {
-      secondOctet = 23; // Skip to 172.23.x.x instead
+    if (secondOctet === 22 || secondOctet === 24) {
+      // Skip 172.22 (Guacamole) and 172.24 (ctf-network infrastructure)
+      secondOctet = secondOctet === 22 ? 23 : 25; // Skip to 172.23.x.x or 172.25.x.x instead
     }
     
     let subnet = `172.${secondOctet}.${userIdNum}.0/24`;
@@ -368,7 +381,7 @@ export class SubnetAllocator {
     const shouldCheckSubnet = options.forceNew || !this.allocations.has(instanceId);
     
     if (shouldCheckSubnet && this.isSubnetInUse(subnet)) {
-      console.log(`⚠️ Hash-based subnet ${subnet} is in use, finding alternative...`);
+      this.logger.warn('SubnetAllocator', `Hash-based subnet ${subnet} is in use, finding alternative`);
       finalAllocation = this.findAvailableSubnet(challengeId, userIdNum);
       
       if (!finalAllocation) {
@@ -451,11 +464,12 @@ export class SubnetAllocator {
     };
 
     this.allocations.set(instanceId, allocation);
-    console.log(`📊 Allocated subnet for ${instanceId}:`);
-    console.log(`   Subnet: ${finalAllocation.subnet}`);
-    console.log(`   Gateway: ${finalAllocation.gateway}`);
-    console.log(`   Victim: ${finalAllocation.victimIP}`);
-    console.log(`   Attacker: ${finalAllocation.attackerIP}`);
+    this.logger.info('SubnetAllocator', `Allocated subnet for ${instanceId}`, {
+      subnet: finalAllocation.subnet,
+      gateway: finalAllocation.gateway,
+      victimIP: finalAllocation.victimIP,
+      attackerIP: finalAllocation.attackerIP
+    });
 
     return allocation;
   }
@@ -548,16 +562,15 @@ export class SubnetAllocator {
         Options: allocation.dockerNetworkConfig.driver_opts
       };
       
-      console.log(`\n📋 Docker Network Creation Config:`);
-      console.log(JSON.stringify(networkConfig, null, 2));
+      this.logger.debug('SubnetAllocator', 'Docker Network Creation Config', { networkConfig });
       
       const network = await docker.createNetwork(networkConfig);
 
-      console.log(`🌐 Created network ${allocation.networkName} with subnet ${allocation.subnet}`);
+      this.logger.info('SubnetAllocator', `Created network ${allocation.networkName} with subnet ${allocation.subnet}`);
       return network.id;
     } catch (error) {
       if (error.statusCode === 409) {
-        console.log(`⚠️  Network ${allocation.networkName} already exists, using existing`);
+        this.logger.warn('SubnetAllocator', `Network ${allocation.networkName} already exists, using existing`);
         const networks = await docker.listNetworks({
           filters: { name: [allocation.networkName] }
         });
@@ -575,7 +588,7 @@ export class SubnetAllocator {
   async cleanupNetwork(docker, instanceId) {
     const allocation = this.allocations.get(instanceId);
     if (!allocation) {
-      console.log(`⚠️  No allocation found for ${instanceId}`);
+      this.logger.warn('SubnetAllocator', `No allocation found for ${instanceId}`);
       return;
     }
 
@@ -587,12 +600,12 @@ export class SubnetAllocator {
       if (networks.length > 0) {
         const network = docker.getNetwork(networks[0].Id);
         await network.remove();
-        console.log(`🗑️  Removed network ${allocation.networkName}`);
+        this.logger.info('SubnetAllocator', `Removed network ${allocation.networkName}`);
       }
 
       this.allocations.delete(instanceId);
     } catch (error) {
-      console.error(`Error cleaning up network ${allocation.networkName}:`, error.message);
+      this.logger.error('SubnetAllocator', `Error cleaning up network ${allocation.networkName}`, error.stack);
     }
   }
 
@@ -622,14 +635,14 @@ export class SubnetAllocator {
         `, [challengeName, userId]);
 
         if (result.rowCount > 0) {
-          console.log(`🗑️  Released subnet allocation in database for ${instanceId}`);
+          this.logger.info('SubnetAllocator', `Released subnet allocation in database for ${instanceId}`);
           return true;
         } else if (inMemory) {
-          console.log(`🗑️  Released subnet allocation from memory for ${instanceId} (not in database)`);
+          this.logger.info('SubnetAllocator', `Released subnet allocation from memory for ${instanceId} (not in database)`);
           return true;
         }
       } catch (dbError) {
-        console.warn('⚠️  Database release failed:', dbError.message);
+        this.logger.warn('SubnetAllocator', 'Database release failed', { error: dbError.message });
         // Return true if in-memory release succeeded
         return inMemory;
       }

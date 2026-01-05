@@ -55,3 +55,6 @@ pnpm-lock.yaml
 # Build outputs
 *.tsbuildinfo
 
+
+# Vulhub cache directory
+packages/ctf-automation/.vulhub-cache/

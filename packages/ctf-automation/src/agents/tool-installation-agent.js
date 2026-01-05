@@ -7,6 +7,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs/promises';
 import path from 'path';
+import { Logger } from '../core/logger.js';
 import { getToolInstallationMethod, learnMultipleTools } from '../tool-learning-service.js';
 import {
   getPackageAliases,
@@ -18,6 +19,8 @@ import {
   getToolPackageMapping,
   clearPackageMappingCache
 } from '../package-mapping-db-manager.js';
+
+const logger = new Logger();
 
 /**
  * Resolve package name to correct package (using database)
@@ -495,8 +498,8 @@ export async function generateToolInstallationDockerfile({
   requiredTools = [] 
 }) {
   try {
-    console.log(`🔧 Generating tool installation Dockerfile for ${category} challenge...`);
-    console.log(`📚 Learning installation methods for ${requiredTools.length} tools...`);
+    logger.info('ToolInstallationAgent', `Generating tool installation Dockerfile for ${category} challenge`);
+    logger.info('ToolInstallationAgent', `Learning installation methods for ${requiredTools.length} tools`);
 
     // Learn installation methods for all required tools
     const learnedMethods = await learnMultipleTools(requiredTools, category);
@@ -526,9 +529,14 @@ export async function generateToolInstallationDockerfile({
       }
     }
 
-    console.log(`✅ Learned methods - APT: ${aptPackages.length}, PIP: ${pipPackages.length}, GEM: ${gemPackages.length}, GIT: ${gitInstalls.length}`);
+    logger.info('ToolInstallationAgent', 'Learned installation methods', {
+      apt: aptPackages.length,
+      pip: pipPackages.length,
+      gem: gemPackages.length,
+      git: gitInstalls.length
+    });
     if (failedTools.length > 0) {
-      console.warn(`❌ Failed to learn: ${failedTools.join(', ')}`);
+      logger.warn('ToolInstallationAgent', 'Failed to learn installation methods', { failedTools });
     }
 
     // Generate Dockerfile with learned methods
@@ -541,9 +549,9 @@ export async function generateToolInstallationDockerfile({
     });
 
   } catch (error) {
-    console.error('Tool learning error:', error);
-    // Fallback to old method
-    console.log('⚠️ Falling back to AI-generated Dockerfile...');
+      logger.error('ToolInstallationAgent', 'Tool learning error', error.stack);
+      // Fallback to old method
+      logger.warn('ToolInstallationAgent', 'Falling back to AI-generated Dockerfile');
     
     try {
       // Read base-images documentation
@@ -595,7 +603,7 @@ Generate the Dockerfile now.`;
       // CRITICAL: Ensure apt-get update is called before any apt-get install
       // If the Dockerfile doesn't have "apt-get update" before install, add it
       if (dockerfile.includes('apt-get install') && !dockerfile.match(/apt-get update\s*&&/)) {
-        console.log('⚠️  Adding missing apt-get update before install...');
+        logger.warn('ToolInstallationAgent', 'Adding missing apt-get update before install');
         dockerfile = dockerfile.replace(
           /(RUN\s+apt-get\s+install)/g,
           'RUN apt-get update && \\\n    apt-get install'
@@ -620,16 +628,16 @@ Generate the Dockerfile now.`;
       }
 
       if (missing.length > 0) {
-        console.warn(`⚠️ Dockerfile missing components: ${missing.join(', ')}`);
-        console.warn('Adding missing SSH configuration...');
+        logger.warn('ToolInstallationAgent', 'Dockerfile missing components', { missing });
+        logger.warn('ToolInstallationAgent', 'Adding missing SSH configuration');
         dockerfile = ensureSSHConfiguration(dockerfile);
       }
 
-      console.log(`✅ Generated Dockerfile with SSH server and ${category} tools`);
+      logger.success('ToolInstallationAgent', `Generated Dockerfile with SSH server and ${category} tools`);
       return dockerfile;
 
     } catch (fallbackError) {
-      console.error('Fallback AI generation failed:', fallbackError);
+      logger.error('ToolInstallationAgent', 'Fallback AI generation failed', fallbackError.stack);
       // Return hardcoded fallback Dockerfile with SSH
       return generateFallbackDockerfile(category);
     }
@@ -922,7 +930,7 @@ function normalizeServiceName(serviceName) {
   if (normalized === 'web') return 'http';
   // Note: 'smb' is not supported (Windows-only) - use 'samba' for Linux SMB shares
   if (normalized === 'smb') {
-    console.warn(`⚠️  'smb' service detected - converting to 'samba' (Linux SMB implementation). Windows SMB is not supported.`);
+    logger.warn('ToolInstallationAgent', "'smb' service detected - converting to 'samba' (Linux SMB implementation). Windows SMB is not supported.");
     return 'samba';
   }
   return normalized;
@@ -949,7 +957,7 @@ export async function generateVictimDockerfileWithSSH({
   
   if (services.length !== filteredServices.length) {
     const removedTools = services.filter(s => attackTools.includes(s.toLowerCase().trim()));
-    console.warn(`⚠️  Removed attack tools from victim machine ${machineName} services: ${removedTools.join(', ')}. Tools should only be on attacker machines.`);
+    logger.warn('ToolInstallationAgent', `Removed attack tools from victim machine ${machineName} services`, { removedTools });
   }
   
   // Load invalid service names from database
@@ -993,12 +1001,12 @@ export async function generateVictimDockerfileWithSSH({
   // This must be done AFTER package resolution but BEFORE joining
   const fixedPackages = uniquePackages.map(pkg => {
     if (packageManager === 'apk' && (pkg === 'telnet' || pkg === 'telnetd')) {
-      console.log(`⚠️  Replacing '${pkg}' with 'busybox-extras' for Alpine Linux`);
+      logger.warn('ToolInstallationAgent', `Replacing '${pkg}' with 'busybox-extras' for Alpine Linux`);
       return 'busybox-extras';
     }
     // ✅ FIX: Remove xinetd for Rocky Linux 9 (deprecated, not available)
     if ((packageManager === 'dnf' || packageManager === 'yum') && pkg === 'xinetd') {
-      console.log(`⚠️  Removing 'xinetd' for Rocky Linux/RHEL (deprecated, not available)`);
+      logger.warn('ToolInstallationAgent', "Removing 'xinetd' for Rocky Linux/RHEL (deprecated, not available)");
       return null; // Remove it
     }
     return pkg;
@@ -1018,7 +1026,7 @@ export async function generateVictimDockerfileWithSSH({
   // ✅ FIX: Replace 'telnet' with 'busybox-extras' in base tools for Alpine
   const fixedBaseTools = baseToolsArray.map(tool => {
     if (packageManager === 'apk' && (tool === 'telnet' || tool === 'telnetd')) {
-      console.log(`⚠️  Replacing base tool '${tool}' with 'busybox-extras' for Alpine Linux`);
+      logger.warn('ToolInstallationAgent', `Replacing base tool '${tool}' with 'busybox-extras' for Alpine Linux`);
       return 'busybox-extras';
     }
     return tool;
@@ -1149,9 +1157,10 @@ export async function generateVictimDockerfileWithSSH({
       startupScript += aiGeneratedSetup;
     } else {
       // CRITICAL: AI must always generate setup commands - this should not happen
-      console.error(`❌ CRITICAL ERROR: No AI-generated setup found for ${machineName}. Services will not start!`);
-      console.error(`   Services expected: ${finalFilteredServices.join(', ')}`);
-      console.error(`   Categories: ${Object.keys(configurations).join(', ')}`);
+      logger.error('ToolInstallationAgent', `CRITICAL ERROR: No AI-generated setup found for ${machineName}. Services will not start!`, null, {
+        servicesExpected: finalFilteredServices,
+        categories: Object.keys(configurations)
+      });
       throw new Error(`AI failed to generate setup commands for ${machineName}. The 'setup' field in configuration is MANDATORY and must contain service startup commands.`);
     }
   }

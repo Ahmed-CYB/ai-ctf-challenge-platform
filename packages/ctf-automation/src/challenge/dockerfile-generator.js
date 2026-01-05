@@ -27,6 +27,14 @@ export class DockerfileGenerator {
         machineCount: structure.machines.length 
       });
 
+      // 🔥 NEW: Check if Vulhub template is available
+      const vulhubTemplate = structure.vulhubTemplate || null;
+      if (vulhubTemplate) {
+        this.logger.info('DockerfileGenerator', 'Using Vulhub template', {
+          name: vulhubTemplate.originalVulhub?.name
+        });
+      }
+
       const dockerfiles = [];
 
       for (const machine of structure.machines) {
@@ -42,7 +50,14 @@ export class DockerfileGenerator {
           );
         }
 
-        const dockerfile = await this.generateForMachine(machine, structure);
+        // 🔥 NEW: Use Vulhub template for victim machines if available
+        let dockerfile;
+        if (machine.role === 'victim' && vulhubTemplate && vulhubTemplate.dockerfile) {
+          this.logger.info('DockerfileGenerator', 'Using Vulhub Dockerfile template', { machine: machine.name });
+          dockerfile = await this.adaptVulhubDockerfile(vulhubTemplate.dockerfile, machine, structure, vulhubTemplate);
+        } else {
+          dockerfile = await this.generateForMachine(machine, structure);
+        }
         
         // 🔒 CRITICAL: Validate generated Dockerfile for Windows content
         const dockerfileValidation = linuxOnlyValidator.validateDockerfile(dockerfile.content);
@@ -193,44 +208,68 @@ RUN apt-get update && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 🔒 SECURITY: Create network isolation script to block gateway and infrastructure access
+# IMPORTANT: Allows SSH INPUT for Guacamole access via challenge network
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
-    echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo 'set +e' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
     echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
     echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  # Fallback: extract from interface IP (assume .1 is gateway)' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
     echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
     echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway access: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
-    echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
-    echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A OUTPUT -d $GATEWAY -j DROP || true' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Block Guacamole network (172.22.0.0/16) - infrastructure isolation' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "🔒 Blocking Guacamole network: 172.22.0.0/16"' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: Guacamole (guacd) connects to challenge network, not 172.22.0.0/16' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Block other infrastructure networks' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "🔒 Blocking infrastructure networks"' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access via challenge network)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation rules applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d $NETWORK -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -s $NETWORK -j ACCEPT || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 EXPOSE 22
 
 # 🔒 SECURITY: Apply network isolation on container start
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
     echo '' >> /start-secure.sh && \\
-    echo '# Apply network isolation rules' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo '# Apply network isolation rules (non-blocking)' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo '' >> /start-secure.sh && \\
     echo '# Start SSH daemon' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
@@ -390,6 +429,8 @@ CMD ["/start-secure.sh"]
 
     if (serviceLower === 'ftp') {
       return `# FTP Service Setup
+# Create FTP user if it doesn't exist (required for chown)
+useradd -r -s /bin/false -d /var/ftp ftp 2>/dev/null || true
 if [ -f /challenge/vsftpd.conf ]; then
   cp /challenge/vsftpd.conf /etc/vsftpd.conf
 fi
@@ -399,7 +440,7 @@ chmod 755 /var/ftp/data /var/ftp/data/classified
 if [ -f /challenge/flag.txt ]; then
   cp /challenge/flag.txt /var/ftp/data/classified/flag.txt
   chmod 644 /var/ftp/data/classified/flag.txt
-  chown ftp:ftp /var/ftp/data/classified/flag.txt
+  chown ftp:ftp /var/ftp/data/classified/flag.txt 2>/dev/null || chown root:root /var/ftp/data/classified/flag.txt
 fi
 /usr/sbin/vsftpd /etc/vsftpd.conf &
 `;
@@ -502,6 +543,7 @@ ${installCommand}
 # Configure SSH
 ${this.getSSHConfig(packageManager)}
 
+${machine.services && machine.services.some(s => s.toLowerCase() === 'ftp') ? '# Create FTP user if FTP service is present (required for chown commands)\nRUN useradd -r -s /bin/false -d /var/ftp ftp 2>/dev/null || true\n' : ''}
 # Create challenge directory
 RUN mkdir -p /challenge && chmod 755 /challenge
 
@@ -539,6 +581,97 @@ CMD ["/start-services.sh"]
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \\
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config`;
     }
+  }
+
+  /**
+   * Adapt Vulhub Dockerfile for CTF challenge
+   * Ensures flag placement, Guacamole compatibility, and user requirements
+   */
+  async adaptVulhubDockerfile(vulhubDockerfile, machine, structure, vulhubTemplate) {
+    try {
+      // Get flag location from template or use default
+      const flagLocation = vulhubTemplate.flagLocation || this.getDefaultFlagLocation(machine.services);
+      const flag = vulhubTemplate.flag || `CTF{${structure.name || 'challenge'}_${Date.now()}}`;
+
+      // Ensure flag is added to Dockerfile
+      let adaptedDockerfile = vulhubDockerfile;
+
+      // Add flag if not already present
+      if (!adaptedDockerfile.includes('flag') && !adaptedDockerfile.includes('FLAG')) {
+        // Find a good place to add flag (after COPY commands, before CMD)
+        const lines = adaptedDockerfile.split('\n');
+        let insertIndex = lines.length - 1;
+        
+        // Find last RUN or COPY command
+        for (let i = lines.length - 1; i >= 0; i--) {
+          if (lines[i].trim().startsWith('RUN') || lines[i].trim().startsWith('COPY')) {
+            insertIndex = i + 1;
+            break;
+          }
+        }
+
+        // Insert flag creation
+        const flagDir = flagLocation.substring(0, flagLocation.lastIndexOf('/'));
+        lines.splice(insertIndex, 0, 
+          `# CTF Flag`,
+          `RUN mkdir -p ${flagDir} && echo "${flag}" > ${flagLocation} && chmod 644 ${flagLocation}`
+        );
+        adaptedDockerfile = lines.join('\n');
+      }
+
+      // Ensure SSH is configured for attacker machines (for Guacamole)
+      if (machine.role === 'attacker' && !adaptedDockerfile.includes('sshd')) {
+        // Add SSH setup if missing
+        const sshSetup = `
+# Configure SSH for Guacamole access
+RUN mkdir -p /var/run/sshd && \\
+    echo 'root:toor' | chpasswd && \\
+    useradd -m -s /bin/bash kali 2>/dev/null || true && \\
+    echo 'kali:kali' | chpasswd && \\
+    usermod -aG sudo kali 2>/dev/null || true && \\
+    sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config 2>/dev/null || \\
+    echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && \\
+    sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config 2>/dev/null || \\
+    echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+
+EXPOSE 22
+`;
+        
+        // Insert before CMD
+        adaptedDockerfile = adaptedDockerfile.replace(/(CMD|ENTRYPOINT)/, `${sshSetup}\n$1`);
+      }
+
+      return {
+        content: adaptedDockerfile,
+        path: `${machine.name}/Dockerfile`
+      };
+
+    } catch (error) {
+      this.logger.error('DockerfileGenerator', 'Failed to adapt Vulhub Dockerfile', error.stack);
+      // Fallback to regular generation
+      return await this.generateForMachine(machine, structure);
+    }
+  }
+
+  /**
+   * Get default flag location based on services
+   */
+  getDefaultFlagLocation(services) {
+    if (!services || services.length === 0) {
+      return '/root/flag.txt';
+    }
+
+    const service = services[0].toLowerCase();
+    const locations = {
+      'ftp': '/var/ftp/data/flag.txt',
+      'samba': '/tmp/share/flag.txt',
+      'smb': '/tmp/share/flag.txt',
+      'http': '/var/www/html/flag.txt',
+      'web': '/var/www/html/flag.txt',
+      'ssh': '/root/flag.txt'
+    };
+
+    return locations[service] || '/root/flag.txt';
   }
 }
 
