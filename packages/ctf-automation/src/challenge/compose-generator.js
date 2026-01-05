@@ -129,6 +129,7 @@ export class ComposeGenerator {
   buildNetworks(structure) {
     const networks = {
       [`ctf-${structure.name}-net`]: {
+        name: `ctf-${structure.name}-net`, // Explicit name to prevent Docker Compose prefixing
         driver: 'bridge',
         // SECURITY: Make network internal to prevent access to external networks
         // Guacamole (guacd) will connect to this network to access attacker

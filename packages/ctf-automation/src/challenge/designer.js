@@ -10,6 +10,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { Logger } from '../core/logger.js';
+import { linuxOnlyValidator } from '../core/linux-only-validator.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -219,7 +220,22 @@ export class ChallengeDesigner {
     }
 
     if (requirements.difficulty) {
-      prompt += `Difficulty: ${requirements.difficulty}\n`;
+      prompt += `**CRITICAL - DIFFICULTY REQUIREMENT:**\n`;
+      prompt += `The user has specified difficulty: ${requirements.difficulty}\n`;
+      prompt += `You MUST set "difficulty" field to exactly "${requirements.difficulty}" in your JSON response.\n`;
+      prompt += `Do NOT use "medium" as default - use the specified difficulty: ${requirements.difficulty}\n\n`;
+    } else {
+      // If no difficulty specified, analyze the request for implicit difficulty
+      if (originalMessage) {
+        const originalLower = originalMessage.toLowerCase();
+        if (originalLower.includes('simple') || originalLower.includes('basic') || originalLower.includes('easy') || originalLower.includes('beginner')) {
+          prompt += `**IMPORTANT - DIFFICULTY DETECTION:**\n`;
+          prompt += `The user's request suggests a simple/easy challenge. Set "difficulty" to "easy" in your JSON response.\n\n`;
+        } else if (originalLower.includes('complex') || originalLower.includes('advanced') || originalLower.includes('hard') || originalLower.includes('expert')) {
+          prompt += `**IMPORTANT - DIFFICULTY DETECTION:**\n`;
+          prompt += `The user's request suggests a complex/advanced challenge. Set "difficulty" to "hard" in your JSON response.\n\n`;
+        }
+      }
     }
 
     if (requirements.services && requirements.services.length > 0) {
@@ -240,6 +256,7 @@ export class ChallengeDesigner {
     prompt += `- Include ALL setup commands (MANDATORY)\n`;
     prompt += `- Use real, working values (no placeholders)\n`;
     prompt += `- Ensure the challenge is solvable and educational\n`;
+    prompt += `- **CRITICAL - DIFFICULTY**: Use the difficulty specified above (${requirements.difficulty || 'analyze from user request'}). Do NOT default to "medium" unless explicitly requested.\n`;
     prompt += `- If user requested a specific vulnerability, focus the ENTIRE challenge on that vulnerability\n`;
     prompt += `- **CRITICAL**: For SMB/Samba challenges (EternalBlue), the victim machine MUST have "samba" in the services array: ["samba", "ssh"]\n`;
     prompt += `- **CRITICAL**: For each service in the services array, ensure the service will actually run (install package, configure, start service)\n`;

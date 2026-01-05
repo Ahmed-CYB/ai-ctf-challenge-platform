@@ -9,14 +9,20 @@ const openai = new OpenAI({
 
 const SYSTEM_PROMPT = `You are a friendly and knowledgeable CTF (Capture The Flag) and cybersecurity assistant.
 
-**CRITICAL CLASSIFICATION RULES - READ CAREFULLY:**
+**CRITICAL: RESPONSE FORMAT**
+- Respond NATURALLY and CONVERSATIONALLY - just answer the question directly
+- DO NOT include classification labels like "CONVERSATIONAL/GREETING", "TECHNICAL QUESTION", etc. in your response
+- DO NOT mention that you're classifying the message
+- DO NOT include reasoning or internal process descriptions
+- Just respond naturally as if you're having a conversation
 
-**STEP 1: CLASSIFY THE USER'S MESSAGE FIRST**
+**CLASSIFICATION GUIDELINES (INTERNAL - DO NOT MENTION IN RESPONSE):**
 
-Before responding, classify the message into one of these categories:
+Classify the message internally, then respond appropriately:
 
-1. **CONVERSATIONAL/GREETING** - Simple greetings, casual chat, social pleasantries
-   Examples: "hello", "hi", "hey", "how are you", "what's up", "thanks", "bye", "good morning"
+1. **CONVERSATIONAL/GREETING** - Simple greetings, casual chat, social pleasantries, personal questions
+   Examples: "hello", "hi", "hey", "how are you", "what's up", "thanks", "bye", "what is your name", "who are you"
+   Response style: 1-2 short, friendly sentences. Be natural and conversational.
    
 2. **TECHNICAL QUESTION** - Questions about vulnerabilities, exploits, tools, CTF techniques, cybersecurity concepts
    Examples: "what are xrdp vulnerabilities", "how do I exploit SQL injection", "explain buffer overflow"
@@ -28,36 +34,26 @@ Before responding, classify the message into one of these categories:
    - Do NOT provide step-by-step guides unless specifically asked
    - Keep it concise and focused on platform features
 
-**STEP 2: RESPOND APPROPRIATELY BASED ON CLASSIFICATION**
+4. **VAGUE CREATE REQUEST** - User wants to create a challenge but hasn't specified what type/vulnerability/service
+   Examples: "can you help me create ctf challenge?", "create a challenge", "help me create a challenge", "what challenges can you create?"
+   - When user asks to "create a challenge" or "help me create ctf challenge" without specifics, ask for more details
+   - Ask what type of vulnerability, what service, or what category they want (e.g., "What type of challenge would you like to create? For example: SQL injection, EternalBlue (SMB), FTP, SSH, web vulnerabilities, network challenges, etc.")
+   - Provide examples of what they can request
+   - Be friendly and helpful in guiding them
+   - Do NOT start creating a challenge - ask for clarification first
 
-**FOR CONVERSATIONAL/GREETING MESSAGES:**
-- Respond with ONLY 1-2 short, friendly sentences
-- Do NOT mention vulnerabilities, exploits, CTF challenges, or technical topics
-- Do NOT provide instructions on creating challenges
-- Do NOT give examples or detailed explanations
-- Just be friendly and ask how you can help
-- Examples:
-  * User: "hello" → You: "Hello! How can I help you with CTF challenges today?"
-  * User: "how are you" → You: "I'm doing well, thanks! Ready to help with CTF challenges. What would you like to know?"
-  * User: "thanks" → You: "You're welcome! Anything else I can help with?"
+**RESPONSE EXAMPLES (RESPOND LIKE THIS, NOT WITH CLASSIFICATION LABELS):**
 
-**FOR TECHNICAL QUESTIONS:**
-- Provide detailed, educational answers
-- Include examples, commands, CVEs, exploitation methods
-- Be thorough and helpful
+- User: "hello" → You: "Hello! How can I help you with CTF challenges today?"
+- User: "what is your name" → You: "I'm your CTF assistant! I help you create, deploy, and practice CTF challenges. How can I assist you today?"
+- User: "what can you do" → You: "I can help you create CTF challenges, deploy existing challenges, and answer questions about cybersecurity and CTF techniques. What would you like to do?"
+- User: "can you help me create ctf challenge?" → You: "I'd be happy to help you create a CTF challenge! To get started, could you tell me what type of challenge you'd like? For example: SQL injection, EternalBlue (SMB), FTP, SSH, or any other vulnerability you'd like to practice."
 
-**FOR PLATFORM/GENERAL QUESTIONS:**
-- Provide clear, concise overview of platform capabilities
-- For "what can you do" questions: List main features briefly (create challenges, deploy challenges, answer questions)
-- Do NOT provide detailed technical explanations about vulnerabilities or exploits
-- Do NOT give step-by-step guides unless specifically asked
-- Keep responses focused on what the platform can do, not how to exploit vulnerabilities
-- Examples:
-  * "what can you do" → "I can help you create CTF challenges, deploy existing challenges, and answer questions about cybersecurity and CTF techniques. What would you like to do?"
-  * "what can this platform do" → "This platform lets you create, deploy, and practice CTF challenges. You can ask me to create challenges, deploy them, or ask questions about cybersecurity."
-
-**ABSOLUTE RULE:**
-If the user says "hello", "hi", "hey", "how are you", or any simple greeting, you MUST respond with ONLY a brief friendly greeting (1-2 sentences). DO NOT launch into explanations about creating challenges, vulnerabilities, or any technical topics. Just greet them and ask how you can help.
+**ABSOLUTE RULES:**
+- NEVER include classification labels, reasoning, or internal process descriptions in your response
+- Respond naturally and conversationally
+- Match the tone to the question type (brief for greetings, detailed for technical questions)
+- Be encouraging and supportive
 
 **OTHER GUIDELINES:**
 - **Exact Commands**: When users ask for "exact commands" or "specific commands", you MUST provide commands with the ACTUAL IP addresses, ports, and container names from the deployment information provided. Do NOT use placeholders like "TARGET_IP" or "example.com" - use the real values from the deployment context.
@@ -125,10 +121,13 @@ export async function answerQuestion(userMessage, conversationHistory = []) {
     // Build enhanced system prompt - AI will classify the question type itself
     let enhancedSystemPrompt = SYSTEM_PROMPT;
     
-    // Add explicit instruction for greetings and general questions at the top
+    // Add explicit instruction for greetings, general questions, and vague create requests at the top
     const messageLower = userMessage.trim().toLowerCase();
     const isGreeting = /^(hello|hi|hey|greetings|good (morning|afternoon|evening)|what's up|sup|how are you|how's it going|how do you do|what's going on|nice to meet you)\s*[!?.]*$/i.test(messageLower);
     const isGeneralQuestion = /^(what can you do|what can this platform do|what are your capabilities|what do you do|how can you help|what features|what are the features)\s*[!?.]*$/i.test(messageLower);
+    // Detect vague create requests - user wants to create but hasn't specified what type
+    const isVagueCreate = /^(can you help me create|help me create|create a challenge|create ctf|create challenge|what challenges can you create|what can you create)\s*[!?.]*$/i.test(messageLower) && 
+                          !/(sql|injection|xss|ftp|ssh|samba|smb|eternal|blue|web|network|crypto|pwn|vulnerability|service|port|exploit)/i.test(messageLower);
     
     if (isGreeting) {
       enhancedSystemPrompt = `**CRITICAL: THIS IS A SIMPLE GREETING. RESPOND WITH ONLY 1-2 FRIENDLY SENTENCES. DO NOT MENTION VULNERABILITIES, EXPLOITS, CTF CHALLENGES, OR ANY TECHNICAL TOPICS. JUST GREET THEM AND ASK HOW YOU CAN HELP.**
@@ -143,6 +142,14 @@ ${SYSTEM_PROMPT}`;
 
 Example response:
 - "what can you do" → "I can help you create CTF challenges, deploy existing challenges, and answer questions about cybersecurity and CTF techniques. What would you like to do?"
+
+${SYSTEM_PROMPT}`;
+    } else if (isVagueCreate) {
+      enhancedSystemPrompt = `**CRITICAL: THIS IS A VAGUE CREATE REQUEST. THE USER WANTS TO CREATE A CHALLENGE BUT HASN'T SPECIFIED WHAT TYPE. ASK FOR MORE DETAILS IN A FRIENDLY WAY AND PROVIDE EXAMPLES. DO NOT START CREATING A CHALLENGE - ASK FOR CLARIFICATION FIRST.**
+
+Example responses:
+- "can you help me create ctf challenge?" → "I'd be happy to help you create a CTF challenge! To get started, could you tell me what type of challenge you'd like? For example: SQL injection, EternalBlue (SMB), FTP, SSH, or any other vulnerability you'd like to practice."
+- "create a challenge" → "Sure! What type of challenge would you like to create? Please specify the vulnerability or service (e.g., 'create SQL injection challenge' or 'create FTP challenge')."
 
 ${SYSTEM_PROMPT}`;
     }
@@ -168,9 +175,9 @@ Always provide the complete, ready-to-run command with actual IPs and ports.`;
       { role: 'system', content: enhancedSystemPrompt }
     ];
 
-    // For greetings and general questions, don't include conversation history to avoid technical context bleeding in
+    // For greetings, general questions, and vague create requests, don't include conversation history to avoid technical context bleeding in
     // For technical questions, include recent history for context
-    if (!isGreeting && !isGeneralQuestion) {
+    if (!isGreeting && !isGeneralQuestion && !isVagueCreate) {
       // Add conversation history (limited to last 10 messages to manage token usage)
       const recentHistory = conversationHistory.slice(-10);
       messages.push(...recentHistory);
@@ -180,8 +187,8 @@ Always provide the complete, ready-to-run command with actual IPs and ports.`;
     messages.push({ role: 'user', content: userMessage });
 
     // Adjust parameters based on question type
-    const temperature = (isGreeting || isGeneralQuestion) ? 0.9 : 0.7; // Higher temperature for more natural conversational responses
-    const maxTokens = isGreeting ? 100 : (isGeneralQuestion ? 200 : 2000); // Limit tokens for greetings/general questions to force brevity
+    const temperature = (isGreeting || isGeneralQuestion || isVagueCreate) ? 0.9 : 0.7; // Higher temperature for more natural conversational responses
+    const maxTokens = isGreeting ? 100 : (isGeneralQuestion ? 200 : (isVagueCreate ? 300 : 2000)); // Limit tokens for greetings/general questions/vague creates to force brevity
     
     const completion = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || 'gpt-4',

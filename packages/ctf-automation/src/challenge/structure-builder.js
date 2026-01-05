@@ -40,11 +40,18 @@ export class StructureBuilder {
       const uniqueName = await gitManager.generateUniqueChallengeName(design.name);
       this.logger.info('StructureBuilder', 'Generated unique name', { uniqueName });
 
-      // Step 2: Allocate subnet and IPs
-      const subnet = await subnetAllocator.allocateSubnet(uniqueName, 'default');
-      this.logger.info('StructureBuilder', 'Allocated subnet', { subnet: subnet.subnet });
+      // Step 2: Count victim machines for IP allocation
+      const victimCount = design.machines?.filter(m => m.role === 'victim').length || 0;
+      this.logger.info('StructureBuilder', 'Counted victim machines', { victimCount });
 
-      // Step 3: Collect attacker tools based on challenge category
+      // Step 3: Allocate subnet and IPs (with correct victim count)
+      const subnet = await subnetAllocator.allocateSubnet(uniqueName, 'default', {
+        victimCount: victimCount,
+        randomizeIPs: true
+      });
+      this.logger.info('StructureBuilder', 'Allocated subnet', { subnet: subnet.subnet, victimCount });
+
+      // Step 4: Collect attacker tools based on challenge category
       const categories = this.extractCategories(design.type);
       const requiredTools = design.requirements?.tools || [];
       const attackerTools = await this.collectAttackerTools(categories, requiredTools);
@@ -54,7 +61,7 @@ export class StructureBuilder {
         toolCount: attackerTools.length 
       });
 
-      // Step 4: Build structure data
+      // Step 5: Build structure data
       const machines = this.buildMachines(design.machines, subnet.ips, attackerTools);
       
       // 🔒 CRITICAL: Validate all machines are Linux-based
@@ -86,7 +93,7 @@ export class StructureBuilder {
         hints: design.hints
       };
 
-      // Step 5: Create directory structure
+      // Step 6: Create directory structure
       await this.createDirectories(uniqueName, structure.machines);
 
       this.logger.success('StructureBuilder', 'Structure built successfully', { name: uniqueName });

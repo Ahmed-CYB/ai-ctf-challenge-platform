@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Trophy, Sparkles, User, Award, Terminal, LogOut } from 'lucide-react';
+import { Home, Sparkles, User, Terminal, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -41,9 +41,7 @@ export function AppSidebar({ currentPage, onPageChange, onLogout, refreshKey }: 
 
   const menuItems = [
     { id: 'dashboard' as Page, label: 'Dashboard', icon: Home },
-    { id: 'challenges' as Page, label: 'Explore Challenges', icon: Trophy },
     { id: 'generate' as Page, label: 'Generate Challenge', icon: Sparkles },
-    { id: 'leaderboard' as Page, label: 'Leaderboard', icon: Award },
     { id: 'profile' as Page, label: 'Profile', icon: User },
   ];
 

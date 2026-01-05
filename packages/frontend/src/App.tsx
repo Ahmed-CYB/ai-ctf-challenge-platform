@@ -6,15 +6,13 @@ import { Dashboard } from './components/pages/Dashboard';
 import { Profile } from './components/pages/Profile';
 import { EditProfile } from './components/pages/EditProfile';
 import { GenerateChallenge } from './components/pages/GenerateChallenge';
-import { Challenges } from './components/pages/Challenges';
-import { Leaderboard } from './components/pages/Leaderboard';
 import { Login } from './components/pages/Login';
 import { SignUp } from './components/pages/SignUp';
 import { isAuthenticated, logout } from './services/auth';
 import { testConnection } from './services/database';
 // Database will be accessed via backend API
 
-export type Page = 'dashboard' | 'challenges' | 'generate' | 'profile' | 'edit-profile' | 'leaderboard';
+export type Page = 'dashboard' | 'generate' | 'profile' | 'edit-profile';
 export type AuthPage = 'login' | 'signup';
 
 export default function App() {
@@ -68,19 +66,15 @@ export default function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />;
-      case 'challenges':
-        return <Challenges />;
+        return <Dashboard onPageChange={setCurrentPage} />;
       case 'generate':
         return <GenerateChallenge />;
       case 'profile':
         return <Profile key={profileRefreshKey} onEditProfile={() => setCurrentPage('edit-profile')} />;
       case 'edit-profile':
         return <EditProfile onBack={() => setCurrentPage('profile')} onSaved={handleProfileSaved} />;
-      case 'leaderboard':
-        return <Leaderboard />;
       default:
-        return <Dashboard />;
+        return <Dashboard onPageChange={setCurrentPage} />;
     }
   };
 

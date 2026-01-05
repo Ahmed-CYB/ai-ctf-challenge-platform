@@ -158,13 +158,31 @@ export class RequestValidator {
    * Extract difficulty level from message
    */
   extractDifficulty(message) {
-    if (message.includes('easy') || message.includes('beginner')) {
+    const messageLower = message.toLowerCase();
+    
+    // Check for easy/simple difficulty indicators
+    if (messageLower.includes('easy') || 
+        messageLower.includes('beginner') || 
+        messageLower.includes('simple') ||
+        messageLower.includes('basic') ||
+        messageLower.includes('straightforward') ||
+        messageLower.includes('entry-level') ||
+        messageLower.includes('introductory')) {
       return 'easy';
     }
-    if (message.includes('hard') || message.includes('advanced') || message.includes('expert')) {
+    
+    // Check for hard/advanced difficulty indicators
+    if (messageLower.includes('hard') || 
+        messageLower.includes('advanced') || 
+        messageLower.includes('expert') ||
+        messageLower.includes('complex') ||
+        messageLower.includes('difficult') ||
+        messageLower.includes('challenging')) {
       return 'hard';
     }
-    return 'medium'; // default
+    
+    // Default to medium if no difficulty indicator found
+    return 'medium';
   }
 
   /**

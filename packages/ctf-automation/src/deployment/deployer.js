@@ -18,6 +18,7 @@ import { NetworkManager } from './network-manager.js';
 import { HealthChecker } from './health-checker.js';
 import { Logger } from '../core/logger.js';
 import { guacamoleService } from '../services/guacamole-service.js';
+import { deploymentErrorFixer } from '../agents/deployment-error-fixer.js';
 
 const execPromise = promisify(exec);
 
@@ -480,12 +481,99 @@ export class Deployer {
                                   execError.message.includes('Pool overlaps') ||
                                   stdout.includes('Pool overlaps');
           
+          // Use AI to analyze and fix the error (before manual fixes)
+          if (retryCount < maxRetries - 1) {
+            this.logger.info('Deployer', 'Using AI to analyze and fix deployment error', {
+              attempt: retryCount + 1,
+              maxRetries
+            });
+
+            // Create error object with all context
+            const errorWithContext = {
+              message: execError.message,
+              stdout: stdout || '',
+              stderr: stderr || '',
+              originalError: execError
+            };
+
+            // Ask AI to analyze and fix
+            const fixResult = await deploymentErrorFixer.analyzeAndFix(
+              errorWithContext,
+              challengeName,
+              challengePath
+            );
+
+            if (fixResult.fixed) {
+              this.logger.success('Deployer', 'AI successfully fixed deployment error', {
+                fixes: fixResult.fixes?.map(f => f.action).join(', ') || 'unknown'
+              });
+              
+              // Re-allocate subnet if it was a network issue
+              if (isSubnetOverlap || fixResult.analysis?.errorType === 'network_overlap') {
+                await this.revalidateIPAllocation(challengeName, true);
+              }
+              
+              retryCount++;
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+              continue;
+            } else {
+              this.logger.warn('Deployer', 'AI could not fix error automatically', {
+                reason: fixResult.reason
+              });
+            }
+          }
+          
+          // Fallback: Manual fix for subnet overlap (if AI didn't fix it)
           if (isSubnetOverlap && retryCount < maxRetries - 1) {
             this.logger.warn('Deployer', 'Subnet overlap detected, re-allocating subnet and retrying', {
               attempt: retryCount + 1,
               maxRetries,
-              error: execError.message.substring(0, 200)
+              error: execError.message,
+              stdout: stdout?.substring(0, 500),
+              stderr: stderr?.substring(0, 500)
             });
+            
+            // Try to remove the failed network before retrying
+            // Check for networks matching the challenge name pattern
+            try {
+              const { execSync } = await import('child_process');
+              
+              // Try multiple possible network name formats (Docker Compose prefixes with directory name)
+              const possibleNetworkNames = [
+                `${challengeName}_ctf-${challengeName}-net`, // Docker Compose format (most common)
+                `ctf-${challengeName}-default-net`,
+                `ctf-${challengeName}-net`,
+                `${challengeName}-default-net`
+              ];
+              
+              for (const networkName of possibleNetworkNames) {
+                try {
+                  execSync(`docker network rm ${networkName}`, { stdio: 'ignore' });
+                  this.logger.info('Deployer', 'Removed failed network before retry', { networkName });
+                } catch (rmError) {
+                  // Network might not exist, that's okay - try next name
+                  this.logger.debug('Deployer', 'Network removal attempted', { networkName });
+                }
+              }
+              
+              // Also try to find and remove any networks with the challenge name in them
+              try {
+                const networks = execSync('docker network ls --format "{{.Name}}"', { encoding: 'utf8' });
+                const networkList = networks.trim().split('\n').filter(n => n && n.includes(challengeName));
+                for (const network of networkList) {
+                  try {
+                    execSync(`docker network rm ${network}`, { stdio: 'ignore' });
+                    this.logger.info('Deployer', 'Removed network matching challenge name', { network });
+                  } catch (rmError) {
+                    // Continue trying others
+                  }
+                }
+              } catch (listError) {
+                // Continue anyway
+              }
+            } catch (cleanupError) {
+              this.logger.warn('Deployer', 'Network cleanup failed, continuing anyway', { error: cleanupError.message });
+            }
             
             // Re-allocate subnet with force flag to find a different one
             await this.revalidateIPAllocation(challengeName, true); // Force re-allocation
@@ -509,12 +597,23 @@ export class Deployer {
           
           // Last retry or non-recoverable error
           if (retryCount >= maxRetries - 1) {
+            // Log full error details for debugging
             this.logger.error('Deployer', 'Docker compose failed after all retries', {
               error: execError.message,
-              stdout: stdout.substring(0, 500),
-              stderr: stderr.substring(0, 500),
-              isSubnetOverlap
+              stdout: stdout || 'No stdout',
+              stderr: stderr || 'No stderr',
+              isSubnetOverlap,
+              retryCount,
+              maxRetries
             });
+            
+            // If it's a subnet overlap, provide more specific error
+            if (isSubnetOverlap) {
+              const userError = new Error('Challenge deploy failed: Network subnet conflict. Please try again or check for existing networks.');
+              userError.originalError = execError;
+              throw userError;
+            }
+            
             // Throw user-friendly error without stack trace
             const userError = new Error('Challenge deploy failed');
             userError.originalError = execError; // Keep for logging
@@ -532,8 +631,9 @@ export class Deployer {
       });
 
       // Wait for containers to start and check their status
-      this.logger.info('Deployer', 'Waiting for containers to start...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Give containers time to stabilize (they may restart a few times)
+      this.logger.info('Deployer', 'Waiting for containers to start and stabilize...');
+      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10s for containers to stabilize
       
       // Check if error was due to subnet overlap
       const isSubnetOverlap = stderr.includes('Pool overlaps') || 
@@ -559,33 +659,54 @@ export class Deployer {
       }
       
       // Check container exit status and logs if containers exited or restarting
+      // But allow containers to restart a few times (they might be stabilizing)
       for (const victim of containers.victims) {
-        if (!victim.running || (victim.status && (victim.status.includes('Exited') || victim.status.includes('Restarting')))) {
+        if (!victim.running || (victim.status && victim.status.includes('Exited'))) {
           try {
             const container = this.docker.getContainer(victim.id);
             const inspect = await container.inspect();
             const exitCode = inspect.State.ExitCode;
-            const logs = await container.logs({ stdout: true, stderr: true, tail: 50 });
-            const logOutput = logs.toString();
+            const restartCount = inspect.RestartCount || 0;
             
-            this.logger.warn('Deployer', 'Container issue detected, checking logs', {
-              name: victim.name,
-              exitCode,
-              status: victim.status,
-              running: inspect.State.Running,
-              restartCount: inspect.RestartCount || 0,
-              logs: logOutput.substring(0, 1000) // Show more logs
-            });
-            
-            // Log full error to console for debugging
-            console.error(`\n❌ Container ${victim.name} Error Details:`);
-            console.error(`   Status: ${victim.status}`);
-            console.error(`   Exit Code: ${exitCode}`);
-            console.error(`   Restart Count: ${inspect.RestartCount || 0}`);
-            console.error(`   Last 50 lines of logs:\n${logOutput}`);
+            // Only log as error if container has exited and not restarting
+            // Exit code 137 (SIGKILL) might be from OOM or manual kill, not necessarily a failure
+            if (exitCode !== 0 && exitCode !== 137 && restartCount < 3) {
+              // Container might still be restarting, give it more time
+              this.logger.info('Deployer', 'Container restarting, waiting for stabilization', {
+                name: victim.name,
+                exitCode,
+                restartCount
+              });
+            } else if (restartCount >= 3 || (exitCode !== 0 && exitCode !== 137)) {
+              // Container has restarted too many times or has a real error
+              const logs = await container.logs({ stdout: true, stderr: true, tail: 50 });
+              const logOutput = logs.toString();
+              
+              this.logger.warn('Deployer', 'Container issue detected, checking logs', {
+                name: victim.name,
+                exitCode,
+                status: victim.status,
+                running: inspect.State.Running,
+                restartCount,
+                logs: logOutput.substring(0, 1000)
+              });
+              
+              // Log full error to console for debugging
+              console.error(`\n❌ Container ${victim.name} Error Details:`);
+              console.error(`   Status: ${victim.status}`);
+              console.error(`   Exit Code: ${exitCode}`);
+              console.error(`   Restart Count: ${restartCount}`);
+              console.error(`   Last 50 lines of logs:\n${logOutput}`);
+            }
           } catch (logError) {
             this.logger.warn('Deployer', 'Could not read container logs', { name: victim.name, error: logError.message });
           }
+        } else if (victim.status && victim.status.includes('Restarting')) {
+          // Container is restarting - this is okay, it might stabilize
+          this.logger.info('Deployer', 'Container is restarting, will check again', {
+            name: victim.name,
+            status: victim.status
+          });
         }
       }
       if (containers.attacker && !containers.attacker.running && containers.attacker.status?.includes('Exited')) {

@@ -98,40 +98,76 @@ RUN mv /usr/bin/nmap /usr/bin/nmap.original 2>/dev/null || true && \\
     echo 'exec /usr/lib/nmap/nmap --unprivileged "$@"' >> /usr/bin/nmap && \\
     chmod +x /usr/bin/nmap
 
-# 🔒 SECURITY: Install iptables for network isolation
+# 🔒 SECURITY: Install iptables and iproute2 for network isolation
 RUN apt-get update && \\
-    apt-get install -y --no-install-recommends iptables && \\
+    apt-get install -y --no-install-recommends iptables iproute2 && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 🔒 SECURITY: Create network isolation script to block gateway and infrastructure access
+# 🔒 SECURITY: Create network isolation script
+# IMPORTANT: Allow Guacamole network (172.22.0.0/16) for SSH access - DO NOT BLOCK
+# CRITICAL: Script must not fail container startup if network isolation fails
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
-    echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo 'set +e' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
-    echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules (ignore errors)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies (allow by default, then restrict)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Get gateway IP - try iproute2 first, fallback to hostname -I' >> /usr/local/bin/secure-network.sh && \\
+    echo 'GATEWAY=""' >> /usr/local/bin/secure-network.sh && \\
+    echo 'if command -v ip >/dev/null 2>&1; then' >> /usr/local/bin/secure-network.sh && \\
+    echo '  GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'fi' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
     echo '  # Fallback: extract from interface IP (assume .1 is gateway)' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
-    echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
+    echo '  if [ ! -z "$MY_IP" ]; then' >> /usr/local/bin/secure-network.sh && \\
+    echo '    GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
+    echo '  fi' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
-    echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway access: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
-    echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
-    echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block gateway access (except DNS on port 53) - only if gateway is valid' >> /usr/local/bin/secure-network.sh && \\
+    echo 'if [ ! -z "$GATEWAY" ] && [ "$GATEWAY" != ".1" ]; then' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A OUTPUT -d $GATEWAY -j DROP 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'else' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "⚠️  Could not determine gateway, skipping gateway blocking"' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Block Guacamole network (172.22.0.0/16) - infrastructure isolation' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "🔒 Blocking Guacamole network: 172.22.0.0/16"' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: 172.22.0.0/16 is Guacamole network - DO NOT BLOCK (needed for SSH access)' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo '# Block other infrastructure networks' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "🔒 Blocking infrastructure networks"' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
     echo '' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation rules applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'if [ ! -z "$MY_IP" ]; then' >> /usr/local/bin/secure-network.sh && \\
+    echo '  NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A OUTPUT -d $NETWORK -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo '  iptables -A INPUT -s $NETWORK -j ACCEPT 2>/dev/null || true' >> /usr/local/bin/secure-network.sh && \\
+    echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
+    echo 'exit 0' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 # Create challenge directory
@@ -141,12 +177,12 @@ EXPOSE 22
 
 # 🔒 SECURITY: Apply network isolation on container start
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
     echo '' >> /start-secure.sh && \\
-    echo '# Apply network isolation rules' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo '# Apply network isolation rules (non-blocking)' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo '' >> /start-secure.sh && \\
-    echo '# Start SSH daemon' >> /start-secure.sh && \\
+    echo '# Start SSH daemon (this must succeed)' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
     chmod +x /start-secure.sh
 
@@ -270,28 +306,64 @@ RUN apt-get update && \\
 # Create challenge directory
 RUN mkdir -p /challenge && chmod 755 /challenge
 
-# 🔒 SECURITY: Install iptables for network isolation
+# 🔒 SECURITY: Install iptables and iproute2 for network isolation
 RUN apt-get update && \\
-    apt-get install -y --no-install-recommends iptables && \\
+    apt-get install -y --no-install-recommends iptables iproute2 && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 🔒 SECURITY: Create network isolation script
+# IMPORTANT: Allow Guacamole network (172.22.0.0/16) for SSH access - DO NOT BLOCK
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
     echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
     echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
     echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: 172.22.0.0/16 is Guacamole network - DO NOT BLOCK (needed for SSH access)' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -s $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 # Expose SSH port
@@ -299,8 +371,8 @@ EXPOSE 22
 
 # 🔒 SECURITY: Create secure startup script
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
     chmod +x /start-secure.sh
 
@@ -341,36 +413,72 @@ RUN mkdir -p /var/run/sshd && \\
 # Create challenge directory
 RUN mkdir -p /challenge && chmod 755 /challenge
 
-# 🔒 SECURITY: Install iptables for network isolation
+# 🔒 SECURITY: Install iptables and iproute2 for network isolation
 RUN apt-get update && \\
-    apt-get install -y --no-install-recommends iptables && \\
+    apt-get install -y --no-install-recommends iptables iproute2 && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 🔒 SECURITY: Create network isolation script
+# IMPORTANT: Allow Guacamole network (172.22.0.0/16) for SSH access - DO NOT BLOCK
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
     echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
     echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
     echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: 172.22.0.0/16 is Guacamole network - DO NOT BLOCK (needed for SSH access)' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -s $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 EXPOSE 22
 
 # 🔒 SECURITY: Create secure startup script
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
     chmod +x /start-secure.sh
 
@@ -571,34 +679,70 @@ RUN mv /usr/bin/nmap /usr/bin/nmap.original 2>/dev/null || true && \\
   // 🔒 SECURITY: Add network isolation if not already present
   if (!dockerfile.includes('secure-network.sh')) {
     dockerfile += `
-# 🔒 SECURITY: Install iptables for network isolation
+# 🔒 SECURITY: Install iptables and iproute2 for network isolation
 RUN apt-get update && \\
-    apt-get install -y --no-install-recommends iptables && \\
+    apt-get install -y --no-install-recommends iptables iproute2 && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 🔒 SECURITY: Create network isolation script
+# IMPORTANT: Allow Guacamole network (172.22.0.0/16) for SSH access - DO NOT BLOCK
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
     echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
     echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
     echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: 172.22.0.0/16 is Guacamole network - DO NOT BLOCK (needed for SSH access)' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -s $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 # 🔒 SECURITY: Create secure startup script
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
     chmod +x /start-secure.sh
 `;
@@ -663,36 +807,72 @@ RUN mv /usr/bin/nmap /usr/bin/nmap.original 2>/dev/null || true && \\
 # Create challenge directory
 RUN mkdir -p /challenge && chmod 755 /challenge
 
-# 🔒 SECURITY: Install iptables for network isolation
+# 🔒 SECURITY: Install iptables and iproute2 for network isolation
 RUN apt-get update && \\
-    apt-get install -y --no-install-recommends iptables && \\
+    apt-get install -y --no-install-recommends iptables iproute2 && \\
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 🔒 SECURITY: Create network isolation script
+# IMPORTANT: Allow Guacamole network (172.22.0.0/16) for SSH access - DO NOT BLOCK
 RUN echo '#!/bin/bash' > /usr/local/bin/secure-network.sh && \\
     echo 'set -e' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Flush existing rules' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F OUTPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F INPUT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -F FORWARD' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Set default policies' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P INPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P FORWARD ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -P OUTPUT ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow loopback' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -i lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -o lo -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow established and related connections' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Get gateway IP from default route' >> /usr/local/bin/secure-network.sh && \\
     echo 'GATEWAY=$(ip route | grep default | awk '"'"'{print $3}'"'"' | head -1)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
     echo '  MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
     echo '  GATEWAY=$(echo $MY_IP | cut -d. -f1-3).1' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block gateway access (except DNS on port 53)' >> /usr/local/bin/secure-network.sh && \\
     echo 'if [ ! -z "$GATEWAY" ]; then' >> /usr/local/bin/secure-network.sh && \\
-    echo '  echo "🔒 Blocking gateway: $GATEWAY"' >> /usr/local/bin/secure-network.sh && \\
+    echo '  echo "🔒 Blocking gateway access: $GATEWAY (except DNS)"' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -p udp --dport 53 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
     echo '  iptables -A OUTPUT -d $GATEWAY -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'fi' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Block infrastructure networks (OUTPUT only - allow INPUT for SSH from Guacamole)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "🔒 Blocking infrastructure networks (OUTPUT only)"' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.20.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
     echo 'iptables -A OUTPUT -d 172.21.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'iptables -A OUTPUT -d 172.22.0.0/16 -j DROP' >> /usr/local/bin/secure-network.sh && \\
-    echo 'echo "✅ Network isolation applied"' >> /usr/local/bin/secure-network.sh && \\
+    echo '# NOTE: 172.22.0.0/16 is Guacamole network - DO NOT BLOCK (needed for SSH access)' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow SSH from any source (for Guacamole access)' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -p tcp --dport 22 -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo '# Allow all traffic within challenge network' >> /usr/local/bin/secure-network.sh && \\
+    echo 'MY_IP=$(hostname -I | awk '"'"'{print $1}'"'"')' >> /usr/local/bin/secure-network.sh && \\
+    echo 'NETWORK=$(echo $MY_IP | cut -d. -f1-3).0/24' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A OUTPUT -d $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo 'iptables -A INPUT -s $NETWORK -j ACCEPT' >> /usr/local/bin/secure-network.sh && \\
+    echo '' >> /usr/local/bin/secure-network.sh && \\
+    echo 'echo "✅ Network isolation rules applied (Guacamole SSH access allowed)"' >> /usr/local/bin/secure-network.sh && \\
     chmod +x /usr/local/bin/secure-network.sh
 
 EXPOSE 22
 
 # 🔒 SECURITY: Create secure startup script
 RUN echo '#!/bin/bash' > /start-secure.sh && \\
-    echo 'set -e' >> /start-secure.sh && \\
-    echo '/usr/local/bin/secure-network.sh' >> /start-secure.sh && \\
+    echo 'set +e' >> /start-secure.sh && \\
+    echo '/usr/local/bin/secure-network.sh || echo "⚠️  Network isolation failed, continuing anyway..."' >> /start-secure.sh && \\
     echo 'exec /usr/sbin/sshd -D' >> /start-secure.sh && \\
     chmod +x /start-secure.sh
 

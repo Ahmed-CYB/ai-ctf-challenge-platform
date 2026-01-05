@@ -33,14 +33,18 @@ export class SubnetAllocator {
    */
   isSubnetInUse(subnet) {
     try {
+      // Get all networks, including those in error state
       const networks = execSync('docker network ls --format "{{.Name}}"', { encoding: 'utf8' });
       const networkList = networks.trim().split('\n').filter(n => n);
       
       // Infrastructure networks to exclude from overlap checking
       // These are platform networks, not challenge networks
+      // IMPORTANT: These networks use /16 subnets that would overlap with challenge /24 subnets
       const infrastructureNetworks = [
         'ctf-network',
         'ctf-platform-network',
+        'ctf-guacamole-network',
+        'guac-network',
         'bridge',
         'host',
         'none'
@@ -62,8 +66,27 @@ export class SubnetAllocator {
         }
         
         try {
-          const inspect = execSync(`docker network inspect ${network}`, { encoding: 'utf8' });
-          const networkInfo = JSON.parse(inspect)[0];
+          // Try to inspect the network - this will fail for networks in error state
+          // but we can still check if they exist
+          let networkInfo;
+          try {
+            const inspect = execSync(`docker network inspect ${network}`, { encoding: 'utf8', stdio: 'pipe' });
+            const parsed = JSON.parse(inspect);
+            networkInfo = parsed[0];
+          } catch (inspectError) {
+            // Network might be in error state or partially created
+            // Check if it's a challenge network that might be using this subnet
+            // If the network name contains the subnet pattern, assume it might conflict
+            if (network.includes('ctf-') || network.includes('_ctf-')) {
+              // Try to get network info using docker network inspect with error handling
+              // If it fails, the network might be partially created - be conservative and assume conflict
+              console.log(`⚠️  Network ${network} might be in error state, checking subnet overlap...`);
+              // For now, skip networks we can't inspect (they might be partially created)
+              // But we should try to remove them
+              continue;
+            }
+            continue;
+          }
           
           // Skip external networks
           if (networkInfo.ConfigOnly || (networkInfo.Options && networkInfo.Options.external === 'true')) {
@@ -143,8 +166,8 @@ export class SubnetAllocator {
    * @returns {object|null} - Available allocation or null if none found
    */
   findAvailableSubnet(challengeId, startUserId, maxAttempts = 50) {
-    // Reserved ranges to skip: 172.20, 172.21, 172.22
-    const reservedOctets = [20, 21, 22];
+    // Reserved ranges to skip: 172.20, 172.21, 172.22, 172.24 (ctf-network uses 172.24.0.0/16)
+    const reservedOctets = [20, 21, 22, 24];
     
     // Try different second octets (172.23.x.x to 172.30.x.x)
     for (let octetOffset = 0; octetOffset < 11; octetOffset++) {
