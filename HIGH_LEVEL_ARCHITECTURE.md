@@ -142,8 +142,8 @@ graph LR
 
     subgraph "Backend Layer"
         Express[Express.js<br/>REST API Server]
-        JWT[JWT Authentication<br/>jsonwebtoken]
-        Bcrypt[Password Hashing<br/>bcryptjs]
+        JWT[JWT Authentication<br/>jsonwebtoken<br/>━━━━━━━━━━━━━━━━<br/>• Create tokens after login<br/>• Verify tokens on requests<br/>• Session management<br/>• Token expiration (7 days)]
+        Bcrypt[Password Hashing<br/>bcryptjs<br/>━━━━━━━━━━━━━━━━<br/>• Hash passwords (one-way)<br/>• Compare passwords on login<br/>• Secure password storage<br/>• Never store plain text]
     end
 
     subgraph "CTF Automation Layer"
@@ -168,8 +168,10 @@ graph LR
     end
 
     React -->|"HTTP Requests<br/>POST /api/auth/login<br/>POST /api/chat<br/>GET /api/challenges<br/>Returns: JSON, JWT Tokens"| Express
-    Express -->|"Verify Token<br/>Validate Session<br/>Generate JWT"| JWT
-    Express -->|"Hash Passwords<br/>Compare Hashes"| Bcrypt
+    Express -->|"Generate Token<br/>jwt.sign()<br/>After successful login<br/>Verify Token<br/>jwt.verify()<br/>On protected routes"| JWT
+    JWT -->|"Token Created<br/>Token Verified<br/>User Authenticated"| Express
+    Express -->|"Hash Password<br/>bcrypt.hash()<br/>During registration<br/>Compare Password<br/>bcrypt.compare()<br/>During login"| Bcrypt
+    Bcrypt -->|"Password Hashed<br/>Password Valid<br/>Password Invalid"| Express
     Express -->|"SQL Queries<br/>pg.Pool<br/>Connection Pool"| PG
     Express -->|"HTTP Proxy<br/>POST /api/chat<br/>Forward Requests"| NodeJS
     
@@ -257,7 +259,15 @@ graph LR
 - **Node.js**: Runtime environment
 - **Express.js**: Web framework
 - **jsonwebtoken**: JWT token generation/verification
-- **bcryptjs**: Password hashing
+  - **Purpose**: Creates and verifies authentication tokens
+  - **Usage**: After login/registration, creates token with user info (userId, username, email, role)
+  - **Expiration**: 7 days
+  - **Function**: `jwt.sign()` to create, `jwt.verify()` to validate
+- **bcryptjs**: Password hashing (one-way encryption)
+  - **Purpose**: Securely stores passwords in database
+  - **Usage**: Hashes password during registration, compares hash during login
+  - **Security**: One-way function - cannot reverse hash to get original password
+  - **Function**: `bcrypt.hash()` to hash, `bcrypt.compare()` to verify
 - **pg (node-postgres)**: PostgreSQL client
 - **cookie-parser**: Cookie handling
 - **helmet**: Security headers
@@ -297,6 +307,108 @@ graph LR
 - **Anthropic Claude**: Large language model
 - **Word Embeddings**: Text vectorization (if used)
 - **LIME**: Explainability (if implemented)
+
+---
+
+## 🔐 Authentication Components Explained
+
+### **Why Two Separate Components?**
+
+The authentication system uses **two different security mechanisms** that work together but serve completely different purposes:
+
+#### **1. bcryptjs - Password Hashing (Storage Security)**
+
+**What it does:**
+- **One-way encryption** - Converts plain text passwords into secure hashes
+- **Cannot be reversed** - Even if database is compromised, attackers can't get original passwords
+- **Slow by design** - Makes brute force attacks impractical
+
+**When it's used:**
+1. **During Registration** (Line 295 in server.js):
+   ```javascript
+   const password_hash = await bcrypt.hash(password, 10);
+   // Stores: "$2a$10$N9qo8uLOickgx2ZMRZoMye..." (hashed, not plain text)
+   ```
+
+2. **During Login** (Line 393 in server.js):
+   ```javascript
+   const validPassword = await bcrypt.compare(password, user.password_hash);
+   // Compares entered password with stored hash
+   ```
+
+**Why it's needed:**
+- **Security**: Passwords are NEVER stored in plain text in the database
+- **Protection**: Even if database is hacked, passwords remain secure
+- **Best Practice**: Industry standard for password storage
+
+---
+
+#### **2. jsonwebtoken (JWT) - Session Management (Authentication Tokens)**
+
+**What it does:**
+- **Creates tokens** - Generates signed tokens containing user information
+- **Verifies tokens** - Validates tokens on every protected API request
+- **Stateless authentication** - No need to store sessions in database
+
+**When it's used:**
+1. **After Successful Login** (Line 425 in server.js):
+   ```javascript
+   const token = jwt.sign(
+     { user_id, username, email, role },
+     JWT_SECRET,
+     { expiresIn: '7d' }
+   );
+   // Creates: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." (token)
+   ```
+
+2. **On Protected Routes** (Line 191 in server.js):
+   ```javascript
+   jwt.verify(token, JWT_SECRET, (err, user) => {
+     // Verifies token is valid and not expired
+   });
+   ```
+
+**Why it's needed:**
+- **Session Management**: Proves user is authenticated without checking database every time
+- **Performance**: Faster than database lookups for every request
+- **Scalability**: Works across multiple servers (stateless)
+
+---
+
+### **How They Work Together**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AUTHENTICATION FLOW                       │
+└─────────────────────────────────────────────────────────────┘
+
+1. USER REGISTRATION:
+   User enters password → bcryptjs hashes it → Store hash in DB
+   
+2. USER LOGIN:
+   User enters password → bcryptjs compares with hash → If valid:
+   → JWT creates token → Send token to frontend
+   
+3. PROTECTED API REQUESTS:
+   Frontend sends token → JWT verifies token → If valid:
+   → Allow access to protected resource
+   
+4. PASSWORD CHANGE:
+   User enters current password → bcryptjs verifies → If valid:
+   → bcryptjs hashes new password → Store new hash in DB
+```
+
+### **Key Differences**
+
+| Feature | bcryptjs | jsonwebtoken (JWT) |
+|---------|----------|-------------------|
+| **Purpose** | Password storage security | Session/authentication management |
+| **Direction** | One-way (cannot reverse) | Two-way (can decode with secret) |
+| **When Used** | Registration, Login, Password Change | After login, Every API request |
+| **Stored In** | Database (password_hash column) | Frontend (localStorage/cookies) |
+| **Contains** | Hashed password only | User info (userId, username, role) |
+| **Expiration** | Never expires | 7 days (configurable) |
+| **Security Goal** | Protect passwords if DB hacked | Prove user is authenticated |
 
 ---
 
@@ -358,9 +470,21 @@ Frontend → User: Display connection link
 User → Frontend: Enter credentials (username, password)
 Frontend → Backend: POST /api/auth/login {username, password}
 Backend → PostgreSQL: SELECT * FROM users WHERE username
-PostgreSQL → Backend: User data, hashed password
-Backend → Backend: bcrypt.compare(password, hash)
-Backend → Backend: jwt.sign({userId, username})
+PostgreSQL → Backend: User data, password_hash (hashed with bcryptjs)
+
+┌─────────────────────────────────────────────────────────┐
+│ STEP 1: PASSWORD VERIFICATION (bcryptjs)                │
+└─────────────────────────────────────────────────────────┘
+Backend → bcryptjs: bcrypt.compare(password, password_hash)
+bcryptjs → Backend: Password valid/invalid
+  ↓ (If valid)
+  
+┌─────────────────────────────────────────────────────────┐
+│ STEP 2: TOKEN CREATION (jsonwebtoken)                   │
+└─────────────────────────────────────────────────────────┘
+Backend → JWT: jwt.sign({userId, username, email, role}, JWT_SECRET)
+JWT → Backend: Token created (expires in 7 days)
+
 Backend → PostgreSQL: INSERT INTO sessions (sessionId, userId, token)
 PostgreSQL → Backend: Session created
 Backend → MySQL: SELECT FROM session_guacamole_users WHERE sessionId
@@ -370,6 +494,14 @@ Guacamole → MySQL: INSERT INTO guacamole_user
 Backend → Frontend: {token, sessionId, userInfo}
 Frontend → Frontend: Store token in localStorage
 Frontend → User: Redirect to dashboard
+
+┌─────────────────────────────────────────────────────────┐
+│ SUBSEQUENT REQUESTS: TOKEN VERIFICATION (jsonwebtoken)  │
+└─────────────────────────────────────────────────────────┘
+Frontend → Backend: GET /api/challenges {token in header}
+Backend → JWT: jwt.verify(token, JWT_SECRET)
+JWT → Backend: Token valid, user authenticated
+Backend → PostgreSQL: Process request with user context
 ```
 
 ### **User Access to Challenge Flow**
