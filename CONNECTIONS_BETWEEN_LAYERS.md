@@ -5,9 +5,10 @@
 2. **Frontend Layer**
 3. **Backend Layer**
 4. **CTF Automation Layer**
-5. **Database Layer**
-6. **External API Layer**
-7. **Container Infrastructure Layer**
+5. **PostgreSQL Layer**
+6. **MySQL Layer**
+7. **External API Layer**
+8. **Container Infrastructure Layer**
 
 ---
 
@@ -43,68 +44,79 @@
 
 ---
 
-### Backend Layer → Database Layer
+### Backend Layer → PostgreSQL Layer
 
-7. **Backend Layer** → **Database Layer**
+7. **Backend Layer** → **PostgreSQL Layer**
    - Label: `"Store & Retrieve Data"`
 
-8. **Database Layer** → **Backend Layer**
+8. **PostgreSQL Layer** → **Backend Layer**
    - Label: `"Data"`
 
 ---
 
-### CTF Automation Layer → Database Layer
+### CTF Automation Layer → PostgreSQL Layer
 
-9. **CTF Automation Layer** → **Database Layer**
+9. **CTF Automation Layer** → **PostgreSQL Layer**
    - Label: `"Read/Write Data"`
 
-10. **Database Layer** → **CTF Automation Layer**
+10. **PostgreSQL Layer** → **CTF Automation Layer**
     - Label: `"Data"`
+
+---
+
+### CTF Automation Layer → MySQL Layer
+
+11. **CTF Automation Layer** → **MySQL Layer**
+    - Label: `"Create Connections"`
+
+12. **MySQL Layer** → **CTF Automation Layer**
+    - Label: `"Connection Data"`
 
 ---
 
 ### CTF Automation Layer → External API Layer
 
-11. **CTF Automation Layer** → **External API Layer**
+13. **CTF Automation Layer** → **External API Layer**
     - Label: `"API Requests"`
 
-12. **External API Layer** → **CTF Automation Layer**
+14. **External API Layer** → **CTF Automation Layer**
     - Label: `"API Responses"`
 
 ---
 
 ### CTF Automation Layer → Container Infrastructure Layer
 
-13. **CTF Automation Layer** → **Container Infrastructure Layer**
+15. **CTF Automation Layer** → **Container Infrastructure Layer**
     - Label: `"Manage Containers"`
 
-14. **Container Infrastructure Layer** → **CTF Automation Layer**
+16. **Container Infrastructure Layer** → **CTF Automation Layer**
     - Label: `"Container Status"`
 
 ---
 
-### Container Infrastructure Layer → Database Layer
+### Container Infrastructure Layer → MySQL Layer
 
-15. **Container Infrastructure Layer** → **Database Layer**
+17. **Container Infrastructure Layer** → **MySQL Layer**
     - Label: `"Read Config"`
 
-16. **Database Layer** → **Container Infrastructure Layer**
+18. **MySQL Layer** → **Container Infrastructure Layer**
     - Label: `"Config Data"`
 
 ---
 
 ## Summary
 
-**Total Inter-Layer Connections: 16**
+**Total Inter-Layer Connections: 18**
 
 - User ↔ Frontend: 2 connections
 - Frontend ↔ Backend: 2 connections
 - Frontend ↔ CTF Automation: 2 connections
-- Backend ↔ Database: 2 connections
-- CTF Automation ↔ Database: 2 connections
+- Backend ↔ PostgreSQL: 2 connections
+- CTF Automation ↔ PostgreSQL: 2 connections
+- CTF Automation ↔ MySQL: 2 connections
 - CTF Automation ↔ External API: 2 connections
 - CTF Automation ↔ Container Infrastructure: 2 connections
-- Container Infrastructure ↔ Database: 2 connections
+- Container Infrastructure ↔ MySQL: 2 connections
 
 ---
 
@@ -116,10 +128,13 @@ User Layer
 Frontend Layer
     ↕          ↕
 Backend Layer  CTF Automation Layer
-    ↕              ↕        ↕        ↕
-Database Layer     Database  External  Container
-                        Layer    API     Infrastructure
+    ↕              ↕    ↕    ↕    ↕
+PostgreSQL Layer  PostgreSQL MySQL External Container
+                        Layer  Layer  API     Infrastructure
                                 Layer      Layer
+                                      ↕
+                                    MySQL
+                                    Layer
 ```
 
 ---
