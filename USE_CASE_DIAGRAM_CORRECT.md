@@ -54,7 +54,7 @@ This use case diagram follows UML 2.5 specifications and best practices from:
 
 ---
 
-## Use Case Diagram (UML Compliant)
+## Use Case Diagram (UML Compliant - User-Focused)
 
 ```mermaid
 graph TB
@@ -71,11 +71,6 @@ graph TB
         UC10[View Chat History]
         UC11[Manage User Profile]
         UC12[Browse Challenges]
-        UC13[Validate Challenge Deployment]
-        UC14[Generate Challenge Content]
-        UC15[Store Challenge Files]
-        UC16[Create Container Network]
-        UC17[Setup Guacamole Connection]
     end
 
     User((User))
@@ -83,7 +78,6 @@ graph TB
     Anthropic((Anthropic API))
     GitHub((GitHub Repository))
     Guacamole((Guacamole Service))
-    Docker((Docker Engine))
 
     %% Actor-Use Case Associations (Solid lines, NO arrowheads - UML Standard)
     User --- UC1
@@ -95,66 +89,43 @@ graph TB
     User --- UC7
     User --- UC8
     User --- UC9
+    User --- UC10
     User --- UC11
     User --- UC12
 
     %% Include Relationships (MANDATORY - Dashed arrow FROM base TO included)
-    %% Rule: Base use case MUST include these - they always happen
-    %% Visual: Blue dashed arrows pointing FROM base TO included
+    %% User actions that MUST include other actions
     UC5 -.->|<<include>>| UC8
-    UC5 -.->|<<include>>| UC14
-    UC5 -.->|<<include>>| UC15
     UC6 -.->|<<include>>| UC8
-    UC6 -.->|<<include>>| UC13
-    UC6 -.->|<<include>>| UC16
-    UC6 -.->|<<include>>| UC17
     UC6 -.->|<<include>>| UC7
 
     %% Extend Relationships (OPTIONAL - Dashed arrow FROM extending TO base)
-    %% Rule: Extending use case MAY happen - it's optional behavior
-    %% Visual: Green dashed arrows pointing FROM extending TO base
-    UC12 -.->|<<extend>>| UC5
-    UC12 -.->|<<extend>>| UC6
+    %% User actions that MAY lead to optional actions
     UC10 -.->|<<extend>>| UC8
     UC10 -.->|<<extend>>| UC7
     UC10 -.->|<<extend>>| UC9
     UC9 -.->|<<extend>>| UC5
     UC9 -.->|<<extend>>| UC6
+    UC12 -.->|<<extend>>| UC5
+    UC12 -.->|<<extend>>| UC6
 
     %% External Actor Associations (Solid lines, NO arrowheads)
-    UC14 --- OpenAI
-    UC14 --- Anthropic
-    UC15 --- GitHub
+    %% These support user actions but are not user-initiated
+    UC5 --- OpenAI
+    UC5 --- Anthropic
+    UC5 --- GitHub
     UC6 --- GitHub
-    UC13 --- Docker
-    UC16 --- Docker
-    UC17 --- Guacamole
+    UC6 --- Guacamole
     UC7 --- Guacamole
+    UC8 --- OpenAI
+    UC8 --- Anthropic
 
     style System fill:#e1f5ff,stroke:#01579b,stroke-width:3px
-    style User fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style User fill:#fff9c4,stroke:#f57f17,stroke-width:3px
     style OpenAI fill:#ffccbc,stroke:#bf360c,stroke-width:2px
     style Anthropic fill:#ffccbc,stroke:#bf360c,stroke-width:2px
     style GitHub fill:#ffccbc,stroke:#bf360c,stroke-width:2px
     style Guacamole fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    style Docker fill:#90caf9,stroke:#0d47a1,stroke-width:2px
-    
-    %% Color coding for relationships (if supported)
-    linkStyle 11 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 12 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 13 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 14 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 15 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 16 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 17 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 18 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 19 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 20 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 21 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 22 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 23 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 24 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
-    linkStyle 25 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
 ```
 
 ---
@@ -253,6 +224,27 @@ graph LR
 
 ---
 
+## User-Focused Use Cases
+
+All use cases represent **user goals and actions** - what the user wants to achieve:
+
+1. **Register Account** - User creates account
+2. **Login to Platform** - User authenticates
+3. **Logout from Platform** - User ends session
+4. **View Dashboard** - User sees overview
+5. **Create CTF Challenge** - User creates new challenge
+6. **Deploy CTF Challenge** - User deploys challenge
+7. **Access Challenge Environment** - User accesses deployed challenge
+8. **Chat with AI Assistant** - User interacts with AI
+9. **View Challenge Details** - User views challenge information
+10. **View Chat History** - User reviews past conversations
+11. **Manage User Profile** - User updates profile
+12. **Browse Challenges** - User searches/browses challenges
+
+**Note**: External actors (OpenAI, Anthropic, GitHub, Guacamole) support user actions but are not user-initiated use cases.
+
+---
+
 ## Corrected Relationships Explanation
 
 ### Include Relationships (MANDATORY - Always Happens)
@@ -260,19 +252,17 @@ graph LR
 **Arrow Direction**: FROM base use case TO included use case  
 **Visual Pattern**: `[Base] --<<include>>--> [Included]`
 
-1. **UC5 (Create Challenge) includes UC8, UC14, UC15**
+1. **UC5 (Create Challenge) includes UC8 (Chat with AI)**
    - **UC5 → UC8**: Creating challenge **MUST** use AI chat (mandatory)
-   - **UC5 → UC14**: Creating challenge **MUST** generate content (mandatory)
-   - **UC5 → UC15**: Creating challenge **MUST** store files (mandatory)
-   - **Why Include?**: You cannot create a challenge without chatting, generating, and storing
+   - **Why Include?**: User cannot create a challenge without chatting with AI
 
-2. **UC6 (Deploy Challenge) includes UC8, UC13, UC16, UC17, UC7**
+2. **UC6 (Deploy Challenge) includes UC8 (Chat with AI)**
    - **UC6 → UC8**: Deployment **MUST** use AI chat (mandatory)
-   - **UC6 → UC13**: Deployment **MUST** validate (mandatory)
-   - **UC6 → UC16**: Deployment **MUST** create network (mandatory)
-   - **UC6 → UC17**: Deployment **MUST** setup Guacamole (mandatory)
+   - **Why Include?**: User cannot deploy without chatting with AI
+
+3. **UC6 (Deploy Challenge) includes UC7 (Access Challenge)**
    - **UC6 → UC7**: Deployment **MUST** provide access (mandatory)
-   - **Why Include?**: You cannot deploy without these steps
+   - **Why Include?**: User cannot deploy without getting access capability
 
 **Key Point**: If the base use case happens, the included use case ALWAYS happens.
 
@@ -281,21 +271,21 @@ graph LR
 **Arrow Direction**: FROM extending use case TO base use case  
 **Visual Pattern**: `[Extending] --<<extend>>--> [Base]`
 
-1. **UC12 (Browse Challenges) extends UC5, UC6**
-   - **UC12 → UC5**: After creating, user **MAY** browse challenges (optional)
-   - **UC12 → UC6**: After deploying, user **MAY** browse challenges (optional)
-   - **Why Extend?**: Browsing is not required after creating/deploying
-
-2. **UC10 (View Chat History) extends UC8, UC7, UC9**
+1. **UC10 (View Chat History) extends UC8, UC7, UC9**
    - **UC10 → UC8**: After chatting, user **MAY** view history (optional)
    - **UC10 → UC7**: After accessing, user **MAY** view history (optional)
    - **UC10 → UC9**: After viewing details, user **MAY** view history (optional)
    - **Why Extend?**: Viewing history is not required after these actions
 
-3. **UC9 (View Challenge Details) extends UC5, UC6**
+2. **UC9 (View Challenge Details) extends UC5, UC6**
    - **UC9 → UC5**: After creating, user **MAY** view details (optional)
    - **UC9 → UC6**: After deploying, user **MAY** view details (optional)
    - **Why Extend?**: Viewing details is not required after creating/deploying
+
+3. **UC12 (Browse Challenges) extends UC5, UC6**
+   - **UC12 → UC5**: After creating, user **MAY** browse challenges (optional)
+   - **UC12 → UC6**: After deploying, user **MAY** browse challenges (optional)
+   - **Why Extend?**: Browsing is not required after creating/deploying
 
 **Key Point**: If the base use case happens, the extending use case MAY happen (but not always).
 
@@ -385,7 +375,7 @@ All use cases follow **Verb-Noun** format:
 
 ---
 
-## PlantUML Format (UML Standard)
+## PlantUML Format (UML Standard - User-Focused)
 
 ```plantuml
 @startuml AI_CTF_Challenge_Platform_Use_Case_Diagram
@@ -397,7 +387,6 @@ actor "OpenAI API" as OpenAI
 actor "Anthropic API" as Anthropic
 actor "GitHub Repository" as GitHub
 actor "Guacamole Service" as Guacamole
-actor "Docker Engine" as Docker
 
 rectangle "AI CTF Challenge Platform" {
     usecase "Register Account" as UC1
@@ -412,11 +401,6 @@ rectangle "AI CTF Challenge Platform" {
     usecase "View Chat History" as UC10
     usecase "Manage User Profile" as UC11
     usecase "Browse Challenges" as UC12
-    usecase "Validate Challenge Deployment" as UC13
-    usecase "Generate Challenge Content" as UC14
-    usecase "Store Challenge Files" as UC15
-    usecase "Create Container Network" as UC16
-    usecase "Setup Guacamole Connection" as UC17
 }
 
 ' Actor-Use Case Associations (Solid lines, no arrowheads)
@@ -429,37 +413,34 @@ User -- UC6
 User -- UC7
 User -- UC8
 User -- UC9
+User -- UC10
 User -- UC11
 User -- UC12
 
 ' Include Relationships (Dashed arrow FROM base TO included)
 UC5 ..> UC8 : <<include>>
-UC5 ..> UC14 : <<include>>
-UC5 ..> UC15 : <<include>>
 UC6 ..> UC8 : <<include>>
-UC6 ..> UC13 : <<include>>
-UC6 ..> UC16 : <<include>>
-UC6 ..> UC17 : <<include>>
 UC6 ..> UC7 : <<include>>
 
 ' Extend Relationships (Dashed arrow FROM extending TO base)
-UC12 ..> UC5 : <<extend>>
-UC12 ..> UC6 : <<extend>>
 UC10 ..> UC8 : <<extend>>
 UC10 ..> UC7 : <<extend>>
 UC10 ..> UC9 : <<extend>>
 UC9 ..> UC5 : <<extend>>
 UC9 ..> UC6 : <<extend>>
+UC12 ..> UC5 : <<extend>>
+UC12 ..> UC6 : <<extend>>
 
 ' External Actor Associations (Solid lines, no arrowheads)
-UC14 -- OpenAI
-UC14 -- Anthropic
-UC15 -- GitHub
+' These support user actions but are not user-initiated
+UC5 -- OpenAI
+UC5 -- Anthropic
+UC5 -- GitHub
 UC6 -- GitHub
-UC13 -- Docker
-UC16 -- Docker
-UC17 -- Guacamole
+UC6 -- Guacamole
 UC7 -- Guacamole
+UC8 -- OpenAI
+UC8 -- Anthropic
 
 @enduml
 ```
@@ -492,14 +473,14 @@ UC7 -- Guacamole
 
 ## Use Case Diagram Statistics
 
-- **Total Use Cases**: 17
-- **Primary Use Cases**: 12 (User-initiated)
-- **Secondary Use Cases**: 5 (System-internal)
+- **Total Use Cases**: 12 (All user-initiated)
 - **Primary Actor**: 1 (User)
-- **Secondary Actors**: 5 (OpenAI API, Anthropic API, GitHub Repository, Guacamole Service, Docker Engine)
-- **Actor-Use Case Associations**: 19 (solid lines, no arrowheads)
-- **Include Relationships**: 8 (dashed arrows, mandatory)
+- **Secondary Actors**: 4 (OpenAI API, Anthropic API, GitHub Repository, Guacamole Service)
+- **Actor-Use Case Associations**: 12 (solid lines, no arrowheads)
+- **Include Relationships**: 3 (dashed arrows, mandatory)
 - **Extend Relationships**: 7 (dashed arrows, optional)
+
+**Focus**: All use cases represent user goals and actions, not system-internal processes.
 
 ---
 
