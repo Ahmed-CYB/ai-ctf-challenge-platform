@@ -68,9 +68,8 @@ graph TB
         UC7[Access Challenge Environment]
         UC8[Chat with AI Assistant]
         UC9[View Challenge Details]
-        UC10[View Chat History]
-        UC11[Manage User Profile]
-        UC12[Browse Challenges]
+        UC10[Manage User Profile]
+        UC11[Browse Challenges]
     end
 
     User((User))
@@ -91,7 +90,6 @@ graph TB
     User --- UC9
     User --- UC10
     User --- UC11
-    User --- UC12
 
     %% Include Relationships (MANDATORY - Dashed arrow FROM base TO included)
     %% User actions that MUST include other actions
@@ -101,13 +99,10 @@ graph TB
 
     %% Extend Relationships (OPTIONAL - Dashed arrow FROM extending TO base)
     %% User actions that MAY lead to optional actions
-    UC10 -.->|<<extend>>| UC8
-    UC10 -.->|<<extend>>| UC7
-    UC10 -.->|<<extend>>| UC9
     UC9 -.->|<<extend>>| UC5
     UC9 -.->|<<extend>>| UC6
-    UC12 -.->|<<extend>>| UC5
-    UC12 -.->|<<extend>>| UC6
+    UC11 -.->|<<extend>>| UC5
+    UC11 -.->|<<extend>>| UC6
 
     %% External Actor Associations (Solid lines, NO arrowheads)
     %% These support user actions but are not user-initiated
@@ -237,9 +232,10 @@ All use cases represent **user goals and actions** - what the user wants to achi
 7. **Access Challenge Environment** - User accesses deployed challenge
 8. **Chat with AI Assistant** - User interacts with AI
 9. **View Challenge Details** - User views challenge information
-10. **View Chat History** - User reviews past conversations
-11. **Manage User Profile** - User updates profile
-12. **Browse Challenges** - User searches/browses challenges
+10. **Manage User Profile** - User updates profile
+11. **Browse Challenges** - User searches/browses challenges
+
+**Note**: Chat history is used internally by the system for context, but users cannot directly request to view it. Therefore, it is not a user-initiated use case.
 
 **Note**: External actors (OpenAI, Anthropic, GitHub, Guacamole) support user actions but are not user-initiated use cases.
 
@@ -271,20 +267,14 @@ All use cases represent **user goals and actions** - what the user wants to achi
 **Arrow Direction**: FROM extending use case TO base use case  
 **Visual Pattern**: `[Extending] --<<extend>>--> [Base]`
 
-1. **UC10 (View Chat History) extends UC8, UC7, UC9**
-   - **UC10 → UC8**: After chatting, user **MAY** view history (optional)
-   - **UC10 → UC7**: After accessing, user **MAY** view history (optional)
-   - **UC10 → UC9**: After viewing details, user **MAY** view history (optional)
-   - **Why Extend?**: Viewing history is not required after these actions
-
-2. **UC9 (View Challenge Details) extends UC5, UC6**
+1. **UC9 (View Challenge Details) extends UC5, UC6**
    - **UC9 → UC5**: After creating, user **MAY** view details (optional)
    - **UC9 → UC6**: After deploying, user **MAY** view details (optional)
    - **Why Extend?**: Viewing details is not required after creating/deploying
 
-3. **UC12 (Browse Challenges) extends UC5, UC6**
-   - **UC12 → UC5**: After creating, user **MAY** browse challenges (optional)
-   - **UC12 → UC6**: After deploying, user **MAY** browse challenges (optional)
+2. **UC11 (Browse Challenges) extends UC5, UC6**
+   - **UC11 → UC5**: After creating, user **MAY** browse challenges (optional)
+   - **UC11 → UC6**: After deploying, user **MAY** browse challenges (optional)
    - **Why Extend?**: Browsing is not required after creating/deploying
 
 **Key Point**: If the base use case happens, the extending use case MAY happen (but not always).
@@ -398,9 +388,8 @@ rectangle "AI CTF Challenge Platform" {
     usecase "Access Challenge Environment" as UC7
     usecase "Chat with AI Assistant" as UC8
     usecase "View Challenge Details" as UC9
-    usecase "View Chat History" as UC10
-    usecase "Manage User Profile" as UC11
-    usecase "Browse Challenges" as UC12
+    usecase "Manage User Profile" as UC10
+    usecase "Browse Challenges" as UC11
 }
 
 ' Actor-Use Case Associations (Solid lines, no arrowheads)
@@ -415,7 +404,6 @@ User -- UC8
 User -- UC9
 User -- UC10
 User -- UC11
-User -- UC12
 
 ' Include Relationships (Dashed arrow FROM base TO included)
 UC5 ..> UC8 : <<include>>
@@ -423,13 +411,10 @@ UC6 ..> UC8 : <<include>>
 UC6 ..> UC7 : <<include>>
 
 ' Extend Relationships (Dashed arrow FROM extending TO base)
-UC10 ..> UC8 : <<extend>>
-UC10 ..> UC7 : <<extend>>
-UC10 ..> UC9 : <<extend>>
 UC9 ..> UC5 : <<extend>>
 UC9 ..> UC6 : <<extend>>
-UC12 ..> UC5 : <<extend>>
-UC12 ..> UC6 : <<extend>>
+UC11 ..> UC5 : <<extend>>
+UC11 ..> UC6 : <<extend>>
 
 ' External Actor Associations (Solid lines, no arrowheads)
 ' These support user actions but are not user-initiated
@@ -464,21 +449,21 @@ UC8 -- Anthropic
 - ✅ Actors represent roles, not individuals
 
 ### 4. **Relationship Corrections**
-- ✅ Fixed include relationships (mandatory dependencies) - 8 relationships
-- ✅ Fixed extend relationships (optional behaviors) - 7 relationships
+- ✅ Fixed include relationships (mandatory dependencies) - 3 relationships
+- ✅ Fixed extend relationships (optional behaviors) - 4 relationships
 - ✅ Removed incorrect "initiates" and "uses" labels from associations
-- ✅ Removed incorrect include relationship between Login and Register (Login doesn't include Register, it just requires registration to have occurred previously)
+- ✅ Removed "View Chat History" use case (not user-initiated - system uses it internally for context)
 
 ---
 
 ## Use Case Diagram Statistics
 
-- **Total Use Cases**: 12 (All user-initiated)
+- **Total Use Cases**: 11 (All user-initiated)
 - **Primary Actor**: 1 (User)
 - **Secondary Actors**: 4 (OpenAI API, Anthropic API, GitHub Repository, Guacamole Service)
-- **Actor-Use Case Associations**: 12 (solid lines, no arrowheads)
+- **Actor-Use Case Associations**: 11 (solid lines, no arrowheads)
 - **Include Relationships**: 3 (dashed arrows, mandatory)
-- **Extend Relationships**: 7 (dashed arrows, optional)
+- **Extend Relationships**: 4 (dashed arrows, optional)
 
 **Focus**: All use cases represent user goals and actions, not system-internal processes.
 
