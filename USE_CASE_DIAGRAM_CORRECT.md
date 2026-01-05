@@ -1,5 +1,35 @@
 # AI CTF Challenge Platform - Use Case Diagram (UML Compliant)
 
+## Quick Reference: <<include>> vs <<extend>>
+
+### 🎯 **Simple Rule to Remember:**
+
+**<<include>>** = **MANDATORY** (Must happen)
+- Arrow: `[Main Use Case] --<<include>>--> [Helper Use Case]`
+- Example: "Create Challenge" --<<include>>--> "Chat with AI"
+- Meaning: You CANNOT create a challenge without chatting
+
+**<<extend>>** = **OPTIONAL** (May happen)
+- Arrow: `[Optional Use Case] --<<extend>>--> [Main Use Case]`
+- Example: "View History" --<<extend>>--> "Chat with AI"
+- Meaning: After chatting, you MAY view history (but don't have to)
+
+### 📍 **How to Tell Them Apart in the Diagram:**
+
+1. **Look at the arrow direction:**
+   - **<<include>>**: Arrow points FROM main use case TO helper use case
+   - **<<extend>>**: Arrow points FROM optional use case TO main use case
+
+2. **Look at the label:**
+   - Both show `<<include>>` or `<<extend>>` in the label
+   - The arrow direction tells you which is which!
+
+3. **Ask yourself:**
+   - "Is this required?" → If YES, it's <<include>>
+   - "Is this optional?" → If YES, it's <<extend>>
+
+---
+
 ## References
 
 This use case diagram follows UML 2.5 specifications and best practices from:
@@ -68,7 +98,9 @@ graph TB
     User --- UC11
     User --- UC12
 
-    %% Include Relationships (Dashed arrow FROM base TO included use case)
+    %% Include Relationships (MANDATORY - Dashed arrow FROM base TO included)
+    %% Rule: Base use case MUST include these - they always happen
+    %% Visual: Blue dashed arrows pointing FROM base TO included
     UC5 -.->|<<include>>| UC8
     UC5 -.->|<<include>>| UC14
     UC5 -.->|<<include>>| UC15
@@ -78,7 +110,9 @@ graph TB
     UC6 -.->|<<include>>| UC17
     UC6 -.->|<<include>>| UC7
 
-    %% Extend Relationships (Dashed arrow FROM extending TO base use case)
+    %% Extend Relationships (OPTIONAL - Dashed arrow FROM extending TO base)
+    %% Rule: Extending use case MAY happen - it's optional behavior
+    %% Visual: Green dashed arrows pointing FROM extending TO base
     UC12 -.->|<<extend>>| UC5
     UC12 -.->|<<extend>>| UC6
     UC10 -.->|<<extend>>| UC8
@@ -104,7 +138,83 @@ graph TB
     style GitHub fill:#ffccbc,stroke:#bf360c,stroke-width:2px
     style Guacamole fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
     style Docker fill:#90caf9,stroke:#0d47a1,stroke-width:2px
+    
+    %% Color coding for relationships (if supported)
+    linkStyle 11 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 12 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 13 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 14 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 15 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 16 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 17 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 18 stroke:#2196F3,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 19 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 20 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 21 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 22 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 23 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 24 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
+    linkStyle 25 stroke:#4CAF50,stroke-width:2px,stroke-dasharray: 5 5
 ```
+
+---
+
+## How to Differentiate <<include>> vs <<extend>>
+
+### Key Differences:
+
+| Aspect | <<include>> | <<extend>> |
+|--------|-------------|------------|
+| **Arrow Direction** | FROM base use case TO included use case | FROM extending use case TO base use case |
+| **Meaning** | **MANDATORY** - Always happens | **OPTIONAL** - May happen |
+| **When Used** | Base use case is incomplete without included | Extending use case adds optional behavior |
+| **Example** | "Create Challenge" → includes → "Chat with AI" | "View History" → extends → "Chat with AI" |
+| **Think of it as** | "Must do" or "Part of" | "May do" or "Can also do" |
+| **Color in Diagram** | Blue dashed arrow | Green dashed arrow |
+
+### Visual Comparison Diagram:
+
+```mermaid
+graph LR
+    subgraph Include["<<include>> Example - MANDATORY"]
+        A1[Create Challenge] -.->|<<include>>| A2[Chat with AI]
+        A3["When you Create Challenge,<br/>you MUST Chat with AI<br/>(It's part of the process)"]
+    end
+    
+    subgraph Extend["<<extend>> Example - OPTIONAL"]
+        B1[View History] -.->|<<extend>>| B2[Chat with AI]
+        B3["After Chatting,<br/>you MAY View History<br/>(It's optional)"]
+    end
+    
+    style A1 fill:#fff9c4
+    style A2 fill:#c8e6c9
+    style B1 fill:#fff9c4
+    style B2 fill:#c8e6c9
+```
+
+### Visual Identification:
+
+**<<include>> (Mandatory)**:
+```
+[Base Use Case] --<<include>>--> [Included Use Case]
+     (FROM)                            (TO)
+```
+- Arrow points FROM the main use case TO the required sub-use case
+- Example: "Create Challenge" --<<include>>--> "Chat with AI"
+- **Meaning**: When you Create Challenge, you MUST Chat with AI (it's part of the process)
+
+**<<extend>> (Optional)**:
+```
+[Extending Use Case] --<<extend>>--> [Base Use Case]
+         (FROM)                           (TO)
+```
+- Arrow points FROM the optional use case TO the base use case
+- Example: "View History" --<<extend>>--> "Chat with AI"
+- **Meaning**: After Chatting, you MAY optionally View History (it's not required)
+
+### Quick Rule:
+- **<<include>>**: "I need this to work" → Arrow FROM main TO helper
+- **<<extend>>**: "I might do this too" → Arrow FROM optional TO main
 
 ---
 
@@ -117,14 +227,18 @@ graph TB
 
 ### 2. **Include Relationship (<<include>>)**
 - **Standard**: Dashed arrow FROM base use case TO included use case
-- **Meaning**: The included use case is ALWAYS executed as part of the base use case
-- **Example**: "Create CTF Challenge" includes "Chat with AI Assistant" (mandatory)
-- **Reference**: [Visual Paradigm - Include Relationship](https://knowhow.visual-paradigm.com/uml/10-use-case-diagram-tips/)
+- **Meaning**: The included use case is ALWAYS executed as part of the base use case (MANDATORY)
+- **Arrow Direction**: Base → Included
+- **Example**: "Create CTF Challenge" includes "Chat with AI Assistant" (mandatory - you must chat to create)
+- **Visual**: `UC5 --<<include>>--> UC8` (Create Challenge includes Chat)
+- **Reference**: [UML Diagrams - Include Relationship](https://www.uml-diagrams.org/use-case-include.html)
 
 ### 3. **Extend Relationship (<<extend>>)**
 - **Standard**: Dashed arrow FROM extending use case TO base use case
-- **Meaning**: The extending use case adds OPTIONAL behavior to the base use case
-- **Example**: "View Chat History" extends "Chat with AI Assistant" (optional)
+- **Meaning**: The extending use case adds OPTIONAL behavior to the base use case (CONDITIONAL)
+- **Arrow Direction**: Extending → Base
+- **Example**: "View Chat History" extends "Chat with AI Assistant" (optional - you may view history after chatting)
+- **Visual**: `UC10 --<<extend>>--> UC8` (View History extends Chat)
 - **Reference**: [Visual Paradigm - Extend Relationship](https://knowhow.visual-paradigm.com/uml/10-use-case-diagram-tips/)
 
 ### 4. **Use Case Naming Convention**
@@ -141,30 +255,112 @@ graph TB
 
 ## Corrected Relationships Explanation
 
-### Include Relationships (Mandatory Dependencies)
+### Include Relationships (MANDATORY - Always Happens)
+
+**Arrow Direction**: FROM base use case TO included use case  
+**Visual Pattern**: `[Base] --<<include>>--> [Included]`
 
 1. **UC5 (Create Challenge) includes UC8, UC14, UC15**
-   - UC5 → UC8: Creating challenge requires AI chat
-   - UC5 → UC14: Creating challenge requires content generation
-   - UC5 → UC15: Creating challenge requires file storage
+   - **UC5 → UC8**: Creating challenge **MUST** use AI chat (mandatory)
+   - **UC5 → UC14**: Creating challenge **MUST** generate content (mandatory)
+   - **UC5 → UC15**: Creating challenge **MUST** store files (mandatory)
+   - **Why Include?**: You cannot create a challenge without chatting, generating, and storing
 
 2. **UC6 (Deploy Challenge) includes UC8, UC13, UC16, UC17, UC7**
-   - UC6 → UC8: Deployment requires AI chat
-   - UC6 → UC13: Deployment requires validation
-   - UC6 → UC16: Deployment requires network creation
-   - UC6 → UC17: Deployment requires Guacamole setup
-   - UC6 → UC7: Deployment requires access capability
+   - **UC6 → UC8**: Deployment **MUST** use AI chat (mandatory)
+   - **UC6 → UC13**: Deployment **MUST** validate (mandatory)
+   - **UC6 → UC16**: Deployment **MUST** create network (mandatory)
+   - **UC6 → UC17**: Deployment **MUST** setup Guacamole (mandatory)
+   - **UC6 → UC7**: Deployment **MUST** provide access (mandatory)
+   - **Why Include?**: You cannot deploy without these steps
 
-### Extend Relationships (Optional Behaviors)
+**Key Point**: If the base use case happens, the included use case ALWAYS happens.
+
+### Extend Relationships (OPTIONAL - May Happen)
+
+**Arrow Direction**: FROM extending use case TO base use case  
+**Visual Pattern**: `[Extending] --<<extend>>--> [Base]`
 
 1. **UC12 (Browse Challenges) extends UC5, UC6**
-   - After creating or deploying, user may optionally browse challenges
+   - **UC12 → UC5**: After creating, user **MAY** browse challenges (optional)
+   - **UC12 → UC6**: After deploying, user **MAY** browse challenges (optional)
+   - **Why Extend?**: Browsing is not required after creating/deploying
 
 2. **UC10 (View Chat History) extends UC8, UC7, UC9**
-   - User may optionally view chat history after chatting, accessing, or viewing details
+   - **UC10 → UC8**: After chatting, user **MAY** view history (optional)
+   - **UC10 → UC7**: After accessing, user **MAY** view history (optional)
+   - **UC10 → UC9**: After viewing details, user **MAY** view history (optional)
+   - **Why Extend?**: Viewing history is not required after these actions
 
 3. **UC9 (View Challenge Details) extends UC5, UC6**
-   - User may optionally view challenge details after creating or deploying
+   - **UC9 → UC5**: After creating, user **MAY** view details (optional)
+   - **UC9 → UC6**: After deploying, user **MAY** view details (optional)
+   - **Why Extend?**: Viewing details is not required after creating/deploying
+
+**Key Point**: If the base use case happens, the extending use case MAY happen (but not always).
+
+---
+
+## Visual Comparison Table
+
+| Relationship | Arrow Direction | Label | Meaning | Example |
+|--------------|----------------|-------|---------|---------|
+| **<<include>>** | Base → Included | `<<include>>` | **MANDATORY** - Always happens | Create Challenge → Chat with AI |
+| **<<extend>>** | Extending → Base | `<<extend>>` | **OPTIONAL** - May happen | View History → Chat with AI |
+
+---
+
+## Memory Trick
+
+**<<include>>** = "**I NEED** this" (mandatory)
+- Think: "I need to chat to create a challenge"
+- Arrow: Create → Chat
+- **Color**: Blue (in diagram)
+- **Direction**: Base → Included
+
+**<<extend>>** = "**I MIGHT** do this" (optional)
+- Think: "I might view history after chatting"
+- Arrow: View History → Chat
+- **Color**: Green (in diagram)
+- **Direction**: Extending → Base
+
+---
+
+## Step-by-Step Identification Guide
+
+### How to Identify <<include>>:
+
+1. **Look at the arrow direction**: FROM a main use case TO a helper use case
+2. **Ask yourself**: "Can the main use case work without this?"
+   - If NO → It's <<include>>
+3. **Example**: 
+   - "Create Challenge" → "Chat with AI"
+   - Question: Can you create a challenge without chatting? NO
+   - Answer: It's <<include>> (mandatory)
+
+### How to Identify <<extend>>:
+
+1. **Look at the arrow direction**: FROM an optional use case TO a main use case
+2. **Ask yourself**: "Is this required for the main use case to work?"
+   - If NO → It's <<extend>>
+3. **Example**:
+   - "View History" → "Chat with AI"
+   - Question: Is viewing history required for chatting? NO
+   - Answer: It's <<extend>> (optional)
+
+---
+
+## Real-World Analogy
+
+**<<include>>** = Making Coffee
+- Making Coffee **includes** Boiling Water (you MUST boil water)
+- Making Coffee **includes** Adding Coffee (you MUST add coffee)
+- You cannot make coffee without these steps
+
+**<<extend>>** = Making Coffee
+- Making Coffee **extends** Adding Sugar (you MAY add sugar, but it's optional)
+- Making Coffee **extends** Adding Milk (you MAY add milk, but it's optional)
+- Coffee works fine without sugar or milk
 
 ---
 
