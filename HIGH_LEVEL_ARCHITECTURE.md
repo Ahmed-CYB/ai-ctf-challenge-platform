@@ -31,9 +31,9 @@ graph TB
     end
 
     subgraph "💾 Database Layer"
-        PostgreSQL[(PostgreSQL<br/>Port: 5433<br/>━━━━━━━━━━━━━━━━<br/>• Users & Sessions<br/>• Challenges Metadata<br/>• Chat History<br/>• OS Images & Tools<br/>• Package Mappings)]
+        PostgreSQL[(PostgreSQL 15<br/>Main Application Database<br/>Port: 5433<br/>━━━━━━━━━━━━━━━━<br/>• Users & Sessions<br/>• Challenges Metadata<br/>• Chat History<br/>• OS Images & Tools<br/>• Package Mappings<br/>• CTF Platform Data]
         
-        MySQL[(MySQL<br/>Port: 3307<br/>━━━━━━━━━━━━━━━━<br/>• Guacamole Users<br/>• Connection Configs<br/>• Connection Parameters)]
+        MySQL[(MySQL 8.0<br/>Guacamole Database<br/>Port: 3307<br/>━━━━━━━━━━━━━━━━<br/>• Guacamole Users<br/>• SSH/RDP Connections<br/>• Connection Parameters<br/>• User Permissions<br/>• Guacamole Config Only]
     end
 
     subgraph "🐳 Container Infrastructure Layer"
@@ -228,8 +228,34 @@ graph LR
 
 ### **Data Storage**
 
-- **PostgreSQL** (Port 5433): Main database for users, sessions, challenges, chat history, and system metadata
-- **MySQL** (Port 3307): Guacamole-specific database for connection management
+**You are using BOTH PostgreSQL AND MySQL**, but for different purposes:
+
+#### **PostgreSQL 15** (Port 5433)
+- **Purpose**: Main application database for the CTF platform
+- **Stores**: 
+  - Users, sessions, authentication data
+  - Challenges metadata
+  - Chat history
+  - OS images and tool installations
+  - Package mappings
+- **Used by**: Backend API, CTF Automation Service
+- **Client Library**: `pg` (node-postgres)
+
+#### **MySQL 8.0** (Port 3307)
+- **Purpose**: Guacamole-specific database (remote access management)
+- **Stores**:
+  - Guacamole users
+  - SSH/RDP connection configurations
+  - Connection parameters (hostname, port, credentials)
+  - User permissions for connections
+- **Used by**: Guacamole Service, CTF Automation Service (for managing connections)
+- **Client Library**: `mysql2` (accessed via docker exec commands)
+
+**Why Two Databases?**
+- **Separation of Concerns**: Application data vs. connection management data
+- **Different Schemas**: PostgreSQL for your app, MySQL for Guacamole's schema
+- **Isolation**: Guacamole can be updated/replaced without affecting main platform
+- **Performance**: Each database optimized for its specific use case
 
 ### **Infrastructure**
 
@@ -285,8 +311,18 @@ graph LR
 - **yaml**: YAML parser for docker-compose files
 
 ### **Database Technologies**
-- **PostgreSQL 15+**: Main relational database
-- **MySQL 8+**: Guacamole database
+- **PostgreSQL 15+**: Main application database
+  - **Purpose**: Stores all CTF platform data (users, sessions, challenges, chat history)
+  - **Port**: 5433 (external) / 5432 (internal)
+  - **Database**: `ctf_platform`
+  - **Used by**: Backend API, CTF Automation Service
+  - **Client Library**: `pg` (node-postgres)
+- **MySQL 8.0**: Guacamole-specific database
+  - **Purpose**: Stores Guacamole connection configurations and user mappings
+  - **Port**: 3307 (external) / 3306 (internal)
+  - **Database**: `guacamole_db`
+  - **Used by**: Guacamole Service, CTF Automation Service (for connection management)
+  - **Client Library**: `mysql2` (via docker exec commands)
 - **Connection Pooling**: pg.Pool for PostgreSQL
 - **Prepared Statements**: SQL injection prevention
 
