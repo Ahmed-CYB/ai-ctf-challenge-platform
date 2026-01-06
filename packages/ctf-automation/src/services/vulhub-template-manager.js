@@ -6,6 +6,7 @@
 
 import { Logger } from '../core/logger.js';
 import { vulhubFetcher } from './vulhub-fetcher.js';
+import { multiRepoCTFFetcher } from './multi-repo-ctf-fetcher.js';
 import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
 
@@ -29,17 +30,33 @@ export class VulhubTemplateManager {
    */
   async getAdaptedTemplate(requirements, serviceType, vulnerability = null) {
     try {
-      this.logger.info('VulhubTemplateManager', 'Fetching Vulhub template', { serviceType, vulnerability });
+      this.logger.info('VulhubTemplateManager', 'Searching trusted repositories for template', { 
+        serviceType, 
+        vulnerability,
+        repositories: ['vulhub', 'dvwa', 'ctf-archives', 'ctfd-docker-challenges']
+      });
 
-      // Fetch Vulhub example
-      const vulhubExample = await vulhubFetcher.getBestExample(serviceType, vulnerability);
+      // Fetch example from all trusted repositories (Vulhub, DVWA, CTF-Archives, etc.)
+      // Try multi-repo fetcher first (searches all trusted repos), fallback to Vulhub only
+      let vulhubExample = await multiRepoCTFFetcher.getBestExample(serviceType, vulnerability);
+      
+      // Fallback to Vulhub-only if multi-repo returns nothing
+      if (!vulhubExample) {
+        vulhubExample = await vulhubFetcher.getBestExample(serviceType, vulnerability);
+      }
 
       if (!vulhubExample) {
-        this.logger.warn('VulhubTemplateManager', 'No Vulhub example found, using AI generation', { serviceType });
+        this.logger.warn('VulhubTemplateManager', 'No example found in trusted repositories, using AI generation', { 
+          serviceType,
+          searchedRepositories: ['vulhub', 'dvwa', 'ctf-archives', 'ctfd-docker-challenges']
+        });
         return null;
       }
 
-      this.logger.success('VulhubTemplateManager', 'Found Vulhub example', { name: vulhubExample.name });
+      this.logger.success('VulhubTemplateManager', 'Found example in trusted repository', { 
+        name: vulhubExample.name,
+        source: vulhubExample.sourceRepo || 'vulhub'
+      });
 
       // Adapt template using AI
       const adapted = await this.adaptTemplate(vulhubExample, requirements, serviceType);

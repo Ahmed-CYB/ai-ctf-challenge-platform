@@ -106,14 +106,25 @@ graph TB
 
     %% External Actor Associations (Solid lines, NO arrowheads)
     %% These support user actions but are not user-initiated
-    UC5 --- OpenAI
-    UC5 --- Anthropic
-    UC5 --- GitHub
-    UC6 --- GitHub
-    UC6 --- Guacamole
-    UC7 --- Guacamole
-    UC8 --- OpenAI
-    UC8 --- Anthropic
+    %% Based on actual code usage:
+    
+    %% Create CTF Challenge uses:
+    UC5 --- OpenAI      %% create-agent.js uses OpenAI GPT-4o for challenge generation
+    UC5 --- Anthropic   %% designer.js uses Claude Sonnet 4 for validation
+    UC5 --- GitHub      %% git-manager.js stores challenge files
+    
+    %% Deploy CTF Challenge uses:
+    UC6 --- OpenAI      %% classifier.js uses OpenAI GPT-4 for request classification
+    UC6 --- Anthropic   %% pre-deploy-validator-agent.js uses Claude for validation
+    UC6 --- GitHub      %% deployer.js pulls challenge files from GitHub
+    UC6 --- Guacamole   %% guacamole-agent.js creates browser-based SSH access
+    
+    %% Chat with AI Assistant uses:
+    UC8 --- OpenAI      %% classifier.js, questions-agent.js use OpenAI
+    UC8 --- Anthropic   %% content agents use Claude for generation
+    
+    %% Access Challenge Environment uses:
+    UC7 --- Guacamole   %% Browser-based SSH access via Guacamole
 
     style System fill:#e1f5ff,stroke:#01579b,stroke-width:3px
     style User fill:#fff9c4,stroke:#f57f17,stroke-width:3px
@@ -417,15 +428,25 @@ UC11 ..> UC5 : <<extend>>
 UC11 ..> UC6 : <<extend>>
 
 ' External Actor Associations (Solid lines, no arrowheads)
-' These support user actions but are not user-initiated
-UC5 -- OpenAI
-UC5 -- Anthropic
-UC5 -- GitHub
-UC6 -- GitHub
-UC6 -- Guacamole
-UC7 -- Guacamole
-UC8 -- OpenAI
-UC8 -- Anthropic
+' Based on actual code usage:
+
+' Create CTF Challenge uses:
+UC5 -- OpenAI      ' create-agent.js uses OpenAI GPT-4o
+UC5 -- Anthropic   ' designer.js uses Claude Sonnet 4
+UC5 -- GitHub      ' git-manager.js stores files
+
+' Deploy CTF Challenge uses:
+UC6 -- OpenAI      ' classifier.js uses OpenAI GPT-4
+UC6 -- Anthropic   ' pre-deploy-validator-agent.js uses Claude
+UC6 -- GitHub      ' deployer.js pulls from GitHub
+UC6 -- Guacamole   ' guacamole-agent.js creates access
+
+' Chat with AI Assistant uses:
+UC8 -- OpenAI      ' classifier.js, questions-agent.js
+UC8 -- Anthropic   ' content agents use Claude
+
+' Access Challenge Environment uses:
+UC7 -- Guacamole   ' Browser-based SSH access
 
 @enduml
 ```

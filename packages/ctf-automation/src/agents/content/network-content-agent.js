@@ -38,6 +38,13 @@ SECURITY REQUIREMENTS - NO REAL SECRETS:
 
 SUPPORTED CHALLENGE TYPES:
 1. FTP: Misconfigured FTP servers, anonymous access, weak credentials
+   - **CRITICAL for anonymous FTP challenges**: vsftpd.conf MUST include:
+     * anonymous_enable=YES (REQUIRED for anonymous access)
+     * anon_root=/var/ftp (REQUIRED)
+     * no_anon_password=YES (allows empty password)
+     * anon_upload_enable=NO (security best practice)
+     * anon_mkdir_write_enable=NO (security best practice)
+   - If challenge description mentions "anonymous", "anonymous access", or "no authentication", you MUST enable anonymous_enable=YES
 2. Samba: Linux SMB/CIFS share enumeration, null sessions, sensitive files (NO Windows SMB support)
 3. SSH: Weak passwords, key misconfigurations
 4. PCAP Analysis: Network packet captures with hidden data
@@ -418,10 +425,11 @@ function generateFallbackNetworkContent() {
 
   const ftpConfig = `# vsftpd configuration
 listen=YES
+listen_ipv6=NO
 anonymous_enable=YES
 anon_upload_enable=NO
 anon_mkdir_write_enable=NO
-anon_root=/ftp
+anon_root=/var/ftp
 no_anon_password=YES
 write_enable=YES
 local_enable=YES

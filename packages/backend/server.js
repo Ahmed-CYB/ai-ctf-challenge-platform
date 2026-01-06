@@ -476,7 +476,7 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT user_id, username, email, name, bio, profile_avatar, avatar_animal_id, 
-              role, challenges_solved, current_streak, longest_streak, created_at
+              role, challenges_solved, created_at
        FROM users 
        WHERE user_id = $1 AND is_active = TRUE`,
       [req.user.user_id]
@@ -801,7 +801,7 @@ app.get('/api/users/:userId', async (req, res) => {
     
     const result = await pool.query(
       `SELECT user_id, username, email, name, bio, profile_avatar, avatar_animal_id,
-              role, challenges_solved, challenges_created, current_streak, longest_streak,
+              role, challenges_solved, challenges_created,
               github_username, twitter_handle, website_url, created_at
        FROM users 
        WHERE user_id = $1 AND is_active = TRUE`,
@@ -961,15 +961,17 @@ app.put('/api/users/:userId', authenticateToken, async (req, res) => {
 
 // ===== CHALLENGES API =====
 
-// Get all active challenges
-app.get('/api/challenges', async (req, res) => {
+// Get all active challenges (filtered by user_id if authenticated)
+app.get('/api/challenges', authenticateToken, async (req, res) => {
   try {
+    // Only return challenges for the authenticated user
     const result = await pool.query(
       `SELECT c.*, u.username as creator_username
        FROM challenges c
        LEFT JOIN users u ON c.user_id = u.user_id
-       WHERE c.is_active = TRUE 
-       ORDER BY c.created_at DESC`
+       WHERE c.is_active = TRUE AND c.user_id = $1
+       ORDER BY c.created_at DESC`,
+      [req.user.user_id]
     );
     
     res.json({
@@ -1118,17 +1120,6 @@ app.post('/api/challenges/:challengeId/submit', authenticateToken, async (req, r
         [req.user.user_id]
       );
       
-      // Update streak
-      await pool.query('SELECT update_user_streak($1)', [req.user.user_id]);
-      
-      // Record daily solve
-      await pool.query(
-        `INSERT INTO daily_solves (user_id, solve_date, challenges_solved_today)
-         VALUES ($1, CURRENT_DATE, 1)
-         ON CONFLICT (user_id, solve_date)
-         DO UPDATE SET challenges_solved_today = daily_solves.challenges_solved_today + 1`,
-        [req.user.user_id]
-      );
     }
     
     res.json({
@@ -1175,39 +1166,7 @@ app.get('/api/leaderboard/solves', async (req, res) => {
   }
 });
 
-// Get leaderboard by current streak
-app.get('/api/leaderboard/streak', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 100;
-    
-    const result = await pool.query(
-      `SELECT 
-         ROW_NUMBER() OVER (ORDER BY current_streak DESC, last_solve_date DESC) as rank,
-         user_id,
-         username,
-         name,
-         profile_avatar,
-         avatar_animal_id,
-         current_streak as score,
-         streak_frozen,
-         streak_recovery_solves,
-         streak_recovery_deadline
-       FROM users
-       WHERE is_active = TRUE AND deleted_at IS NULL
-       ORDER BY current_streak DESC
-       LIMIT $1`,
-      [limit]
-    );
-    
-    res.json({
-      success: true,
-      data: result.rows,
-    });
-  } catch (error) {
-    console.error('Error getting streak leaderboard:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+// Streak leaderboard removed - not in use
 
 // ===== ERROR HANDLER =====
 app.use((err, req, res, next) => {

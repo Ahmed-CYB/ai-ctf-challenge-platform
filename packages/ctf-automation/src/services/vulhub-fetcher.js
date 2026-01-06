@@ -37,12 +37,35 @@ export class VulhubFetcher {
 
   /**
    * Clone or update Vulhub repository
+   * Only updates if cache is older than 24 hours to avoid unnecessary network calls
    */
-  async ensureRepository() {
+  async ensureRepository(forceUpdate = false) {
     try {
       const repoExists = await fs.access(this.repoDir).then(() => true).catch(() => false);
 
       if (repoExists) {
+        // Check if we need to update (only if cache is older than 24 hours)
+        if (!forceUpdate) {
+          try {
+            const gitDir = path.join(this.repoDir, '.git');
+            const gitDirStats = await fs.stat(gitDir);
+            const lastUpdateTime = gitDirStats.mtime.getTime();
+            const now = Date.now();
+            const hoursSinceUpdate = (now - lastUpdateTime) / (1000 * 60 * 60);
+            
+            // Only update if cache is older than 24 hours
+            if (hoursSinceUpdate < 24) {
+              this.logger.info('VulhubFetcher', 'Repository cache is recent, skipping update', { 
+                hoursSinceUpdate: hoursSinceUpdate.toFixed(1) 
+              });
+              return; // Skip update
+            }
+          } catch (statError) {
+            // If we can't check stats, proceed with update
+            this.logger.debug('VulhubFetcher', 'Could not check cache age, proceeding with update');
+          }
+        }
+        
         this.logger.info('VulhubFetcher', 'Repository exists, updating...');
         // Update existing repository
         await execAsync(`cd "${this.repoDir}" && git pull`, { timeout: 60000 });

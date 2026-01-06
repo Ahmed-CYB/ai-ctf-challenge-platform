@@ -89,7 +89,6 @@ export function AppSidebar({ currentPage, onPageChange, onLogout, refreshKey }: 
             <AnimalAvatar animalId={user?.avatar || 'lion'} size={40} />
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{user?.username || 'Loading...'}</p>
-              <p className="text-muted-foreground truncate">2450 pts</p>
             </div>
           </div>
 

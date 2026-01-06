@@ -344,9 +344,6 @@ export function CTFChatInterface() {
         </div>
         <div className="flex-1">
           <h3>AI Challenge Generator</h3>
-          <p className="text-muted-foreground">
-            Powered by n8n Workflow
-          </p>
         </div>
       </div>
 

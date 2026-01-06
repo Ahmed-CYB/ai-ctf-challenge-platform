@@ -4,7 +4,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Trophy, Target, Flame, Calendar, Edit, ExternalLink, Trash2 } from 'lucide-react';
+import { Trophy, Flame, Calendar, Edit, ExternalLink, Trash2 } from 'lucide-react';
 import { mockChallenges, savedChallenges } from '../../data/mockData';
 import { getCurrentUser } from '../../services/auth';
 import type { User } from '../../services/auth';
@@ -59,7 +59,7 @@ export function Profile({ onEditProfile }: ProfileProps) {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
               <div className="flex items-center gap-3">
                 <div className="bg-primary/10 p-2 rounded">
                   <Trophy className="w-5 h-5 text-primary" />
@@ -67,26 +67,6 @@ export function Profile({ onEditProfile }: ProfileProps) {
                 <div>
                   <p className="text-muted-foreground">Rank</p>
                   <p className="font-medium">#12</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="bg-chart-2/10 p-2 rounded">
-                  <Target className="w-5 h-5 text-chart-2" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Points</p>
-                  <p className="font-medium">2450</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="bg-chart-3/10 p-2 rounded">
-                  <Trophy className="w-5 h-5 text-chart-3" />
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Solved</p>
-                  <p className="font-medium">34</p>
                 </div>
               </div>
 
@@ -147,7 +127,6 @@ export function Profile({ onEditProfile }: ProfileProps) {
                 <div className="flex items-center justify-between text-muted-foreground mb-3">
                   <p>{challenge.solves} solves</p>
                   <p>{challenge.attempts} attempts</p>
-                  <p>{challenge.points} points</p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -240,7 +219,6 @@ export function Profile({ onEditProfile }: ProfileProps) {
 
                 <div className="flex items-center justify-between text-muted-foreground mb-3">
                   <p>{challenge.solves} solves</p>
-                  <p>{challenge.points} points</p>
                 </div>
 
                 <div className="flex items-center gap-2">

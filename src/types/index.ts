@@ -7,7 +7,6 @@ export interface User {
   role?: string;
   bio?: string;
   level?: string;
-  points?: number;
   challengesSolved?: number;
   challengesCreated?: number;
   rank?: number;
@@ -22,7 +21,6 @@ export interface Challenge {
   author: User;
   solves: number;
   attempts: number;
-  points: number;
   tags: string[];
   createdAt: Date;
   isPublished: boolean;
@@ -32,8 +30,6 @@ export interface Challenge {
 }
 
 export interface UserStats {
-  totalSolved: number;
-  totalPoints: number;
   currentStreak: number;
   longestStreak: number;
   categoriesBreakdown: {
@@ -48,7 +44,6 @@ export interface LeaderboardEntry {
   username: string;
   name: string;
   avatar?: string;
-  points: number;
   challengesSolved: number;
   level: string;
 }

@@ -22,6 +22,7 @@ import { Logger } from './logger.js';
 import { GitManager } from '../git-manager.js';
 import { classifyConfirmation } from '../agents/confirmation-agent.js';
 import { ContainerManager } from '../deployment/container-manager.js';
+import { comprehensiveValidationAgent } from '../agents/comprehensive-validation-agent.js';
 
 export class Orchestrator {
   constructor() {
@@ -257,8 +258,39 @@ export class Orchestrator {
         return this.errorHandler.handleComposeError(compose || { success: false, error: 'Compose generation failed' });
       }
 
-      // Step 5: Pre-deployment validation
-      this.logger.info('Orchestrator', 'Phase 5: Pre-Deployment Validation');
+      // Step 5: Comprehensive validation (manual validation checks)
+      this.logger.info('Orchestrator', 'Phase 5: Comprehensive Validation');
+      const comprehensiveValidation = await comprehensiveValidationAgent.validateChallengeCreation(
+        structure.data,
+        structure.data.name
+      );
+      
+      if (!comprehensiveValidation.success) {
+        this.logger.warn('Orchestrator', 'Comprehensive validation found issues', {
+          errors: comprehensiveValidation.errors,
+          warnings: comprehensiveValidation.warnings
+        });
+        
+        // Try to apply automatic fixes
+        if (comprehensiveValidation.fixes.length > 0) {
+          this.logger.info('Orchestrator', 'Attempting to apply automatic fixes', {
+            fixCount: comprehensiveValidation.fixes.length
+          });
+          // Fixes will be applied during deployment or structure building
+        }
+        
+        // If there are critical errors, fail the creation
+        if (comprehensiveValidation.errors.length > 0) {
+          return this.errorHandler.handleValidationError({
+            success: false,
+            error: 'Comprehensive validation failed',
+            details: comprehensiveValidation.errors.join('; ')
+          });
+        }
+      }
+
+      // Step 6: Pre-deployment validation
+      this.logger.info('Orchestrator', 'Phase 6: Pre-Deployment Validation');
       const validation = await this.preDeployValidator.validate(structure.data);
       
       if (!validation.success) {
@@ -269,7 +301,7 @@ export class Orchestrator {
         }
       }
 
-      // Step 6: Save to repository
+      // Step 7: Save to repository
       this.logger.info('Orchestrator', 'Phase 6: Saving to Repository');
       const saveResult = await this.structureBuilder.save(structure.data, dockerfiles.data, compose.data);
       
@@ -412,8 +444,46 @@ export class Orchestrator {
         }
       }
 
-      // Step 1: Pre-deployment validation
-      this.logger.info('Orchestrator', 'Phase 1: Pre-Deployment Validation');
+      // Step 1: Comprehensive validation (manual validation checks)
+      this.logger.info('Orchestrator', 'Phase 1: Comprehensive Validation');
+      const comprehensiveValidation = await comprehensiveValidationAgent.validateChallengeDeployment(challengeName);
+      
+      if (!comprehensiveValidation.success) {
+        this.logger.warn('Orchestrator', 'Comprehensive validation found issues', {
+          errors: comprehensiveValidation.errors,
+          warnings: comprehensiveValidation.warnings
+        });
+        
+        // Try to apply automatic fixes
+        if (comprehensiveValidation.fixes.length > 0) {
+          const pathModule = await import('path');
+          const challengePath = pathModule.join(process.env.CLONE_PATH || pathModule.resolve(process.cwd(), 'challenges-repo'), 'challenges', challengeName);
+          const appliedFixes = await comprehensiveValidationAgent.applyFixes(challengePath, comprehensiveValidation.fixes, challengeName);
+          this.logger.info('Orchestrator', 'Applied automatic fixes', { fixCount: appliedFixes.length });
+        }
+        
+        // If there are critical errors after applying fixes, check if they're resolved
+        // Some errors (like subnet conflicts) can be auto-fixed
+        if (comprehensiveValidation.errors.length > 0) {
+          // Check if the errors are fixable subnet conflicts
+          const unfixableErrors = comprehensiveValidation.errors.filter(err => 
+            !err.includes('Subnet') && !err.includes('subnet') && !err.includes('conflict')
+          );
+          
+          if (unfixableErrors.length > 0) {
+            return this.errorHandler.handleValidationError({
+              success: false,
+              error: 'Comprehensive validation failed',
+              details: unfixableErrors.join('; ')
+            });
+          }
+          // If all errors are subnet-related and fixes were applied, continue with deployment
+          // The deployer will handle the reallocation
+        }
+      }
+
+      // Step 2: Pre-deployment validation
+      this.logger.info('Orchestrator', 'Phase 2: Pre-Deployment Validation');
       const preValidation = await this.preDeployValidator.validateChallenge(challengeName);
       
       if (!preValidation.success) {
@@ -423,7 +493,7 @@ export class Orchestrator {
         }
       }
 
-      // Step 2: Deploy
+      // Step 3: Deploy
       this.logger.info('Orchestrator', 'Phase 2: Deployment');
       const deployment = await this.deployer.deploy(challengeName, sessionId);
       

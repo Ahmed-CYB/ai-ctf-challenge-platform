@@ -94,6 +94,7 @@ export class StructureBuilder {
         description: design.description,
         scenario: design.scenario,
         subnet: subnet.subnet,
+        networkName: subnet.networkName || `ctf-${uniqueName}-net`, // Include network name from subnet allocation
         ips: subnet.ips,
         machines: machines,
         attackerTools: attackerTools, // Add tools for dockerfile generator
