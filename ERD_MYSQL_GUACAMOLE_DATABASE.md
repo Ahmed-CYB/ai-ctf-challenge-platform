@@ -42,176 +42,149 @@ erDiagram
     guacamole_sharing_profile ||--o{ guacamole_connection_history : "used via"
     
     guacamole_entity {
-        INT entity_id PK
-        VARCHAR name
-        ENUM type
+        int entity_id PK
+        string name
+        string type
     }
     
     guacamole_user {
-        INT user_id PK
-        INT entity_id FK_UK
-        BINARY password_hash
-        BINARY password_salt
-        DATETIME password_date
-        BOOLEAN disabled
-        BOOLEAN expired
-        TIME access_window_start
-        TIME access_window_end
-        DATE valid_from
-        DATE valid_until
-        VARCHAR timezone
-        VARCHAR full_name
-        VARCHAR email_address
-        VARCHAR organization
-        VARCHAR organizational_role
+        int user_id PK
+        int entity_id FK
+        string password_hash
+        boolean disabled
+        boolean expired
+        string full_name
+        string email_address
     }
     
     guacamole_user_group {
-        INT user_group_id PK
-        INT entity_id FK_UK
-        BOOLEAN disabled
+        int user_group_id PK
+        int entity_id FK
+        boolean disabled
     }
     
     guacamole_user_group_member {
-        INT user_group_id PK_FK
-        INT member_entity_id PK_FK
+        int user_group_id PK
+        int member_entity_id PK
     }
     
     guacamole_connection_group {
-        INT connection_group_id PK
-        INT parent_id FK
-        VARCHAR connection_group_name
-        ENUM type
-        INT max_connections
-        INT max_connections_per_user
-        BOOLEAN enable_session_affinity
+        int connection_group_id PK
+        int parent_id FK
+        string connection_group_name
+        string type
     }
     
     guacamole_connection {
-        INT connection_id PK
-        VARCHAR connection_name
-        INT parent_id FK
-        VARCHAR protocol
-        INT proxy_port
-        VARCHAR proxy_hostname
-        ENUM proxy_encryption_method
-        INT max_connections
-        INT max_connections_per_user
-        INT connection_weight
-        BOOLEAN failover_only
+        int connection_id PK
+        string connection_name
+        int parent_id FK
+        string protocol
     }
     
     guacamole_connection_parameter {
-        INT connection_id PK_FK
-        VARCHAR parameter_name PK
-        VARCHAR parameter_value
+        int connection_id PK
+        string parameter_name PK
+        string parameter_value
     }
     
     guacamole_sharing_profile {
-        INT sharing_profile_id PK
-        VARCHAR sharing_profile_name
-        INT primary_connection_id FK
+        int sharing_profile_id PK
+        string sharing_profile_name
+        int primary_connection_id FK
     }
     
     guacamole_sharing_profile_parameter {
-        INT sharing_profile_id PK_FK
-        VARCHAR parameter_name PK
-        VARCHAR parameter_value
+        int sharing_profile_id PK
+        string parameter_name PK
+        string parameter_value
     }
     
     guacamole_user_attribute {
-        INT user_id PK_FK
-        VARCHAR attribute_name PK
-        VARCHAR attribute_value
+        int user_id PK
+        string attribute_name PK
+        string attribute_value
     }
     
     guacamole_user_group_attribute {
-        INT user_group_id PK_FK
-        VARCHAR attribute_name PK
-        VARCHAR attribute_value
+        int user_group_id PK
+        string attribute_name PK
+        string attribute_value
     }
     
     guacamole_connection_attribute {
-        INT connection_id PK_FK
-        VARCHAR attribute_name PK
-        VARCHAR attribute_value
+        int connection_id PK
+        string attribute_name PK
+        string attribute_value
     }
     
     guacamole_connection_group_attribute {
-        INT connection_group_id PK_FK
-        VARCHAR attribute_name PK
-        VARCHAR attribute_value
+        int connection_group_id PK
+        string attribute_name PK
+        string attribute_value
     }
     
     guacamole_sharing_profile_attribute {
-        INT sharing_profile_id PK_FK
-        VARCHAR attribute_name PK
-        VARCHAR attribute_value
+        int sharing_profile_id PK
+        string attribute_name PK
+        string attribute_value
     }
     
     guacamole_connection_permission {
-        INT entity_id PK_FK
-        INT connection_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        int connection_id PK
+        string permission PK
     }
     
     guacamole_connection_group_permission {
-        INT entity_id PK_FK
-        INT connection_group_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        int connection_group_id PK
+        string permission PK
     }
     
     guacamole_sharing_profile_permission {
-        INT entity_id PK_FK
-        INT sharing_profile_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        int sharing_profile_id PK
+        string permission PK
     }
     
     guacamole_system_permission {
-        INT entity_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        string permission PK
     }
     
     guacamole_user_permission {
-        INT entity_id PK_FK
-        INT affected_user_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        int affected_user_id PK
+        string permission PK
     }
     
     guacamole_user_group_permission {
-        INT entity_id PK_FK
-        INT affected_user_group_id PK_FK
-        ENUM permission PK
+        int entity_id PK
+        int affected_user_group_id PK
+        string permission PK
     }
     
     guacamole_connection_history {
-        INT history_id PK
-        INT user_id FK
-        VARCHAR username
-        VARCHAR remote_host
-        INT connection_id FK
-        VARCHAR connection_name
-        INT sharing_profile_id FK
-        VARCHAR sharing_profile_name
-        DATETIME start_date
-        DATETIME end_date
+        int history_id PK
+        int user_id FK
+        int connection_id FK
+        timestamp start_date
+        timestamp end_date
     }
     
     guacamole_user_history {
-        INT history_id PK
-        INT user_id FK
-        VARCHAR username
-        VARCHAR remote_host
-        DATETIME start_date
-        DATETIME end_date
+        int history_id PK
+        int user_id FK
+        timestamp start_date
+        timestamp end_date
     }
     
     guacamole_user_password_history {
-        INT password_history_id PK
-        INT user_id FK
-        BINARY password_hash
-        BINARY password_salt
-        DATETIME password_date
+        int password_history_id PK
+        int user_id FK
+        string password_hash
+        timestamp password_date
     }
 ```
 

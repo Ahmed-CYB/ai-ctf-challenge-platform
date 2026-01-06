@@ -20,254 +20,158 @@ erDiagram
     challenges ||--o{ chat_messages : "referenced in"
     challenges ||--o{ challenge_submissions : "receives"
     
-    %% CTF Automation Tables
     validated_os_images ||--o{ os_image_usage_history : "used in"
     ctf_tools ||--o{ tool_installation_methods : "has"
-    ctf_tools ||--o{ tool_learning_queue : "queued for"
+    ctf_tools ||--o{ tool_package_mappings : "has"
     
     users {
-        SERIAL user_id PK
-        VARCHAR username UK
-        VARCHAR email UK
-        VARCHAR password_hash
-        VARCHAR name
-        TEXT bio
-        VARCHAR profile_avatar
-        VARCHAR role
-        BOOLEAN is_verified
-        BOOLEAN is_active
-        INTEGER challenges_solved
-        INTEGER challenges_created
-        INTEGER solve_rank
-        VARCHAR avatar_animal_id
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-        TIMESTAMP last_active
-        TIMESTAMP deleted_at
+        int user_id PK
+        string username UK
+        string email UK
+        string password_hash
+        string name
+        string role
+        int challenges_solved
+        int challenges_created
+        timestamp created_at
     }
     
     sessions {
-        VARCHAR session_id PK
-        INTEGER user_id FK
-        TIMESTAMP created_at
-        TIMESTAMP last_activity
-        TIMESTAMP expires_at
-        VARCHAR ip_address
-        TEXT user_agent
-        BOOLEAN is_active
+        string session_id PK
+        int user_id FK
+        timestamp created_at
+        timestamp expires_at
+        boolean is_active
     }
     
     challenges {
-        SERIAL challenge_id PK
-        VARCHAR challenge_name
-        VARCHAR slug UK
-        INTEGER user_id FK
-        VARCHAR category
-        VARCHAR difficulty
-        TEXT description
-        TEXT_ARRAY hints
-        VARCHAR flag
-        VARCHAR github_link
-        VARCHAR docker_image
-        VARCHAR dockerfile_path
-        TEXT build_command
-        TEXT deploy_command
-        TEXT run_command
-        VARCHAR container_name
-        VARCHAR target_url
-        INTEGER_ARRAY expected_ports
-        TEXT deployment_notes
-        BOOLEAN is_active
-        BOOLEAN is_deployed
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int challenge_id PK
+        string challenge_name
+        string slug UK
+        int user_id FK
+        string category
+        string difficulty
+        string flag
+        boolean is_active
+        boolean is_deployed
+        timestamp created_at
     }
     
     chat_messages {
-        SERIAL message_id PK
-        VARCHAR session_id
-        INTEGER user_id FK
-        VARCHAR role
-        TEXT message_text
-        INTEGER challenge_id FK
-        JSON metadata
-        TIMESTAMP timestamp
+        int message_id PK
+        string session_id
+        int user_id FK
+        string role
+        string message_text
+        int challenge_id FK
+        timestamp timestamp
     }
     
     challenge_submissions {
-        SERIAL submission_id PK
-        INTEGER challenge_id FK
-        INTEGER user_id FK
-        VARCHAR submitted_flag
-        BOOLEAN is_correct
-        DATE solve_date
-        TIMESTAMP submitted_at
+        int submission_id PK
+        int challenge_id FK
+        int user_id FK
+        string submitted_flag
+        boolean is_correct
+        timestamp submitted_at
     }
     
     pending_deployments {
-        VARCHAR session_id PK_FK
-        VARCHAR challenge_name
-        VARCHAR existing_challenge_name
-        TIMESTAMP created_at
+        string session_id PK
+        string challenge_name
+        timestamp created_at
     }
     
     session_guacamole_users {
-        VARCHAR session_id PK_FK
-        VARCHAR guacamole_username
-        INTEGER guacamole_entity_id
-        TIMESTAMP created_at
-        TIMESTAMP expires_at
-        TIMESTAMP last_activity
+        string session_id PK
+        string guacamole_username
+        int guacamole_entity_id
+        timestamp created_at
     }
     
     session_activity {
-        SERIAL id PK
-        VARCHAR session_id FK
-        VARCHAR activity_type
-        JSONB activity_data
-        TIMESTAMP timestamp
+        int id PK
+        string session_id FK
+        string activity_type
+        timestamp timestamp
     }
     
     user_activity_log {
-        SERIAL log_id PK
-        INTEGER user_id FK
-        VARCHAR activity_type
-        VARCHAR ip_address
-        TEXT user_agent
-        JSON metadata
-        TIMESTAMP created_at
+        int log_id PK
+        int user_id FK
+        string activity_type
+        timestamp created_at
     }
     
     validated_os_images {
-        SERIAL id PK
-        VARCHAR image_name UK
-        VARCHAR package_manager
-        TEXT description
-        VARCHAR os_type
-        VARCHAR os_family
-        BOOLEAN is_valid
-        BOOLEAN is_pullable
-        BOOLEAN is_runnable
-        BOOLEAN ports_configurable
-        BOOLEAN services_configurable
-        DECIMAL image_size_mb
-        TEXT os_info
-        INTEGER usage_count
-        TIMESTAMP last_used_at
-        DECIMAL success_rate
-        TIMESTAMP validated_at
-        VARCHAR validated_by
-        VARCHAR validation_method
-        TEXT validation_notes
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        string image_name UK
+        string package_manager
+        string os_type
+        boolean is_valid
+        timestamp created_at
     }
     
     os_image_validation_queue {
-        SERIAL id PK
-        VARCHAR image_name UK
-        VARCHAR requested_by
-        INTEGER priority
-        VARCHAR status
-        TEXT error_message
-        INTEGER attempts
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        string image_name UK
+        string status
+        timestamp created_at
     }
     
     os_image_usage_history {
-        SERIAL id PK
-        INTEGER image_id FK
-        VARCHAR image_name
-        VARCHAR challenge_name
-        VARCHAR machine_name
-        VARCHAR usage_type
-        BOOLEAN success
-        TEXT error_message
-        TIMESTAMP used_at
+        int id PK
+        int image_id FK
+        string image_name
+        boolean success
+        timestamp used_at
     }
     
     ctf_tools {
-        SERIAL id PK
-        VARCHAR tool_name UK
-        VARCHAR display_name
-        TEXT description
-        VARCHAR category
-        VARCHAR official_docs_url
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-        VARCHAR learned_from
+        int id PK
+        string tool_name UK
+        string category
+        timestamp created_at
     }
     
     tool_installation_methods {
-        SERIAL id PK
-        INTEGER tool_id FK
-        VARCHAR method
-        VARCHAR package_name
-        TEXT install_command
-        VARCHAR post_install_verify_command
-        BOOLEAN requires_breakage
-        BOOLEAN requires_sudo
-        INTEGER priority
-        INTEGER success_count
-        INTEGER failure_count
-        INTEGER avg_install_time_ms
-        VARCHAR kali_version
-        TIMESTAMP last_successful_at
-        TIMESTAMP created_at
+        int id PK
+        int tool_id FK
+        string method
+        string package_name
+        boolean requires_sudo
+        timestamp created_at
     }
     
     tool_learning_queue {
-        SERIAL id PK
-        VARCHAR tool_name
-        VARCHAR category
-        INTEGER priority
-        INTEGER attempts
-        TEXT last_error
-        VARCHAR status
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        string tool_name
+        string status
+        timestamp created_at
     }
     
     service_package_mappings {
-        SERIAL id PK
-        VARCHAR service_name UK
-        VARCHAR package_name
-        VARCHAR alpine_package
-        VARCHAR rhel_package
-        BOOLEAN is_valid
-        TEXT description
-        VARCHAR service_type
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        string service_name UK
+        string package_name
+        boolean is_valid
+        timestamp created_at
     }
     
     tool_package_mappings {
-        SERIAL id PK
-        INTEGER tool_id FK
-        VARCHAR tool_name
-        VARCHAR package_name
-        VARCHAR os_type
-        VARCHAR category
-        BOOLEAN is_active
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        int tool_id FK
+        string tool_name
+        string package_name
+        timestamp created_at
     }
     
     subnet_allocations {
-        SERIAL id PK
-        VARCHAR challenge_name
-        VARCHAR user_id
-        CIDR subnet UK
-        INET gateway_ip
-        INET attacker_ip
-        INET victim_ip
-        JSONB additional_ips
-        TIMESTAMP allocated_at
-        TIMESTAMP released_at
-        BOOLEAN is_active
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        int id PK
+        string challenge_name
+        string subnet UK
+        boolean is_active
+        timestamp created_at
     }
 ```
 
