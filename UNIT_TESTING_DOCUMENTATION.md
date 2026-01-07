@@ -7,439 +7,216 @@
 
 ---
 
-## Table of Contents
+## 5.2 Testing Design / Plan
 
-1. [Introduction](#introduction)
-2. [Testing Strategy](#testing-strategy)
-3. [Frontend Unit Tests](#frontend-unit-tests)
-4. [Backend Unit Tests](#backend-unit-tests)
-5. [CTF Automation Service Unit Tests](#ctf-automation-service-unit-tests)
-6. [Test Coverage Requirements](#test-coverage-requirements)
-7. [Test Execution](#test-execution)
+### 5.2.1 Unit Testing
 
----
+#### General Definition of Unit Testing
 
-## Introduction
+Unit testing involves verifying the functionality of individual software units or components before integration. This testing approach emphasizes isolating components to quickly identify errors and ensure each unit functions correctly in isolation. A "unit" in this context refers to any method, function, or piece of logic responsible for specific tasks such as data validation, error handling, API communication, authentication, challenge creation, or deployment orchestration.
 
-This document outlines the unit testing requirements for the AI-Powered CTF Challenge Platform. Unit tests verify that individual components and functions work correctly in isolation, ensuring code reliability and maintainability.
+Developers design test cases to ensure units produce correct output for specific inputs, adhering to predefined specifications. Unit testing ensures proper internal logic implementation and helps maintain code quality. Skipping unit testing can lead to silent errors that are difficult to trace and may affect larger parts of the system, making debugging more challenging and time-consuming.
 
-### Purpose
+#### Unit Testing for AI CTF Challenge Platform System
 
-- Verify individual functions and components work as expected
-- Catch bugs early in the development cycle
-- Ensure code quality and maintainability
-- Provide documentation through test cases
-- Enable safe refactoring
-
-### Testing Framework
-
-- **Frontend**: Jest + React Testing Library
-- **Backend**: Jest + Supertest
-- **CTF Automation**: Jest
+Developers will perform the unit testing because they are responsible for implementing the code and understand the desired logic and behavior best. The process involves developers first writing specific test cases that cover all functional aspects of each unit, such as "validate user registration input," "authenticate user login," "generate challenge structure," "deploy challenge containers," and "validate Docker configurations." After writing these test cases, developers will execute them and compare the actual output with the expected results. If the outputs match, the tests succeed; otherwise, the unit test fails, and the developer must debug the code.
 
 ---
 
-## Testing Strategy
+## 5.2.1.1 Frontend Component Testing
 
-### Test Categories
+### Authentication Components
 
-1. **Unit Tests**: Test individual functions and components in isolation
-2. **Integration Tests**: Test interactions between components
-3. **API Tests**: Test API endpoints and responses
-4. **Utility Tests**: Test helper functions and utilities
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| A1 | Render login form with email and password input fields | Login form displays with all required fields visible | | High | |
+| A2 | Validate email format when user enters invalid email | Error message "Please enter a valid email address" is displayed | | High | |
+| A3 | Toggle password visibility when clicking eye icon | Password field switches between visible and hidden text | | Medium | |
+| A4 | Submit login form with valid credentials | User is authenticated and redirected to dashboard | | High | |
+| A5 | Display error message for invalid login credentials | Error message "Invalid email or password" is displayed | | High | |
+| A6 | Navigate to registration page when clicking sign up link | Registration page is loaded and displayed | | Medium | |
+| A7 | Display loading state during authentication request | Loading spinner or indicator is shown during API call | | Medium | |
+| A8 | Render registration form with all required fields | Registration form displays username, email, password, and confirm password fields | | High | |
+| A9 | Validate username format (3-20 characters, alphanumeric) | Error message appears if username doesn't meet requirements | | High | |
+| A10 | Validate password strength requirements | Error message lists all missing password requirements (uppercase, lowercase, number, special char) | | High | |
+| A11 | Validate password confirmation matching | Error message appears if passwords don't match | | High | |
+| A12 | Submit registration form with valid data | User account is created and user is redirected to dashboard | | High | |
+| A13 | Display error for duplicate username during registration | Error message "Username already exists" is displayed | | High | |
+| A14 | Display error for duplicate email during registration | Error message "Email already exists" is displayed | | High | |
 
-### Test Structure
+### Dashboard Component
 
-Each test file should follow this structure:
-- Setup/Teardown
-- Test cases grouped by functionality
-- Clear test descriptions
-- Assertions for expected behavior
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| D1 | Render dashboard with user information | Dashboard displays welcome message with username | | High | |
+| D2 | Display challenge statistics (total created, total deployed) | Statistics cards show correct challenge counts | | High | |
+| D3 | Display empty state when user has no challenges | Empty state message "No challenges yet. Create your first challenge!" is shown | | Medium | |
+| D4 | Navigate to challenge creation when clicking "Create Challenge" button | Chat interface page is loaded | | High | |
+| D5 | Navigate to challenge browsing when clicking "Browse Challenges" button | Challenge list page is loaded | | High | |
+| D6 | Display user profile information on dashboard | User profile section shows username, email, and avatar | | Medium | |
 
----
+### Chat Interface Component
 
-## Frontend Unit Tests
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| C1 | Render chat interface with message input field | Chat interface displays with empty message history and input field | | High | |
+| C2 | Submit message through chat input field | User message is displayed in chat history | | High | |
+| C3 | Display assistant response in chat interface | AI assistant response is displayed in chat history | | High | |
+| C4 | Generate and store session ID on component mount | Session ID is generated and stored in sessionStorage | | High | |
+| C5 | Load previous chat history when component mounts | Previous messages are displayed in chat history | | Medium | |
+| C6 | Display progress indicators during challenge creation | Progress steps are shown with checkmarks for completed steps | | High | |
+| C7 | Display challenge information card after creation | Challenge details card shows name, category, difficulty, and repository URL | | High | |
+| C8 | Display Guacamole access link after deployment | Access URL and credentials are displayed in chat interface | | High | |
+| C9 | Display error message when API request fails | User-friendly error message is displayed in chat | | High | |
+| C10 | Maintain conversation context across multiple messages | AI assistant remembers previous conversation context | | Medium | |
 
-### Component Tests
+### Challenge Browsing Component
 
-#### 1. Authentication Components
-
-**Login Component (`Login.tsx`)**
-- Test form rendering with all fields
-- Test email format validation
-- Test password field visibility toggle
-- Test form submission with valid credentials
-- Test error message display for invalid credentials
-- Test navigation to registration page
-- Test loading state during authentication
-
-**Registration Component (`Register.tsx`)**
-- Test form rendering with all required fields
-- Test username validation (3-20 characters, alphanumeric)
-- Test email format validation
-- Test password strength validation (8+ chars, uppercase, lowercase, number, special char)
-- Test password confirmation matching
-- Test form submission with valid data
-- Test error handling for duplicate username/email
-- Test success message and redirect after registration
-
-#### 2. Dashboard Component (`Dashboard.tsx`)
-- Test dashboard rendering with user data
-- Test statistics display (challenge count, deployment count)
-- Test empty state when no challenges exist
-- Test navigation to challenge creation
-- Test navigation to challenge browsing
-- Test user profile display
-
-#### 3. Chat Interface Component (`CTFChatInterface.tsx`)
-- Test chat interface rendering
-- Test message input field
-- Test message submission
-- Test message display (user and assistant messages)
-- Test session ID generation and storage
-- Test chat history loading
-- Test progress indicators during challenge creation
-- Test challenge information display
-- Test Guacamole link display
-- Test error message display
-
-#### 4. Challenge Browsing Component (`ChallengeList.tsx`)
-- Test challenge list rendering
-- Test empty state when no challenges
-- Test challenge card display (name, category, difficulty, status)
-- Test search functionality
-- Test filter functionality (category, difficulty, status)
-- Test pagination (if implemented)
-- Test challenge selection and navigation
-
-#### 5. Challenge Details Component (`ChallengeDetails.tsx`)
-- Test challenge details rendering
-- Test challenge metadata display
-- Test deployment status display
-- Test access URL display (when deployed)
-- Test action buttons (Deploy, Delete, Edit)
-- Test chat history display
-- Test error handling for missing challenge
-
-### Utility Function Tests
-
-#### 1. Session Management (`sessionUtils.ts`)
-- Test session ID generation (cryptographically secure)
-- Test session ID storage in sessionStorage
-- Test session ID retrieval
-- Test session ID validation
-- Test session expiration handling
-
-#### 2. API Communication (`apiClient.ts`)
-- Test API request construction
-- Test authentication header injection
-- Test error handling for network failures
-- Test error handling for API errors
-- Test response parsing
-- Test timeout handling
-
-#### 3. Form Validation (`validationUtils.ts`)
-- Test email validation
-- Test password strength validation
-- Test username validation
-- Test required field validation
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| B1 | Render challenge list with all user challenges | List displays all challenges created by the user | | High | |
+| B2 | Display empty state when no challenges exist | Empty state message is shown with "Create Challenge" button | | Medium | |
+| B3 | Display challenge card with name, category, difficulty, and status | Each challenge card shows all relevant metadata | | High | |
+| B4 | Filter challenges by category using filter dropdown | Only challenges matching selected category are displayed | | Medium | |
+| B5 | Filter challenges by difficulty using filter dropdown | Only challenges matching selected difficulty are displayed | | Medium | |
+| B6 | Search challenges by name using search input | Challenges matching search query are displayed | | Medium | |
+| B7 | Navigate to challenge details when clicking challenge card | Challenge details page is loaded | | High | |
+| B8 | Display deployment status badge on challenge cards | Status badge shows "Deployed" or "Not Deployed" | | Medium | |
 
 ---
 
-## Backend Unit Tests
+## 5.2.1.2 Backend API Testing
 
-### API Endpoint Tests
+### Authentication Endpoints
 
-#### 1. Authentication Endpoints
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| API1 | POST /api/auth/register with valid user data | User account is created, JWT token is returned | | High | |
+| API2 | POST /api/auth/register with duplicate username | Error response 400 with message "Username already exists" | | High | |
+| API3 | POST /api/auth/register with duplicate email | Error response 400 with message "Email already exists" | | High | |
+| API4 | POST /api/auth/register with invalid email format | Error response 400 with validation error message | | High | |
+| API5 | POST /api/auth/register with weak password | Error response 400 listing password requirements | | High | |
+| API6 | POST /api/auth/register hashes password with bcrypt | Password stored in database is hashed, not plain text | | High | |
+| API7 | POST /api/auth/login with valid credentials | JWT token is returned, user session is created | | High | |
+| API8 | POST /api/auth/login with invalid password | Error response 401 with message "Invalid email or password" | | High | |
+| API9 | POST /api/auth/login with non-existent user | Error response 401 with message "Invalid email or password" | | High | |
+| API10 | POST /api/auth/login locks account after 5 failed attempts | Account is locked for 15 minutes after 5 failed attempts | | High | |
+| API11 | GET /api/auth/me with valid JWT token | User information is returned | | High | |
+| API12 | GET /api/auth/me with invalid token | Error response 401 with "Unauthorized" message | | High | |
+| API13 | GET /api/auth/me with expired token | Error response 401 with "Token expired" message | | High | |
+| API14 | POST /api/auth/logout destroys session | Session record is deleted from database | | Medium | |
 
-**POST `/api/auth/register`**
-- Test successful user registration
-- Test duplicate username rejection
-- Test duplicate email rejection
-- Test invalid email format rejection
-- Test weak password rejection
-- Test password hashing with bcrypt
-- Test JWT token generation
-- Test database transaction rollback on error
+### Session Management Endpoints
 
-**POST `/api/auth/login`**
-- Test successful login with valid credentials
-- Test login failure with invalid password
-- Test login failure with non-existent user
-- Test account lockout after 5 failed attempts
-- Test lockout duration (15 minutes)
-- Test JWT token generation on successful login
-- Test failed attempt counter increment
-- Test failed attempt counter reset on success
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| S1 | POST /api/sessions/create generates unique session ID | Unique session ID is returned and stored in database | | High | |
+| S2 | POST /api/sessions/validate with valid session ID | Validation returns success response | | High | |
+| S3 | POST /api/sessions/validate with expired session ID | Validation returns error response | | High | |
+| S4 | GET /api/sessions/user/:userId returns user sessions | List of user's active sessions is returned | | Medium | |
+| S5 | DELETE /api/sessions/:sessionId deletes session | Session record is removed from database | | Medium | |
 
-**GET `/api/auth/me`**
-- Test authenticated user info retrieval
-- Test unauthenticated request rejection
-- Test invalid token rejection
-- Test expired token rejection
+### Chat Endpoints
 
-**POST `/api/auth/logout`**
-- Test session destruction
-- Test token invalidation
-- Test database session deletion
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| CH1 | POST /api/chat/messages saves message to database | Message is stored with correct session_id and role | | High | |
+| CH2 | GET /api/chat/history/:sessionId returns messages | Chat history is returned in chronological order | | High | |
+| CH3 | GET /api/chat/history/:sessionId with invalid session | Error response 404 with "Session not found" message | | Medium | |
 
-#### 2. Session Management Endpoints
+### Challenge Endpoints
 
-**POST `/api/sessions/create`**
-- Test session creation
-- Test session ID generation
-- Test session expiration setting
-- Test user association
-
-**POST `/api/sessions/validate`**
-- Test valid session validation
-- Test expired session rejection
-- Test non-existent session rejection
-
-**GET `/api/sessions/user/:userId`**
-- Test user session retrieval
-- Test filtering by user ID
-- Test empty result for user with no sessions
-
-**DELETE `/api/sessions/:sessionId`**
-- Test session deletion
-- Test non-existent session handling
-
-#### 3. Chat Endpoints
-
-**POST `/api/chat/messages`**
-- Test message saving
-- Test session association
-- Test message metadata storage
-- Test invalid session rejection
-
-**GET `/api/chat/history/:sessionId`**
-- Test chat history retrieval
-- Test message ordering (chronological)
-- Test empty history handling
-- Test invalid session handling
-
-#### 4. Challenge Endpoints
-
-**GET `/api/challenges`**
-- Test challenge list retrieval
-- Test user filtering (only user's challenges)
-- Test authentication requirement
-- Test empty list handling
-
-**GET `/api/challenges/:challengeId`**
-- Test challenge details retrieval
-- Test challenge ownership verification
-- Test non-existent challenge handling
-- Test unauthorized access rejection
-
-**POST `/api/challenges`**
-- Test challenge creation
-- Test challenge metadata storage
-- Test user association
-- Test duplicate challenge name rejection
-
-**POST `/api/challenges/:challengeId/submit`**
-- Test solution submission
-- Test flag validation
-- Test submission recording
-
-### Database Operation Tests
-
-#### 1. User Operations (`userService.js`)
-- Test user creation
-- Test user retrieval by ID
-- Test user retrieval by email
-- Test user retrieval by username
-- Test user update
-- Test password update
-- Test account lockout
-- Test account unlock
-
-#### 2. Session Operations (`sessionService.js`)
-- Test session creation
-- Test session retrieval
-- Test session validation
-- Test session expiration check
-- Test session deletion
-- Test session cleanup (expired sessions)
-
-#### 3. Challenge Operations (`challengeService.js`)
-- Test challenge creation
-- Test challenge retrieval
-- Test challenge update
-- Test challenge deletion
-- Test challenge filtering by user
-
-### Security Tests
-
-#### 1. Password Security
-- Test password hashing (bcrypt)
-- Test password comparison (bcrypt.compare)
-- Test password not stored in plain text
-- Test password strength requirements
-
-#### 2. JWT Token Security
-- Test token generation with correct payload
-- Test token expiration (7 days)
-- Test token signature verification
-- Test token tampering detection
-
-#### 3. SQL Injection Prevention
-- Test parameterized queries
-- Test input sanitization
-- Test prepared statements usage
-
-#### 4. Authentication Middleware
-- Test token extraction from headers
-- Test token validation
-- Test unauthorized request rejection
-- Test expired token handling
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| CHL1 | GET /api/challenges returns user's challenges | List of challenges filtered by user_id is returned | | High | |
+| CHL2 | GET /api/challenges/:challengeId returns challenge details | Challenge metadata is returned | | High | |
+| CHL3 | GET /api/challenges/:challengeId with invalid ID | Error response 404 with "Challenge not found" message | | Medium | |
+| CHL4 | POST /api/challenges saves challenge metadata | Challenge record is created in database | | High | |
+| CHL5 | POST /api/challenges with duplicate challenge name | Error response 400 with "Challenge name already exists" | | Medium | |
 
 ---
 
-## CTF Automation Service Unit Tests
+## 5.2.1.3 CTF Automation Service Testing
 
-### Agent Tests
+### Classifier Agent
 
-#### 1. Classifier Agent (`classifier.js`)
-- Test CREATE intent classification
-- Test DEPLOY intent classification
-- Test QUESTION intent classification
-- Test CHALLENGE_INFO intent classification
-- Test ambiguous intent handling
-- Test confidence score calculation
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| CL1 | Classify "Create an FTP challenge" request | Intent is classified as "CREATE" with confidence > 0.8 | | High | |
+| CL2 | Classify "Deploy my challenge" request | Intent is classified as "DEPLOY" with confidence > 0.8 | | High | |
+| CL3 | Classify "What is SQL injection?" question | Intent is classified as "QUESTION" with confidence > 0.8 | | Medium | |
+| CL4 | Classify "Show me my challenges" request | Intent is classified as "CHALLENGE_INFO" with confidence > 0.8 | | Medium | |
+| CL5 | Handle ambiguous intent with low confidence | Questions agent asks user for clarification | | Medium | |
 
-#### 2. Create Agent (`agents/create-agent.js`)
-- Test challenge name generation
-- Test challenge structure creation
-- Test GitHub repository creation
-- Test file commit and push
-- Test challenge metadata storage
-- Test error handling for GitHub failures
+### Create Agent
 
-#### 3. Deploy Agent (`agents/deploy-agent.js`)
-- Test challenge repository cloning
-- Test Docker network creation
-- Test container building
-- Test container startup
-- Test Guacamole connection creation
-- Test deployment status update
-- Test error handling for deployment failures
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| CR1 | Generate challenge name from user request | Unique challenge name is generated and returned | | High | |
+| CR2 | Create challenge structure with attacker and victim machines | Challenge structure with correct machine roles is created | | High | |
+| CR3 | Generate docker-compose.yml file | Valid docker-compose.yml file is generated | | High | |
+| CR4 | Generate Dockerfiles for all machines | Dockerfiles are created with correct base images | | High | |
+| CR5 | Commit challenge files to GitHub repository | Files are committed and pushed to GitHub successfully | | High | |
+| CR6 | Save challenge metadata to database | Challenge record is created in PostgreSQL | | High | |
+| CR7 | Handle GitHub push failure gracefully | Error message is returned, challenge is saved locally | | High | |
 
-#### 4. Universal Structure Agent (`agents/universal-structure-agent.js`)
-- Test multi-machine structure generation
-- Test docker-compose.yml generation
-- Test network configuration
-- Test IP allocation
-- Test machine role assignment (attacker/victim)
+### Deploy Agent
 
-#### 5. Content Agents
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| DP1 | Clone challenge repository from GitHub | Challenge files are cloned to local directory | | High | |
+| DP2 | Create Docker network with allocated subnet | Network is created with IP range 172.23.x.x/24 | | High | |
+| DP3 | Build Docker containers from docker-compose.yml | Containers are built successfully without errors | | High | |
+| DP4 | Start containers and attach to network | All containers start and are connected to network | | High | |
+| DP5 | Create Guacamole user for session | Guacamole user is created in MySQL database | | High | |
+| DP6 | Create Guacamole connection for attacker machine | Connection is created with correct parameters | | High | |
+| DP7 | Generate Guacamole access URL | Valid access URL is returned with connection ID | | High | |
+| DP8 | Handle container build failure | Error message is returned with container logs | | High | |
+| DP9 | Handle container startup failure | Error message is returned, containers are stopped | | High | |
 
-**Network Content Agent (`agents/content/network-content-agent.js`)**
-- Test network service challenge generation
-- Test service configuration
-- Test vulnerability implementation
-- Test flag placement
+### Universal Structure Agent
 
-**Web Content Agent (`agents/content/web-content-agent.js`)**
-- Test web application generation
-- Test vulnerability implementation
-- Test database setup
-- Test flag placement
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| US1 | Generate multi-machine challenge structure | Structure includes attacker and victim machines | | High | |
+| US2 | Allocate IP addresses for machines | IP addresses are allocated from 172.23.x.x/24 range | | High | |
+| US3 | Generate docker-compose.yml with network configuration | docker-compose.yml includes network and IP settings | | High | |
+| US4 | Assign correct roles to machines (attacker/victim) | Machine roles are correctly assigned | | High | |
 
-**Crypto Content Agent (`agents/content/crypto-content-agent.js`)**
-- Test cryptography challenge generation
-- Test encryption/decryption logic
-- Test flag encoding
+### Content Agents
 
-#### 6. Tool Installation Agent (`agents/tool-installation-agent.js`)
-- Test Dockerfile generation
-- Test package installation method selection
-- Test OS-specific package manager detection
-- Test tool installation script generation
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| CN1 | Network Content Agent generates FTP challenge | FTP service configuration and vulnerability are created | | High | |
+| CN2 | Network Content Agent generates SSH challenge | SSH service with weak credentials is configured | | High | |
+| CN3 | Web Content Agent generates web application | Web application with vulnerability is created | | High | |
+| CN4 | Crypto Content Agent generates cryptography challenge | Encryption/decryption logic and flag are created | | High | |
+| CN5 | Content agents place flags correctly | Flags are placed in correct locations for discovery | | High | |
 
-#### 7. Validator Agents
+### Validator Agents
 
-**Pre-Deploy Validator (`agents/pre-deploy-validator-agent.js`)**
-- Test Dockerfile syntax validation
-- Test docker-compose.yml validation
-- Test file structure validation
-- Test error detection
-- Test auto-fix suggestions
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| V1 | Pre-Deploy Validator validates Dockerfile syntax | Validation passes for valid Dockerfile | | High | |
+| V2 | Pre-Deploy Validator detects Dockerfile errors | Validation fails and errors are reported | | High | |
+| V3 | Pre-Deploy Validator validates docker-compose.yml | Validation passes for valid docker-compose.yml | | High | |
+| V4 | Post-Deploy Validator checks container health | Health check passes for running containers | | High | |
+| V5 | Post-Deploy Validator tests service accessibility | Services are accessible on configured ports | | High | |
+| V6 | Post-Deploy Validator detects service failures | Validation fails when services are not accessible | | High | |
 
-**Post-Deploy Validator (`agents/post-deploy-validator.js`)**
-- Test container health checks
-- Test service accessibility
-- Test network connectivity
-- Test validation result reporting
+### Manager Components
 
-### Manager Tests
-
-#### 1. Docker Manager (`docker-manager.js`)
-- Test container creation
-- Test container start/stop
-- Test network creation
-- Test network deletion
-- Test container status retrieval
-- Test IP address allocation
-- Test error handling for Docker failures
-
-#### 2. Git Manager (`git-manager.js`)
-- Test repository cloning
-- Test file commit
-- Test file push
-- Test branch operations
-- Test error handling for Git failures
-
-#### 3. Database Manager (`db-manager.js`)
-- Test session validation
-- Test chat message storage
-- Test challenge metadata operations
-- Test connection pooling
-- Test transaction handling
-
-#### 4. Subnet Allocator (`subnet-allocator.js`)
-- Test subnet allocation
-- Test IP conflict detection
-- Test subnet range management (172.23.x.x/24)
-- Test subnet release
-
-#### 5. Guacamole Managers
-
-**Session Guacamole Manager (`session-guacamole-manager.js`)**
-- Test Guacamole user creation
-- Test connection creation
-- Test permission assignment
-- Test URL generation
-- Test session isolation
-
-**Guacamole PostgreSQL Manager (`guacamole-postgresql-manager.js`)**
-- Test database connection
-- Test user operations
-- Test connection operations
-- Test permission operations
-
-### Utility Function Tests
-
-#### 1. Logger (`core/logger.js`)
-- Test log level filtering
-- Test log formatting
-- Test error logging
-- Test info logging
-- Test warning logging
-
-#### 2. Error Handler (`core/error-handler.js`)
-- Test error classification
-- Test error formatting
-- Test error response generation
-- Test error logging
-
-#### 3. Request Validator (`core/request-validator.js`)
-- Test request validation
-- Test session validation
-- Test input sanitization
-- Test error response generation
+| ID | Test Case | Expected Result | Actual Result | Priority | Status |
+|----|-----------|----------------|---------------|-----------|--------|
+| M1 | Docker Manager creates container successfully | Container is created and returns container ID | | High | |
+| M2 | Docker Manager starts container | Container status changes to "running" | | High | |
+| M3 | Docker Manager creates network | Network is created with specified subnet | | High | |
+| M4 | Git Manager clones repository | Repository files are cloned to local directory | | High | |
+| M5 | Git Manager commits and pushes files | Files are committed and pushed to GitHub | | High | |
+| M6 | Subnet Allocator allocates unique subnet | Subnet is allocated from available range | | High | |
+| M7 | Subnet Allocator detects IP conflicts | Error is returned if subnet is already in use | | Medium | |
+| M8 | Guacamole Manager creates user | User is created in Guacamole MySQL database | | High | |
+| M9 | Guacamole Manager creates connection | Connection is created with correct parameters | | High | |
 
 ---
 
@@ -523,123 +300,6 @@ npm run test:all
 - Generate coverage reports
 - Fail builds on coverage drop below threshold
 
-### Test Maintenance
-
-- Update tests when functionality changes
-- Remove obsolete tests
-- Refactor tests for maintainability
-- Document test cases and scenarios
-
----
-
-## Test Examples
-
-### Example: Frontend Component Test
-
-```javascript
-// Login.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { Login } from './Login';
-
-describe('Login Component', () => {
-  test('renders login form with all fields', () => {
-    render(<Login />);
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
-  });
-
-  test('validates email format', () => {
-    render(<Login />);
-    const emailInput = screen.getByLabelText(/email/i);
-    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-    fireEvent.submit(screen.getByRole('form'));
-    expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
-  });
-});
-```
-
-### Example: Backend API Test
-
-```javascript
-// auth.test.js
-const request = require('supertest');
-const app = require('../server');
-
-describe('POST /api/auth/register', () => {
-  test('creates new user with valid data', async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'Test123!@#'
-      });
-    
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('token');
-    expect(response.body.user).toHaveProperty('username', 'testuser');
-  });
-
-  test('rejects duplicate username', async () => {
-    // First registration
-    await request(app)
-      .post('/api/auth/register')
-      .send({
-        username: 'testuser',
-        email: 'test1@example.com',
-        password: 'Test123!@#'
-      });
-
-    // Duplicate attempt
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send({
-        username: 'testuser',
-        email: 'test2@example.com',
-        password: 'Test123!@#'
-      });
-
-    expect(response.status).toBe(400);
-    expect(response.body.error).toContain('username already exists');
-  });
-});
-```
-
-### Example: CTF Automation Service Test
-
-```javascript
-// classifier.test.js
-const Classifier = require('./classifier');
-
-describe('Classifier Agent', () => {
-  test('classifies CREATE intent correctly', async () => {
-    const result = await Classifier.classify('Create an FTP challenge');
-    expect(result.intent).toBe('CREATE');
-    expect(result.confidence).toBeGreaterThan(0.8);
-  });
-
-  test('classifies DEPLOY intent correctly', async () => {
-    const result = await Classifier.classify('Deploy my challenge');
-    expect(result.intent).toBe('DEPLOY');
-    expect(result.confidence).toBeGreaterThan(0.8);
-  });
-});
-```
-
----
-
-## Conclusion
-
-Unit testing is essential for maintaining code quality and ensuring the reliability of the AI-Powered CTF Challenge Platform. This document provides a comprehensive guide for implementing unit tests across all components of the system.
-
-**Key Principles:**
-- Test individual functions and components in isolation
-- Aim for high coverage of critical functionality
-- Maintain tests alongside code changes
-- Use mocks for external dependencies
-- Write clear, descriptive test cases
-
 ---
 
 **Document End**
@@ -647,4 +307,3 @@ Unit testing is essential for maintaining code quality and ensuring the reliabil
 **Last Updated**: January 2025  
 **Version**: 1.0  
 **Status**: Active
-
