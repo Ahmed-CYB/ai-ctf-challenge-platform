@@ -1,0 +1,6 @@
+# Requirements for MySQL to PostgreSQL Migration Script
+# Install with: pip install -r requirements-migration.txt
+
+mysql-connector-python>=8.0.33
+psycopg2-binary>=2.9.9
+
