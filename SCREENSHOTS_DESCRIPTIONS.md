@@ -1,0 +1,162 @@
+# Screenshots Descriptions
+
+## 4.6 Prototype Screenshots
+
+### Figure 4.20: User Login Interface
+
+The login interface demonstrates the authentication entry point with a dark-themed design featuring a grid-patterned background and terminal-style branding. The interface displays a bright green square logo with white right-angle bracket and underscore (`>_`) resembling a command-line prompt at the top center, followed by "CTF Platform" in white text and "AI-Powered Challenge Generation" in lighter green. A "Need Help?" link with question mark icon is positioned beneath the tagline. The main interactive element is a centrally located dark gray rectangular card with rounded corners containing the login form. Inside the card, "Welcome Back" is prominently displayed in white, followed by subtitle "Sign in to your account to continue" in lighter gray. The form includes two input fields: email field labeled "Email" with placeholder "you@example.com" and password field labeled "Password" with masked input, both featuring dark gray backgrounds with thin light green borders. A vibrant green "Sign In" button is centered below the password field, followed by "Don't have an account? Sign up here" text with "Sign up here" highlighted in brighter green as a clickable link. Below the login card, a separate smaller dark gray box contains guidance for new users directing them to create accounts first. The overall aesthetic utilizes dark theme with bright green accents for interactive elements and branding, suggesting cybersecurity and programming-related application context.
+
+### Figure 4.21: User Registration Interface
+
+The registration interface presents the account creation workflow through a dark-themed design with cybersecurity aesthetic. The page features a central dark grey rectangular card containing the sign-up form, with a glowing green command prompt icon (`>_`) centered at the top, accompanied by white text "Create Account" and green subtitle "Join the CTF Platform community". The sign-up form includes several input fields: Full Name pre-filled with "Ahmed Omer", Username pre-filled with "ahmed_omer" with hint below stating "3-20 characters, letters, numbers, and underscores only", Email pre-filled with "ahmed.omer@gmail.com", Password with masked characters and hint specifying requirements "Must be at least 8 characters with uppercase, lowercase, number, and special character (!@#$%^&*-_)", and Confirm Password with masked characters. Below the input fields, a prominent glowing green button labeled "Create Account" serves as the primary action, followed by a link for existing users "Already have an account? Sign in" with "Sign in" highlighted in green. The overall background features dark blue-grey with subtle grid pattern and faint glowing blue-green elements contributing to modern technical interface feel. At the bottom, smaller text in light grey reads "By signing up, you agree to our Terms of Service and Privacy Policy".
+
+### Figure 4.22: Main Dashboard Interface
+
+The dashboard interface serves as the primary navigation hub with a dark theme using dark blue and green accents. The layout is divided into a left sidebar and main content area. The left sidebar features the "CTF Platform" logo with white text and "AI-Powered" in smaller green text below it, with a small green arrow icon. Below the logo, a "Navigation" heading is present with navigation links including "Dashboard" highlighted in slightly lighter dark blue with house icon, "Generate Challenge" with star/sparkle icon, and "Profile" with person icon. At the bottom of the sidebar, a user section displays a small green circular icon with white person silhouette, username "ahmed_omer" in white text, and a "Logout" button with square bracket and right arrow icon in dark blue box. The main content area features welcome message "Welcome back, ahmed_omer!" in large white text, followed by "Manage your AI-generated CTF challenges" in smaller white text. Below the welcome message, a "Quick Actions" section contains three rectangular cards: "Generate Challenge" with green star/sparkle icon and description "Use AI to create a new CTF challenge", "View All Challenges" with green eye icon and description "Browse challenge using chat", and "View Profile" with green document/page icon and description "Check your profile and settings". The overall aesthetic is clean, modern, and functional, typical of a developer or security-focused platform.
+
+### Figure 4.23: AI Chat Interface - Initial State
+
+The chat interface illustrates the natural language interaction mechanism serving as the primary method for challenge creation and platform interaction. The interface design follows conversational UI patterns familiar to users from modern messaging applications, reducing learning curve and enabling intuitive interaction. The system welcome message provides guidance on available functionalities, helping users understand how to communicate their requirements effectively. The conversation history panel, initially empty, maintains context across multiple interactions, enabling coherent multi-turn conversations that build upon previous exchanges. This design approach transforms complex technical operations into accessible conversational interactions.
+
+### Figure 4.24: Challenge Creation Request in Chat
+
+The screenshot demonstrates the challenge creation initiation process within the AI Challenge Generator chat interface. The interface shows a conversation flow where a user initiates a request by typing "create ctf samba challenge" displayed in a green bubble on the right side of the chat interface. The AI responds with confirmation that "Challenge "samba-guest-access-challenge" created successfully!" displayed in a dark bubble on the left, followed by detailed challenge specifications including name "samba-guest-access-challenge", description explaining the corporate file server Samba misconfiguration scenario, and difficulty level "medium". The AI then prompts for "Confirmation required", to which the user responds with "deploy it" and subsequently "yes" both in green bubbles on the right. The AI confirms "Challenge "samba-guest-access-challenge" deployed successfully!" with a partially visible "Challenge Details" section below it. At the bottom of the chat interface, an input field labeled "Ask me to create a challenge... (e.g., 'Create a beginner web exploitation challenge')" with green send button is visible, along with instructions "Press Enter to send, Shift+Enter for new line". The interface demonstrates natural language interaction for challenge creation and deployment workflows.
+
+### Figure 4.25: Challenge Generation Progress
+
+The progress tracking interface demonstrates the multi-stage challenge generation workflow, providing users with visibility into various operations being performed by AI agents. The progress indicators use visual markers such as checkmarks for completed steps and loading animations for in-progress operations, creating clear representation of workflow advancement. This transparency is crucial for user experience, as it prevents uncertainty during longer operations and enables users to understand the complexity of challenge generation. The progress reporting includes descriptive messages explaining each stage, helping users appreciate the comprehensive nature of the automated challenge creation process.
+
+### Figure 4.26: Challenge Creation Success
+
+The success confirmation interface presents challenge generation results in a structured format consolidating all relevant information. The challenge details card employs card-based design grouping related information visually, making it easy for users to quickly understand generated challenge characteristics. The interface provides immediate action options, enabling users to proceed with deployment, view detailed information, or create additional challenges without requiring navigation to different pages. This design pattern reduces user effort and supports efficient workflow continuation, demonstrating the platform's focus on streamlined user experience.
+
+### Figure 4.27: Challenge Deployment Request
+
+The deployment request interface demonstrates continuation of the conversational workflow, where users can request challenge deployment using natural language commands. The interface tracks the deployment process through progress indicators showing various stages of containerization and environment setup. The progress reporting includes technical details such as container creation and network configuration, providing users with insight into deployment complexity while maintaining accessibility through clear messaging. This approach balances technical transparency with user-friendly presentation, enabling users to understand system operations without requiring deep technical knowledge.
+
+### Figure 4.28: Deployment Success with Access Information
+
+The deployment success interface demonstrates completion of the challenge deployment workflow, presenting comprehensive information within the chat conversation. The interface displays a large dark grey chat bubble containing system response marked with green checkmark stating "Challenge "samba-guest-access-challenge" deployed successfully!" followed by "**Challenge Details:**" including name "samba-guest-access-challenge", category "medium", and description of the Samba server misconfiguration challenge. The "**Guacamole Access:**" section provides login URL (`http://localhost:8081/guacamole/guacamole/#/client/37?username=ctf_bxjetynzdy`), username (`ctf_bxjetynzdy`), and password (`4972c25cb5eb3446`). The "**Deployment Info:**" section shows "URL: undefined" and "Container: undefined" indicating some deployment metadata fields may be optional. Below this system response, a user input bubble on the bottom right contains the query "how to solve this ctf", demonstrating continued conversation flow. At the very bottom, an input field with placeholder "Ask me to create a challenge..." and green send button with paper airplane icon is visible. The interface successfully combines deployment confirmation, access information, and conversational interaction in a single cohesive view.
+
+### Figure 4.29: Guacamole Login Interface
+
+The Guacamole login interface displays a centered white card on plain white background featuring the Apache Guacamole logo at the top, which shows a green layered dip (resembling guacamole) in a black bowl with small yellow/orange accent on the rim. Below the logo, "APACHE GUACAMOLE" text is displayed in black uppercase letters. The login form consists of two input fields: the top field contains pre-filled text "ctf_bxjetynzdy" representing the session-specific username, and the bottom field contains masked characters indicating password entry. Below these input fields is a dark grey button labeled "Login". The overall design is clean and functional, typical of web application login pages, demonstrating the browser-based authentication entry point for accessing deployed challenge environments through Guacamole remote access system.
+
+### Figure 4.30: Kali Linux Terminal with Network Configuration
+
+The Kali Linux terminal window displays system information and network configuration output. The terminal shows Linux system identification as `Linux 07e5fc8dc4e6 6.6.87.2-microsoft-standard-WSL2` indicating Kali Linux distribution running on Windows Subsystem for Linux 2 (WSL2) with kernel version 6.6.87.2. Standard Kali GNU/Linux disclaimers about free software are presented, followed by "Last login" message showing login timestamp from IP address 172.26.145.2. A prominent message from Kali developers indicates this is a minimal installation and provides guidance for installing supplementary tools. The command prompt `(kali@07e5fc8dc4e6)-[~]$` indicates user `kali` on hostname `07e5fc8dc4e6` in home directory. The `ifconfig` command output details two network interfaces: `eth0` (Ethernet interface) with IPv4 address 172.26.145.3, netmask 255.255.255.0, broadcast address 172.26.145.255, MAC address 8e:39:91:53:de:51, and packet statistics showing RX packets 3119 and TX packets 3018; and `lo` (Loopback interface) with IPv4 address 127.0.0.1 and IPv6 address ::1, with packet statistics showing RX and TX packets both at 2776. The screenshot demonstrates successful terminal access to the deployed challenge environment and network configuration visibility.
+
+### Figure 4.31: Nmap Network Scan Results
+
+The terminal window displays Nmap network scan output showing reconnaissance results for the 172.26.145.0/24 subnet. The scan identifies three hosts within the specified subnet: Host 1 (ctf-guacd-new.ctf-samba-guest-access-challenge-net at 172.26.145.2) with all 1000 scanned TCP ports in ignored states; Host 2 (07e5fc8dc4e6 at 172.26.145.3) with 999 closed ports and one open port 22/tcp running SSH service; and Host 3 (ctf-samba-guest-access-challenge-samba-server.ctf-samba-guest-access-challenge-net at 172.26.145.63) with 997 closed ports and three open ports: 22/tcp running SSH, 139/tcp running netbios-ssn (NetBIOS Session Service), and 445/tcp running microsoft-ds (Microsoft Directory Services, typically SMB/CIFS). The scan concludes with "Nmap done: 256 IP addresses (3 hosts up) scanned in 7.04 seconds", providing critical information for penetration testing and CTF challenge solving by revealing accessible services on target machines. This demonstrates network reconnaissance capabilities within the challenge environment.
+
+### Figure 4.32: AI Challenge Solving Guidance Response
+
+The chat interface displays AI response providing step-by-step guidance to solve the "samba-guest-access-challenge". The response is formatted with bold headings and bullet points, beginning with introductory sentence explaining focus on accessing Samba shares with guest access. The guidance includes four main steps: "1. Enumerate SMB Shares" with instructions to use tools like smbclient or enum4linux and command example `smbclient -L \\<TARGET_IP> -N`; "2. Identify Accessible Shares" explaining to look for shares allowing guest access without password; "3. Access the Shares" with instructions to connect using smbclient and command example `smbclient \\<TARGET_IP>\<SHARE_NAME> -N`; and "4. Search for Sensitive Information" instructing navigation through directories to find files containing sensitive information. The interface demonstrates the platform's educational support capabilities, providing contextual guidance to help users understand challenge-solving approaches and learn cybersecurity techniques through interactive assistance.
+
+### Figure 4.33: SMB Client Anonymous Login
+
+The Kali Linux terminal session displays smbclient utility output showing anonymous login to remote SMB server at IP address 172.26.145.63. The command `smbclient -L \\172.26.145.63 -N` is executed, where `-L` lists shares and `-N` specifies no password (anonymous login). The output confirms "Anonymous login successful" and lists available shares including "myshare" (Type: Disk, Comment: smb share test) and "IPC$" (Type: IPC, Comment: IPC Service (Samba Server Version 4.6.3)). The system then reconnects with SMB1 for workgroup listing, again confirming "Anonymous login successful", and displays workgroup information identifying "Workgroup" as "Master" and "MYGROUP" with ID "080716F0CD58". This demonstrates successful enumeration of SMB shares and workgroups on target system using anonymous access, validating the challenge's vulnerability scenario and demonstrating practical exploitation techniques.
+
+### Figure 4.34: AI Troubleshooting Response
+
+The chat interface displays AI troubleshooting response addressing user's connection attempt to Samba share. The response is titled "It looks like you're trying to connect to the Samba share but encountering some errors. Let's troubleshoot:" and provides three troubleshooting steps: "1. Correct the Command Syntax" suggesting use of double backslashes for IP and single for share name with corrected command `smbclient //172.26.145.63/myshare -N`; "2. Check Share Permissions" advising to check if anonymous access is truly enabled and trying different methods/tools; and "3. Debugging" recommending use of `-d` flag for more detailed error messages. The interface demonstrates the platform's ability to provide contextual troubleshooting assistance, helping users overcome technical challenges and learn proper command syntax and debugging techniques during challenge-solving activities.
+
+### Figure 4.35: SMB Client Connection Process
+
+The terminal window displays smbclient command execution with debug output showing connection process to Samba share. The command `smbclient //172.26.145.63/myshare -N -d 3` is executed, using anonymous connection (`-N`) with debug level 3 (`-d 3`). The output shows system process details, network interface configuration with `eth0` interface configured with IP address 172.26.145.3, broadcast address 172.26.145.255, and netmask 255.255.255.0. The output confirms "Client started (version 4.23.4-Debian-4.23.4+dfsg-1)" and shows connection attempt message "Connecting to 172.26.145.63 at port 445" (standard port for SMB over TCP). Finally, three lines indicate registration of Generic Security Service Application Program Interface (GSSAPI) backends: `GENSEC backend 'gssapi_spnego' registered`, `GENSEC backend 'gssapi_krb5' registered`, and `GENSEC backend 'gssapi_krb5_sasl' registered`, suggesting client preparation of various authentication mechanisms for SMB connection. This demonstrates detailed connection process visibility and authentication mechanism initialization.
+
+### Figure 4.36: SMB Share File Listing with Flag
+
+The terminal window displays output of `ls` command executed in smb (Samba) environment, showing file listing within the connected share. The prompt `smb: \> ls` indicates the command being run. The output lists several items including `dos_clean_name [\*]`, `unix_clean_name [\*]`, current directory `.` (Type D, size 0, timestamp Tue Jan 6 08:04:36 2026), parent directory `..` (Type D, size 0, timestamp Tue Jan 6 08:04:35 2026), and `flag.txt` (Type N, size 30 bytes, timestamp Tue Jan 6 08:04:36 2026). Below the file listings, summary information shows disk space: "1055762868 blocks of size 1024. 832144880 blocks available" and total bytes listed: 30. The presence of `flag.txt` with size of 30 bytes is particularly noteworthy, as flags are common objectives in Capture The Flag (CTF) challenges. This screenshot demonstrates successful access to challenge files through SMB share enumeration and validates the challenge-solving workflow from network reconnaissance through file discovery.
+
+### Figure 4.37: Challenge Browsing Interface
+
+The browsing interface demonstrates challenge discovery and management functionality, presenting multiple challenges in visually organized grid layout. Each challenge card displays essential metadata enabling users to quickly identify challenges of interest based on category, difficulty, or deployment status. The search and filter functionality provides efficient challenge discovery, allowing users to locate specific challenges or filter by various criteria. The card-based design enables quick scanning of available challenges while providing sufficient information to make selection decisions. The interface design supports both casual browsing and targeted challenge discovery, accommodating different user interaction patterns.
+
+### Figure 4.38: Challenge Details View
+
+The challenge details interface consolidates all information related to a specific challenge in a single view, enabling users to access complete challenge information without navigating between multiple pages. The interface organizes information into logical sections, with challenge metadata, description, access credentials, and file structure presented in structured format. The management action buttons provide direct access to common operations such as deployment, access, and deletion, reducing the number of steps required for challenge management. This comprehensive view design supports both challenge exploration and active challenge management, enabling users to understand challenge characteristics and perform necessary actions efficiently.
+
+### Figure 4.39: Profile Editing Interface
+
+The profile editing interface enables users to modify their account information through structured form with real-time validation. The interface displays "Edit Profile" title with left arrow icon suggesting back navigation, followed by subtitle "Update your account information and settings". The content is organized into several sections: Profile Avatar section showing large green frog avatar with text stating "Your avatar was randomly assigned during signup and cannot be changed"; Basic Information section with input fields for Full Name (pre-filled "Ahmed Omer"), Username (pre-filled "ahmed_omer" with instruction "Lowercase letters, numbers, and underscores only"), Email Address (pre-filled "ahmed.omer@gmail.com"), Role/Job Title (pre-filled "Student"), and Bio/Description (pre-filled "Cybersecurity Student" with character counter "21/500 characters"); and Change Password section with descriptive text "Leave blank if you don't want to change your password" and three password input fields (Current Password, New Password, Confirm New Password) each with eye icon for toggling password visibility. The interface provides immediate feedback on input validity and includes both save and cancel options, enabling users to commit changes or abandon edits as needed.
+
+### Figure 4.40: User Profile Interface with Security Policy
+
+The profile interface demonstrates user account management with comprehensive security information. The interface displays user information section with input fields for name "Ahmed Omer", username "ahmed_omer" with format instructions, email "ahmed.omer@gmail.com", role "Student", and bio "Cybersecurity Student" with character counter. The Change Password section includes three password fields with eye icons for visibility toggling. The Security & Privacy Policy section features lock icon and heading with bulleted list outlining key policy points: "Your password is encrypted and securely stored", "We never share your personal information with third parties", "Username changes may take up to 24 hours to reflect across all features", "Email changes require verification (feature coming soon)", and "Your data is protected by industry-standard security measures". At the bottom, two action buttons are present: prominent green "Save Changes" button with floppy disk icon and "Cancel" button. The interface design emphasizes user control, transparency, and security awareness, providing comprehensive account management capabilities while maintaining security through appropriate access controls and clear policy communication.
+
+## 4.5.12 Execution Screenshots and Visual Documentation
+
+### Figure 4.41: System Initialization and Service Startup
+
+The backend server startup sequence displays Node.js backend server initialization with Express.js framework, PostgreSQL connection pool establishment, and server listening on configured port. The terminal output confirms that all required services are properly configured and API endpoints are ready to accept requests, demonstrating successful system initialization. The startup logs show database connection establishment, middleware configuration, and route registration, validating that the backend infrastructure is correctly initialized and operational.
+
+### Figure 4.42: PostgreSQL Database Connection
+
+The pgAdmin interface displays successful database connection with schema tables visible including users, challenges, chat_messages, and sessions tables. The database management interface shows established connection to PostgreSQL database server, with complete schema structure visible and all tables properly initialized with their respective columns, constraints, and relationships as defined in the database schema. The interface demonstrates data persistence infrastructure and validates database schema implementation.
+
+### Figure 4.43: Frontend Application Startup
+
+The React development server compilation shows TypeScript type checking, Webpack bundling process, and local development server running on configured port. The frontend compilation process displays successful build completion with no errors, indicating that all React components, TypeScript types, and dependencies are properly configured. The compilation output validates frontend build system configuration and demonstrates successful integration of React, TypeScript, and build tooling.
+
+### Figure 4.44: User Registration Process
+
+The registration form displays input fields for username, email, password, confirm password, and full name, with validation feedback displayed. The interface shows proper error handling for invalid inputs and success confirmation upon successful account creation, demonstrating the user registration workflow and client-side validation functionality. The screenshot validates form validation logic and user registration API integration.
+
+### Figure 4.45: User Login Process
+
+The login form displays email and password fields, showing successful authentication and redirect to dashboard interface. Upon successful login, the system displays welcome message and redirects user to main dashboard, confirming that JWT token generation and session creation are functioning correctly. The screenshot demonstrates authentication flow and session management implementation.
+
+### Figure 4.46: AI Classification Process
+
+The classifier agent processing shows terminal output displaying classification result with category (Create), confidence score, and extracted challenge requirements. The terminal output shows classifier agent analyzing user message and determining intent as challenge creation, displaying classification confidence, extracted challenge type, and required tools for challenge generation process. This validates the AI-powered request classification system functionality.
+
+### Figure 4.47: Challenge File Generation
+
+The generated challenge directory structure displays file explorer showing generated challenge directory with Dockerfile, docker-compose.yml, vulnerable application code, README.md, and metadata.json files. The file system view displays complete challenge structure created by AI agent, including all necessary files for containerization and deployment, following platform's standard challenge organization format. This validates AI-powered challenge file generation capabilities.
+
+### Figure 4.48: GitHub Repository Push Operation
+
+The terminal output shows Git operations including file staging, commit creation, and successful push to GitHub repository with challenge files. The terminal displays Git commands executing to add, commit, and push challenge files to remote GitHub repository, confirming successful synchronization of challenge files to version control system. This demonstrates automated Git integration and repository management.
+
+### Figure 4.49: Docker Container Build Process
+
+The terminal output shows Docker Compose build process including image creation, layer caching, and container startup commands executing for challenge deployment. The terminal displays Docker Compose executing build and deployment commands, showing container image creation, network configuration, and container startup processes, confirming that challenge environment is being properly containerized and isolated. This validates Docker integration and containerization workflow.
+
+### Figure 4.50: Docker Containers Running Status
+
+The Docker Desktop interface shows running containers for deployed challenge, displaying container names, status indicators, network connections, and resource usage statistics. The Docker management interface displays all containers associated with deployed challenge, showing their running status, network connections, and resource allocation, confirming that all required containers are healthy and properly networked. This demonstrates successful container deployment and resource management.
+
+### Figure 4.51: Network Configuration
+
+The terminal output displays Docker network inspection with isolated challenge network, subnet allocation, container IP addresses, and network connectivity status. The terminal shows Docker network configuration details including allocated subnet, assigned IP addresses for victim and attacker containers, and network isolation verification, confirming that each challenge operates in its own isolated network environment. This validates network isolation and IP allocation mechanisms.
+
+### Figure 4.52: Guacamole Connection Setup
+
+The terminal output shows Guacamole connection creation process with MySQL database updates, connection parameter configuration, and user permission assignment. The terminal displays Guacamole connection setup process, showing database operations that create remote access connections, confirming that session-specific user accounts and connection configurations are being properly established. This demonstrates Guacamole integration and remote access configuration.
+
+### Figure 4.53: Guacamole Login Interface
+
+The browser screenshot shows Guacamole login page displaying session-specific username and password fields, ready for user authentication to access challenge environment. The Guacamole login interface displays authentication form with session-specific credentials, ready to authenticate users and establish SSH connections to deployed challenge containers. This validates remote access authentication workflow.
+
+### Figure 4.54: Database Query Execution
+
+The pgAdmin interface shows SQL query execution and results displaying user records, challenge metadata, and chat message history from PostgreSQL database. The database management interface displays query results showing application data stored in database, including user information, challenge records, and conversation history, confirming that data persistence is functioning correctly. This validates database operations and data integrity.
+
+### Figure 4.55: API Request and Response
+
+The Postman interface displays API request to chat endpoint with request body, authentication headers, and JSON response showing AI-generated challenge creation confirmation. The API testing tool shows POST request to chat endpoint with proper authentication headers and request payload, with response displaying AI-generated message confirming successful challenge creation, demonstrating API integration between frontend and backend services. This validates API endpoint functionality and request-response flow.
+
+### Figure 4.56: System Logs and Monitoring
+
+The terminal output displays system logs with request processing, error handling, database operations, and AI service interactions logged with timestamps and severity levels. The terminal shows comprehensive system logging with various log levels including information, warnings, and errors, providing visibility into system operations, API requests, database queries, and AI service interactions. This demonstrates logging infrastructure and system observability.
+
+### Figure 4.57: Error Handling Demonstration
+
+The browser screenshot shows error message display for failed challenge deployment, displaying detailed error description, suggested resolution steps, and retry option. The interface displays user-friendly error message when deployment operation fails, providing context about failure and suggesting potential resolution steps, demonstrating robust error handling and user feedback mechanisms. This validates error handling and user experience during failure scenarios.
+
+### Figure 4.58: Complete Workflow Demonstration
+
+The multi-panel screenshot shows complete user journey from login through challenge creation, deployment, and access, demonstrating end-to-end platform functionality. The composite screenshot shows multiple interface states representing complete user workflow, including authentication, challenge creation via chat, deployment process, and final access to challenge environment, providing comprehensive view of platform functionality and validating integration of all system components working together. This demonstrates complete system integration and end-to-end workflow validation.
+
