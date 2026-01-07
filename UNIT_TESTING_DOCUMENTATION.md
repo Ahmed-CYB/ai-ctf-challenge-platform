@@ -11,15 +11,11 @@
 
 ### 5.2.1 Unit Testing
 
-#### General Definition of Unit Testing
+Unit testing is a software testing methodology where individual components or units of code are tested in isolation to verify that they function correctly according to their specifications. A unit represents the smallest testable part of an application, which can be a function, method, class, or module that performs a specific task. The primary objective of unit testing is to validate that each unit of code works as intended before integrating it with other components, enabling early detection of defects and ensuring code reliability.
 
-Unit testing involves verifying the functionality of individual software units or components before integration. This testing approach emphasizes isolating components to quickly identify errors and ensure each unit functions correctly in isolation. A "unit" in this context refers to any method, function, or piece of logic responsible for specific tasks such as data validation, error handling, API communication, authentication, challenge creation, or deployment orchestration.
+In unit testing, developers create test cases that provide specific inputs to a unit and verify that the outputs match the expected results. Each test case focuses on a single functionality or behavior, making it easier to identify and fix issues at the source. This approach helps maintain code quality, reduces debugging time, and provides confidence when refactoring or modifying code. Unit tests serve as documentation of expected behavior and can prevent regressions when changes are made to the codebase.
 
-Developers design test cases to ensure units produce correct output for specific inputs, adhering to predefined specifications. Unit testing ensures proper internal logic implementation and helps maintain code quality. Skipping unit testing can lead to silent errors that are difficult to trace and may affect larger parts of the system, making debugging more challenging and time-consuming.
-
-#### Unit Testing for AI CTF Challenge Platform System
-
-Developers will perform the unit testing because they are responsible for implementing the code and understand the desired logic and behavior best. The process involves developers first writing specific test cases that cover all functional aspects of each unit, such as "validate user registration input," "authenticate user login," "generate challenge structure," "deploy challenge containers," and "validate Docker configurations." After writing these test cases, developers will execute them and compare the actual output with the expected results. If the outputs match, the tests succeed; otherwise, the unit test fails, and the developer must debug the code.
+For the AI CTF Challenge Platform, unit testing is performed by developers who implement the code, as they possess the best understanding of the intended logic and behavior. The testing process involves writing comprehensive test cases that cover all functional aspects of each unit, including authentication functions, challenge generation logic, Docker deployment operations, API endpoint handlers, and validation routines. Developers execute these test cases and compare actual outputs with expected results. When outputs match expectations, tests pass; otherwise, tests fail, indicating that debugging and code correction are required.
 
 ---
 
