@@ -59,10 +59,11 @@
       port: 3000,
       open: true,
       proxy: {
-        '/n8n-api': {
-          target: 'http://localhost:5678',
+        // CTF automation service proxy (if needed)
+        '/ctf-api': {
+          target: 'http://localhost:4003',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/n8n-api/, ''),
+          rewrite: (path) => path.replace(/^\/ctf-api/, ''),
         },
       },
     },

@@ -6,7 +6,7 @@ import { Textarea } from './ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Send, Loader2, CheckCircle2, ExternalLink, AlertCircle, Sparkles, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { generateCTFWithN8N } from '../services/n8nApi';
+import { sendChatMessage } from '../services/ctfAutomationApi';
 import { saveChatMessage, createSession } from '../services/database';
 
 interface ChallengePlan {
@@ -105,7 +105,7 @@ export function CTFChatInterface() {
     setIsGenerating(true);
 
     try {
-      console.log('Sending to n8n chat:', { message: trimmedInput, sessionId });
+      console.log('Sending to CTF automation service:', { message: trimmedInput, sessionId });
       
       // Create/update session in database
       try {
@@ -125,70 +125,70 @@ export function CTFChatInterface() {
         console.error('Failed to save user message:', dbError);
       }
       
-      // Call n8n chat endpoint
+      // Call CTF automation service
       try {
-        const n8nResponse = await generateCTFWithN8N({
+        const automationResponse = await sendChatMessage({
           message: trimmedInput,
           sessionId
         });
         
-        console.log('n8n chat response:', n8nResponse);
+        console.log('CTF automation service response:', automationResponse);
 
         // Format the response text from the automation service
         let responseText = '';
         
-        if (n8nResponse.success) {
+        if (automationResponse.success) {
           // Handle different response types
-          if (n8nResponse.answer) {
+          if (automationResponse.answer) {
             // Question response
-            responseText = n8nResponse.answer;
-            if (n8nResponse.additionalHelp) {
-              responseText += '\n\n' + n8nResponse.additionalHelp;
+            responseText = automationResponse.answer;
+            if (automationResponse.additionalHelp) {
+              responseText += '\n\n' + automationResponse.additionalHelp;
             }
-          } else if (n8nResponse.message) {
+          } else if (automationResponse.message) {
             // Create/Deploy response
-            responseText = n8nResponse.message;
+            responseText = automationResponse.message;
             
-            if (n8nResponse.challenge) {
+            if (automationResponse.challenge) {
               responseText += '\n\n**Challenge Details:**';
-              if (n8nResponse.challenge.name) responseText += `\n- Name: ${n8nResponse.challenge.name}`;
-              if (n8nResponse.challenge.description) responseText += `\n- Description: ${n8nResponse.challenge.description}`;
-              if (n8nResponse.challenge.difficulty) responseText += `\n- Difficulty: ${n8nResponse.challenge.difficulty}`;
-              if (n8nResponse.challenge.category) responseText += `\n- Category: ${n8nResponse.challenge.category}`;
-              if (n8nResponse.challenge.flag) responseText += `\n- Flag: ${n8nResponse.challenge.flag}`;
+              if (automationResponse.challenge.name) responseText += `\n- Name: ${automationResponse.challenge.name}`;
+              if (automationResponse.challenge.description) responseText += `\n- Description: ${automationResponse.challenge.description}`;
+              if (automationResponse.challenge.difficulty) responseText += `\n- Difficulty: ${automationResponse.challenge.difficulty}`;
+              if (automationResponse.challenge.category) responseText += `\n- Category: ${automationResponse.challenge.category}`;
+              if (automationResponse.challenge.flag) responseText += `\n- Flag: ${automationResponse.challenge.flag}`;
             }
             
-            if (n8nResponse.deployment) {
+            if (automationResponse.deployment) {
               responseText += '\n\n**Deployment Info:**';
-              responseText += `\n- URL: ${n8nResponse.deployment.url}`;
-              responseText += `\n- Container: ${n8nResponse.deployment.containerName}`;
+              responseText += `\n- URL: ${automationResponse.deployment.url}`;
+              responseText += `\n- Container: ${automationResponse.deployment.containerName}`;
             }
             
-            if (n8nResponse.nextSteps) {
-              responseText += '\n\n' + n8nResponse.nextSteps;
+            if (automationResponse.nextSteps) {
+              responseText += '\n\n' + automationResponse.nextSteps;
             }
             
-            if (n8nResponse.instructions) {
-              responseText += '\n\n' + n8nResponse.instructions;
+            if (automationResponse.instructions) {
+              responseText += '\n\n' + automationResponse.instructions;
             }
-          } else if (n8nResponse.explanation) {
+          } else if (automationResponse.explanation) {
             // Challenge info response
-            responseText = n8nResponse.explanation;
-            if (n8nResponse.deployCommand) {
-              responseText += '\n\n' + n8nResponse.deployCommand;
+            responseText = automationResponse.explanation;
+            if (automationResponse.deployCommand) {
+              responseText += '\n\n' + automationResponse.deployCommand;
             }
           } else {
             // Fallback
-            responseText = n8nResponse.output || n8nResponse.text || JSON.stringify(n8nResponse, null, 2);
+            responseText = automationResponse.output || automationResponse.text || JSON.stringify(automationResponse, null, 2);
           }
         } else {
           // Error response
-          responseText = n8nResponse.error || n8nResponse.message || 'An error occurred';
-          if (n8nResponse.details) {
-            responseText += '\n\nDetails: ' + n8nResponse.details;
+          responseText = automationResponse.error || automationResponse.message || 'An error occurred';
+          if (automationResponse.details) {
+            responseText += '\n\nDetails: ' + automationResponse.details;
           }
-          if (n8nResponse.suggestion) {
-            responseText += '\n\n' + n8nResponse.suggestion;
+          if (automationResponse.suggestion) {
+            responseText += '\n\n' + automationResponse.suggestion;
           }
         }
         
@@ -203,7 +203,7 @@ export function CTFChatInterface() {
             session_id: sessionId,
             role: 'assistant',
             message_text: responseText,
-            metadata: n8nResponse,
+            metadata: automationResponse,
           });
         } catch (dbError) {
           console.error('Failed to save assistant message:', dbError);
@@ -211,20 +211,20 @@ export function CTFChatInterface() {
 
         toast.success('Message sent!');
 
-      } catch (n8nError) {
-        // n8n failed - show helpful error to user
-        console.error('n8n generation failed:', n8nError);
-        const errorMessage = n8nError instanceof Error ? n8nError.message : 'Unknown error';
+      } catch (automationError) {
+        // CTF automation service failed - show helpful error to user
+        console.error('CTF automation service failed:', automationError);
+        const errorMessage = automationError instanceof Error ? automationError.message : 'Unknown error';
         
         // Check if it's a connection error
         if (errorMessage.includes('Cannot connect to CTF automation service') || 
             errorMessage.includes('ERR_CONNECTION_REFUSED')) {
           addMessage({
             type: 'error',
-            content: `⚠️ CTF Automation Service is not running.\n\nTo generate challenges, you need to start the CTF automation service on port 3003.\n\nYour message has been saved, but challenge generation is currently unavailable.`,
+            content: `⚠️ CTF Automation Service is not running.\n\nTo generate challenges, you need to start the CTF automation service on port 4003.\n\nYour message has been saved, but challenge generation is currently unavailable.`,
           });
           toast.error('CTF automation service is not available', {
-            description: 'The service on port 3003 needs to be running to generate challenges.',
+            description: 'The service on port 4003 needs to be running to generate challenges.',
             duration: 5000,
           });
         } else {
@@ -279,7 +279,7 @@ export function CTFChatInterface() {
         <div className="flex-1">
           <h3>AI Challenge Generator</h3>
           <p className="text-muted-foreground">
-            Powered by n8n Workflow
+            Powered by AI CTF Automation Service
           </p>
         </div>
       </div>

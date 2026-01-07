@@ -17,7 +17,7 @@ export default defineConfig({
   server: {
     port: 4000,
     open: true,
-    // n8n proxy removed - using local CTF automation service instead
+    // Using local CTF automation service on port 4003
   },
 });
 

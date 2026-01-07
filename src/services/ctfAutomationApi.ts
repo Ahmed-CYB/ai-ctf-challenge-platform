@@ -3,8 +3,7 @@
  * Handles communication with the CTF automation service
  */
 
-// Use the new automation service instead of n8n
-const CTF_API_URL = import.meta.env.VITE_CTF_API_URL || 'http://localhost:4003/api/chat'; // New port, original 3003 kept for backup
+const CTF_API_URL = import.meta.env.VITE_CTF_API_URL || 'http://localhost:4003/api/chat';
 
 export interface CTFGenerationRequest {
   message: string;
@@ -22,7 +21,7 @@ export interface CTFChatResponse {
  * @param request - The chat request with message and session
  * @returns The chat response from the automation service
  */
-export async function generateCTFWithN8N(request: CTFGenerationRequest): Promise<CTFChatResponse> {
+export async function sendChatMessage(request: CTFGenerationRequest): Promise<CTFChatResponse> {
   try {
     console.log('CTF API URL:', CTF_API_URL);
     console.log('Sending message to CTF automation service:', request);
@@ -52,7 +51,7 @@ export async function generateCTFWithN8N(request: CTFGenerationRequest): Promise
   } catch (error) {
     console.error('Error calling CTF automation service:', error);
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Cannot connect to CTF automation service. Make sure it is running on port 3003');
+      throw new Error('Cannot connect to CTF automation service. Make sure it is running on port 4003');
     }
     throw error;
   }
@@ -62,7 +61,7 @@ export async function generateCTFWithN8N(request: CTFGenerationRequest): Promise
  * Check if the CTF automation service is configured and accessible
  * @returns true if the service endpoint is available
  */
-export async function isN8NConfigured(): Promise<boolean> {
+export async function checkAutomationService(): Promise<boolean> {
   try {
     const response = await fetch(CTF_API_URL.replace('/api/chat', '/health'), {
       method: 'GET',
@@ -73,3 +72,4 @@ export async function isN8NConfigured(): Promise<boolean> {
     return false;
   }
 }
+

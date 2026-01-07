@@ -184,7 +184,7 @@ export interface Challenge {
 }
 
 /**
- * Save a challenge generated from n8n
+ * Save a challenge generated from the CTF automation service
  */
 export async function saveChallenge(challenge: Challenge, token: string): Promise<number> {
   try {
